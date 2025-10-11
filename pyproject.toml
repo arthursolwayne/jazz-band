@@ -1,0 +1,19 @@
+[project]
+name = "jazz-band"
+version = "0.1.0"
+description = "Multi-instrument symbolic music jam system with AI agents"
+requires-python = ">=3.10"
+dependencies = [
+    "music21>=9.1.0",
+    "wandb>=0.18.0",
+    "weave>=0.51.0",
+    "python-dotenv>=1.0.0",
+    "midi2audio>=0.1.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = []
