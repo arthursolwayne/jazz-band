@@ -39,6 +39,7 @@ Thumbs.db
 
 # Project specific
 artifacts/*.mid
+artifacts/memory.json
 !artifacts/.gitkeep
 
 # Logs
