@@ -20,47 +20,35 @@ Foundation for symbolic music generation with music21 and W&B Weave telemetry.
 
 ---
 
-## Subplan 2: Agents & Judge (NEXT)
+## Subplan 2: Agents & Judge ✓ COMPLETED
 
-Introduce LLM-based agents: Composer (generates JamJSON) and Judge (evaluates performances).
+LLM-based agents with chemistry memory and dry-run testing mode.
 
-### Goals
-- **Composer Agent**: Takes musical context and generates valid JamJSON for all 5 instruments
-- **Judge Agent**: Listens to MIDI (via symbolic score) and provides feedback on:
-  - Harmonic coherence (do parts work together?)
-  - Rhythmic groove (does the rhythm section lock in?)
-  - Melodic interest (are sax/trumpet lines engaging?)
-  - Overall balance (are all instruments contributing appropriately?)
-- **Session Loop**: Run multiple Composer → Judge cycles with feedback integration
-- **Weave Telemetry**: Log prompts, responses, scores, and judgments
+- [x] Create prompt templates (prompts/composer.md, judge.md)
+- [x] Implement ChemistryMemory (MotifBank, StyleVector, InterplayLedger)
+- [x] Implement Composer agent interface with dry-run mode
+- [x] Implement Judge agent interface with dry-run mode
+- [x] Create LLM wrapper mirroring 2048.py pattern (WANDBAPIKEY only)
+- [x] Build agents_smoke_test.py flow
+- [x] Verify Weave run with session_001.mid and memory.json
+- [x] Update README with agent usage examples
 
-### Key Tasks
-- [ ] Design Composer agent prompt template
-  - Context: key, tempo, time signature, number of bars, style hints
-  - Output: Valid JamJSON structure
-  - Constraints: Instrument ranges, duration constraints, musical rules
-- [ ] Implement Composer agent using OpenAI/Anthropic API
-  - Structured output (JSON mode or function calling)
-  - Retry logic for malformed JSON
-  - Integration with JamJSON validator (repair if possible)
-- [ ] Design Judge agent prompt template
-  - Input: JamJSON or music21 score representation
-  - Output: Structured feedback (scores + commentary)
-  - Criteria: harmony, rhythm, melody, balance
-- [ ] Implement Judge agent
-  - Parse score for analysis
-  - Return actionable feedback for next iteration
-- [ ] Create session runner script
-  - Run N composer-judge cycles
-  - Pass judge feedback to next composer iteration
-  - Log all interactions to Weave
-- [ ] Add tests for agent outputs and session flow
-- [ ] Update README with agent usage examples
+### Deliverables
+- `prompts/composer.md`, `prompts/judge.md` - Agent system prompts
+- `src/jazz_band/memory/chemistry.py` - Pattern tracking (motifs, style, interplay)
+- `src/jazz_band/agents/llm.py` - LLM wrapper with dry-run mode
+- `src/jazz_band/agents/composer.py` - Composer agent (generates bars)
+- `src/jazz_band/agents/judge.py` - Judge agent (evaluates & critiques)
+- `tests/agents_smoke_test.py` - Integration test
+- `artifacts/session_001.mid` - Extended 8-bar arrangement
+- `artifacts/memory.json` - Chemistry memory snapshot
 
-### Tech Decisions
-- **LLM Provider**: OpenAI GPT-4 or Anthropic Claude (decide based on structured output quality)
-- **Prompt Engineering**: Start simple, iterate based on output quality
-- **Feedback Loop**: Direct text feedback vs. structured scores (experiment to find what works)
+### Key Features
+- Dry-run mode works without LLM (deterministic stubs for testing)
+- LLM mode uses OpenAI API with Weave logging
+- Chemistry memory tracks motifs, style characteristics, and interplay
+- Judge provides 4-dimensional scoring (harmony, rhythm, melody, interplay)
+- Composer uses memory and context to generate coherent continuations
 
 ---
 
