@@ -183,6 +183,20 @@ The prompt also gained architectural constraints:
 - Bars 2-4: Add snare and bass. Piano and sax still rest.
 ```
 
+#### Audio Examples
+
+**Worst (Generation 0, Individual 5 - Judge Score: 3.6/10)**:
+<audio controls>
+  <source src="audio/gepa_worst.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+**Best (Generation 19, Individual 2 - Judge Score: 4.0/10)**:
+<audio controls>
+  <source src="audio/gepa_best.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
 See `artifacts/elites/gen_000_ind_0005/` for worst (3.6/10) and `artifacts/elites/gen_019_ind_0002/` for best (4.0/10).
 
 ---
@@ -287,6 +301,20 @@ RLVR uses ART (Algorithmic Reasoning Transformer) with trajectory-based reinforc
   - No 7th chords: -0.3
   - No upbeat syncopation (<0.1): -0.3
 - **Early Stopping**: If judge score plateaus for 5 steps or drops below 6.0 at step 10
+
+#### Audio Examples
+
+**Worst (Step 25 - Reward: 0.635)**:
+<audio controls>
+  <source src="audio/rlvr_worst.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+**Best (Step 0 - Reward: 1.014)**:
+<audio controls>
+  <source src="audio/rlvr_best.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
 
 See `artifacts/checkpoints/step_030/` for final checkpoint artifacts.
 
