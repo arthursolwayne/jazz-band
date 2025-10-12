@@ -5,6 +5,8 @@
 
 Despite not making it onto the Millburn Middle School Jazz Squad, I like Jazz. And after going to a SF Tech-Week AI DJ Penthouse Mixer, alongside having some recently-published work on the top of my mind, I was inspired to take matters into my own hands and re-realize my middle school dreams: to make a Jazz Band.
 
+**Listen to audio examples**: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
+
 The approach was inspired by the following works:
 
 1. **Reinforcement Learning for Reasoning in Large Language Models with One Training Example** ([arxiv:2504.20571](https://arxiv.org/abs/2504.20571))
@@ -18,8 +20,6 @@ The approach was inspired by the following works:
 3. **GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning** ([arxiv:2507.19457](https://arxiv.org/abs/2507.19457))
 
    Demonstrates reflective prompt evolution with natural language feedback outperforms both reinforcement learning and competing optimizers, achieving 35x greater sample efficiency than GRPO with 10-20% higher performance.
-
-   **Listen to audio examples**: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
 
 ## Research Questions
 
