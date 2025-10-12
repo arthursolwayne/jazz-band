@@ -1,9 +1,0 @@
-chord_density: 0.5656500623325317
-do_list: []
-dont_list:
-- Reduce left-hand piano density
-- Avoid excessive rests in bass line
-ghost_note_prob: 0.1894848304288767
-interplay_density: 0.17676926834498086
-motif_reuse_weight: 0.25284412986896626
-syncopation_target: 0.6138982475476401

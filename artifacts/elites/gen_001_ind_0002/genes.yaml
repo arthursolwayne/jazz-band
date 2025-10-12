@@ -1,9 +1,0 @@
-chord_density: 0.6415625663996719
-do_list:
-- Add piano voicings beyond simple triads
-dont_list:
-- Minimize simultaneous melodic motion in sax/trumpet
-ghost_note_prob: 0.08799146251539948
-interplay_density: 0.3182417328001158
-motif_reuse_weight: 0.6908777115601746
-syncopation_target: 0.30621262907465535

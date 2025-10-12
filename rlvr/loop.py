@@ -26,12 +26,13 @@ from collections import deque
 
 import requests
 import weave
+import wandb
 from pydantic import BaseModel
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from jazz_band.agents import compose_bars, critique
+from jazz_band.agents import compose_bars, critique_parallel
 from jazz_band.agents.llm import init_model, load_prompt, extract_json_from_response
 from jazz_band.agents.composer import _build_composer_user_prompt
 from jazz_band.agents.judge import _build_judge_user_prompt, _validate_critique_structure
@@ -126,9 +127,6 @@ async def rollout(
                 "key": scenario.key,
                 "tempo": scenario.tempo,
                 "session_id": scenario.session_id,
-                "use_rlvr_prompts": use_rlvr_prompts,
-                "composer_prompt": composer_prompt_name,
-                "judge_prompt": judge_prompt_name,
             },
             reward=0.0,
         )
@@ -141,7 +139,6 @@ async def rollout(
                 "key": scenario.key,
                 "tempo": scenario.tempo,
                 "session_id": scenario.session_id,
-                "use_rlvr_prompts": use_rlvr_prompts,
             },
             'reward': 0.0,
             'metrics': {},
@@ -159,7 +156,7 @@ async def rollout(
                 return trajectory
             jam_json = cleaned_jam
 
-            critique_result = await critique(model=None, jam_json=jam_json, summary=f"RLVR step {scenario.step}")
+            critique_result = await critique_parallel(model=None, jam_json=jam_json, summary=f"RLVR step {scenario.step}")
             judge_score = critique_result.get("overall_score", 0.0)
 
         # ===== LLM MODE: Direct OpenAI calls to populate trajectory =====
@@ -371,6 +368,7 @@ async def train_rlvr(
     project: str = "jazz-band-rlvr",
     model_name: str = "composer-rlvr-001",
     base_model: str = "OpenPipe/Qwen3-14B-Instruct",
+    use_rlvr_prompts: bool = True,
 ) -> Dict:
     """
     Main RLVR training loop.
@@ -387,15 +385,27 @@ async def train_rlvr(
     Returns:
         Dict with training summary (best reward, final metrics, etc.)
     """
-    # Initialize Weave (only if not dry-run and API key available)
+    # Initialize Weave and W&B (only if not dry-run and API key available)
     if not dry_run:
         # Set WANDB_API_KEY from WANDBAPIKEY if needed (following 2048.py pattern)
         api_key = os.environ.get("WANDB_API_KEY") or os.environ.get("WANDBAPIKEY")
         if api_key:
             os.environ["WANDB_API_KEY"] = api_key
             weave.init(project)
+            # Initialize wandb for metrics tracking
+            wandb.init(
+                project=project,
+                config={
+                    "num_steps": num_steps,
+                    "rollouts_per_step": rollouts_per_step,
+                    "learning_rate": learning_rate,
+                    "base_model": base_model,
+                    "model_name": model_name,
+                },
+                tags=["rlvr", "jazz-band", "composer"],
+            )
         else:
-            print("⚠️  WANDB_API_KEY not set - Weave logging disabled")
+            print("⚠️  WANDB_API_KEY not set - Weave and W&B logging disabled")
 
     # Reset exploration bonuses
     reset_exploration_bonuses()
@@ -442,7 +452,7 @@ async def train_rlvr(
             train_groups = await art.gather_trajectory_groups(
                 (
                     art.TrajectoryGroup(
-                        rollout(model, scenario, use_rlvr_prompts)
+                        rollout(model, scenario)
                         for scenario in scenarios
                     )
                     for _ in range(1)
@@ -458,6 +468,11 @@ async def train_rlvr(
             all_trajectories = []
             for group in train_groups:
                 all_trajectories.extend(group.trajectories)
+
+            # Handle case where all rollouts failed
+            if len(all_trajectories) == 0:
+                print(f"  ⚠️  WARNING: All rollouts failed at step {step}. Skipping this step.")
+                continue
 
             step_rewards = [t.reward for t in all_trajectories]
             step_judge_scores = [t.metrics.get("judge_score", 0.0) for t in all_trajectories]
@@ -488,6 +503,19 @@ async def train_rlvr(
                 best_judge_score=best_judge_score,
             )
             checkpoint_history.append(checkpoint)
+
+            # Log to wandb (LLM mode)
+            if not dry_run:
+                wandb.log({
+                    "step": step,
+                    "avg_reward": avg_reward,
+                    "max_reward": max_reward,
+                    "avg_judge_score": avg_judge,
+                    "max_judge_score": max_judge,
+                    "best_reward": best_reward,
+                    "best_judge_score": best_judge_score,
+                    "curriculum_phase": get_curriculum_phase_name(step),
+                })
 
             # Early stopping check (LLM mode)
             if len(checkpoint_history) == 3 and step >= 6:
@@ -563,6 +591,10 @@ async def train_rlvr(
     print(f"Early Stop Triggered: {early_stop_triggered}")
     print(f"Best Average Reward: {best_reward:.3f}")
     print(f"Best Judge Score: {best_judge_score:.2f}/10")
+
+    # Finish wandb run
+    if not dry_run:
+        wandb.finish()
 
     return {
         "num_steps": step + 1,

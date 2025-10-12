@@ -6,11 +6,11 @@ exploration bonuses, and penalty hooks.
 
 Strategy:
 - Phase A (steps 0-5): Focus on rhythm (syncopation + groove = 60% weight)
-- Phase B (steps 6-10): Add harmony and activation metrics
+- Phase B (steps 6-10): Add harmony and space density metrics
 - Phase C (steps 11+): Anneal Judge score weight from 0.10 → 0.30
 
 Exploration bonuses reward first-time achievements (e.g., first time hitting
-trumpet_activation ≥ 0.5).
+upbeat_syncopation ≥ 0.6).
 
 Penalty hooks punish invalid outputs and rule violations.
 """
@@ -41,7 +41,6 @@ class RewardWeights:
 
     # Harmony & activation
     seventh_chords: float
-    trumpet_activation: float
     space_density: float
 
     # Baseline stability
@@ -57,7 +56,6 @@ class RewardWeights:
             self.upbeat_syncopation +
             self.groove_alignment +
             self.seventh_chords +
-            self.trumpet_activation +
             self.space_density +
             self.consonance +
             self.density_regularity +
@@ -81,9 +79,8 @@ def get_curriculum_weights(step: int) -> RewardWeights:
         return RewardWeights(
             upbeat_syncopation=0.35,    # PRIMARY FOCUS
             groove_alignment=0.25,      # SECONDARY FOCUS
-            seventh_chords=0.10,        # Low weight
-            trumpet_activation=0.05,    # Low weight
-            space_density=0.05,         # Low weight
+            seventh_chords=0.12,        # Increased from 0.10
+            space_density=0.08,         # Increased from 0.05
             consonance=0.10,            # Baseline stability
             density_regularity=0.05,    # Baseline stability
             judge_score=0.05,           # Minimal Judge influence early
@@ -94,11 +91,10 @@ def get_curriculum_weights(step: int) -> RewardWeights:
         return RewardWeights(
             upbeat_syncopation=0.25,    # Still important
             groove_alignment=0.15,      # Still important
-            seventh_chords=0.15,        # INCREASED
-            trumpet_activation=0.10,    # INCREASED
-            space_density=0.10,         # INCREASED
+            seventh_chords=0.18,        # Increased from 0.15
+            space_density=0.12,         # Increased from 0.10
             consonance=0.10,            # Baseline stability
-            density_regularity=0.05,    # Baseline stability
+            density_regularity=0.10,    # Increased from 0.05
             judge_score=0.10,           # Moderate Judge influence
         )
 
@@ -107,17 +103,16 @@ def get_curriculum_weights(step: int) -> RewardWeights:
         # Judge weight increases from 0.10 → 0.30 over steps 11-20
         judge_weight = min(0.30, 0.10 + (step - 11) * 0.02)
 
-        # Rebalance other weights proportionally
+        # Rebalance other weights proportionally (removed trumpet_activation)
         base_weights = 1.0 - judge_weight
 
         return RewardWeights(
-            upbeat_syncopation=0.25 * base_weights / 0.90,
-            groove_alignment=0.15 * base_weights / 0.90,
-            seventh_chords=0.15 * base_weights / 0.90,
-            trumpet_activation=0.10 * base_weights / 0.90,
-            space_density=0.10 * base_weights / 0.90,
-            consonance=0.10 * base_weights / 0.90,
-            density_regularity=0.05 * base_weights / 0.90,
+            upbeat_syncopation=0.25 * base_weights / 0.80,
+            groove_alignment=0.15 * base_weights / 0.80,
+            seventh_chords=0.18 * base_weights / 0.80,
+            space_density=0.12 * base_weights / 0.80,
+            consonance=0.05 * base_weights / 0.80,
+            density_regularity=0.05 * base_weights / 0.80,
             judge_score=judge_weight,
         )
 
@@ -159,21 +154,14 @@ def check_exploration_bonuses(
             bonus += 0.2
             _exploration_bonuses_granted.add(key)
 
-    # Bonus 2: First time hitting trumpet_activation ≥ 0.5
-    if metrics["trumpet_activation"] >= 0.5:
-        key = f"trumpet_activation_50_{session_id}"
-        if key not in _exploration_bonuses_granted:
-            bonus += 0.2
-            _exploration_bonuses_granted.add(key)
-
-    # Bonus 3: First time hitting seventh_chord_usage ≥ 0.75
+    # Bonus 2: First time hitting seventh_chord_usage ≥ 0.75
     if metrics["seventh_chord_usage"] >= 0.75:
         key = f"seventh_chords_75_{session_id}"
         if key not in _exploration_bonuses_granted:
             bonus += 0.15
             _exploration_bonuses_granted.add(key)
 
-    # Bonus 4: First time hitting space_density ≥ 0.5
+    # Bonus 3: First time hitting space_density ≥ 0.5
     if metrics["space_density"] >= 0.5:
         key = f"space_density_50_{session_id}"
         if key not in _exploration_bonuses_granted:
@@ -205,16 +193,11 @@ def apply_penalty_hooks(
     if not is_valid or jam_json is None:
         return -1.0  # Maximum penalty
 
-    # Penalty 2: Trumpet plays < 3 bars (severe violation)
-    # trumpet_activation < 0.375 means < 3 bars out of 8
-    if metrics["trumpet_activation"] < 0.375:
-        penalty += 0.5
-
-    # Penalty 3: No 7th chords at all (harmony violation)
+    # Penalty 2: No 7th chords at all (harmony violation)
     if metrics["seventh_chord_usage"] == 0.0:
         penalty += 0.3
 
-    # Penalty 4: No upbeat syncopation (rhythm violation)
+    # Penalty 3: No upbeat syncopation (rhythm violation)
     if metrics["upbeat_syncopation"] < 0.1:
         penalty += 0.3
 
@@ -261,7 +244,6 @@ def calculate_reward(
         weights.upbeat_syncopation * metrics["upbeat_syncopation"] +
         weights.groove_alignment * metrics["groove_alignment"] +
         weights.seventh_chords * metrics["seventh_chord_usage"] +
-        weights.trumpet_activation * metrics["trumpet_activation"] +
         weights.space_density * metrics["space_density"] +
         weights.consonance * metrics["consonance"] +
         weights.density_regularity * metrics["density_regularity"] +
@@ -282,7 +264,6 @@ def calculate_reward(
         "upbeat_syncopation": weights.upbeat_syncopation * metrics["upbeat_syncopation"],
         "groove_alignment": weights.groove_alignment * metrics["groove_alignment"],
         "seventh_chords": weights.seventh_chords * metrics["seventh_chord_usage"],
-        "trumpet_activation": weights.trumpet_activation * metrics["trumpet_activation"],
         "space_density": weights.space_density * metrics["space_density"],
         "consonance": weights.consonance * metrics["consonance"],
         "density_regularity": weights.density_regularity * metrics["density_regularity"],

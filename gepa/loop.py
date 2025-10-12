@@ -16,6 +16,7 @@ from typing import Dict, List, Optional
 from dotenv import load_dotenv
 
 import weave
+import wandb
 import yaml
 
 # Add src to path
@@ -108,11 +109,29 @@ async def evaluate_population(
             # Assign poor objectives
             individual.objectives = [0.0] * 6
 
+    # Calculate population statistics for logging
+    valid_individuals = [ind for ind in population.individuals if ind.objectives is not None]
+    stats = {}
+    if valid_individuals:
+        # Extract objectives (assuming index 5 is judge_score normalized to 0-1)
+        judge_scores = [ind.objectives[5] * 10 for ind in valid_individuals if len(ind.objectives) > 5]
+        groove_scores = [ind.objectives[0] for ind in valid_individuals if len(ind.objectives) > 0]
+
+        if judge_scores:
+            stats["avg_judge_score"] = sum(judge_scores) / len(judge_scores)
+            stats["max_judge_score"] = max(judge_scores)
+            stats["min_judge_score"] = min(judge_scores)
+
+        if groove_scores:
+            stats["avg_groove_alignment"] = sum(groove_scores) / len(groove_scores)
+            stats["max_groove_alignment"] = max(groove_scores)
+
     print()
     return {
         "jam_jsons": jam_jsons,
         "memories": memories,
         "critiques": critiques,
+        "stats": stats,
     }
 
 
@@ -197,7 +216,7 @@ async def evolve_generation(
 
     print(f"  Created {len(next_generation)} individuals for generation {generation+1}")
 
-    return new_pop, fronts
+    return new_pop, fronts, eval_results
 
 
 @weave.op
@@ -208,6 +227,7 @@ async def run_gepa(
     seed: Optional[int] = None,
     dry_run: bool = True,
     mutation_rate: float = 0.8,
+    enable_early_stopping: bool = True,
 ) -> Dict:
     """
     Main GEPA loop.
@@ -219,6 +239,7 @@ async def run_gepa(
         seed: Random seed for reproducibility
         dry_run: If True, use dry-run mode (no LLM)
         mutation_rate: Mutation rate (0.0 to 1.0)
+        enable_early_stopping: If True, stop early if judge score < 6.0 after gen 10
 
     Returns:
         Results dictionary with metrics and artifacts
@@ -231,6 +252,7 @@ async def run_gepa(
     print(f"Seed: {seed}")
     print(f"Mode: {'DRY-RUN' if dry_run else 'LLM-ENABLED'}")
     print(f"Mutation Rate: {mutation_rate}")
+    print(f"Early Stopping: {'ENABLED' if enable_early_stopping else 'DISABLED'}")
     print()
 
     # Set seed
@@ -238,6 +260,19 @@ async def run_gepa(
         random.seed(seed)
 
     # Initialize ART model (following 2048.py pattern)
+    # Initialize wandb for tracking
+    wandb.init(
+        project="jazz-band-gepa",
+        config={
+            "generations": generations,
+            "population_size": population_size,
+            "seed": seed,
+            "mutation_rate": mutation_rate,
+            "mode": "dry-run" if dry_run else "llm",
+        },
+        tags=["gepa", "progressive-arrangement", "5-part-ensemble"],
+    )
+
     print("Initializing model...")
     if dry_run:
         model = None
@@ -280,8 +315,8 @@ async def run_gepa(
         print(f"# Generation {gen}/{generations-1}")
         print(f"{'#'*60}\n")
 
-        # Evolve (returns new population and evaluated fronts)
-        population, fronts = await evolve_generation(
+        # Evolve (returns new population, evaluated fronts, and eval results)
+        population, fronts, eval_results = await evolve_generation(
             model=model,
             population=population,
             generation=gen,
@@ -307,11 +342,42 @@ async def run_gepa(
 
         results["generations"].append(gen_metrics)
 
+        # Log to wandb
+        log_dict = {
+            "generation": gen,
+            "front_sizes": len(fronts[0]) if len(fronts) > 0 else 0,
+        }
+
+        # Add stats from evaluation
+        eval_stats = eval_results.get("stats", {})
+        log_dict.update(eval_stats)
+
+        # Log best individual objectives if available
+        if len(fronts) > 0 and len(fronts[0]) > 0:
+            best_ind = fronts[0][0]
+            if best_ind.objectives and len(best_ind.objectives) > 5:
+                log_dict["best_groove_alignment"] = best_ind.objectives[0]
+                log_dict["best_judge_score"] = best_ind.objectives[5] * 10
+
+                # Log MIDI of best individual
+                best_midi_path = archive_dir / f"gen_{gen:03d}_ind_{best_ind.id:04d}" / "jam.mid"
+                if best_midi_path.exists():
+                    wandb.log({
+                        **log_dict,
+                        "best_midi": wandb.Audio(str(best_midi_path), sample_rate=44100)
+                    })
+                else:
+                    wandb.log(log_dict)
+            else:
+                wandb.log(log_dict)
+        else:
+            wandb.log(log_dict)
+
         print(f"\nGeneration {gen} complete!")
         print(f"  Front sizes: {gen_metrics['front_sizes']}")
 
         # Early stopping: If after Gen 10, best judge score is < 6.0, stop evolution
-        if gen >= 10 and len(fronts) > 0 and len(fronts[0]) > 0:
+        if enable_early_stopping and gen >= 10 and len(fronts) > 0 and len(fronts[0]) > 0:
             # Filter out individuals with None objectives
             valid_individuals = [ind for ind in fronts[0] if ind.objectives is not None and len(ind.objectives) > 5]
             if len(valid_individuals) > 0:
@@ -331,6 +397,9 @@ async def run_gepa(
     print(f"Elites archived to: {archive_dir}")
     print()
 
+    # Finish wandb run
+    wandb.finish()
+
     return results
 
 
@@ -343,6 +412,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Use dry-run mode (no LLM)")
     parser.add_argument("--use-llm", action="store_true", help="Enable LLM mode (requires WANDB_API_KEY)")
     parser.add_argument("--mutation-rate", "-m", type=float, default=0.8, help="Mutation rate (0.0-1.0)")
+    parser.add_argument("--no-early-stopping", action="store_true", help="Disable early stopping (run all generations)")
 
     args = parser.parse_args()
 
@@ -373,6 +443,7 @@ def main():
         seed=args.seed,
         dry_run=dry_run,
         mutation_rate=args.mutation_rate,
+        enable_early_stopping=not args.no_early_stopping,
     ))
 
     print("\nResults summary:")

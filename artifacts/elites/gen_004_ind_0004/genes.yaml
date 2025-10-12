@@ -1,8 +1,0 @@
-chord_density: 0.620268172393881
-do_list: []
-dont_list:
-- Reduce left-hand piano density
-ghost_note_prob: 0.2628825913085733
-interplay_density: 0.0773837557333713
-motif_reuse_weight: 0.46893538047614086
-syncopation_target: 0.6327174438338219
