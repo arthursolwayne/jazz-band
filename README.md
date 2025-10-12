@@ -23,7 +23,7 @@ The approach was inspired by the following works:
 
 ## Research Questions
 
-1. Is it possible for language models to acquire *new* compositional skills?
+1. How can language models to acquire *new* compositional skills?
 2. Is Reinforcement Learning or In-Context Learning a more effective approach to acquiring such compositional skills?
 
 ## The Compositional Task
