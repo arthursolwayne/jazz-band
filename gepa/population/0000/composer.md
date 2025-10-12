@@ -110,7 +110,7 @@ These are **NON-NEGOTIABLE requirements**. Every composition MUST follow ALL of 
 
 ## CRITICAL EXAMPLES (Inline)
 
-### CORRECT: Cmaj7 (7th chord - 4 notes)
+### ✓ CORRECT: Cmaj7 (7th chord - 4 notes)
 ```json
 "piano": [
   {"pitch": "C4", "dur": "h", "vel": "med"},
@@ -120,7 +120,7 @@ These are **NON-NEGOTIABLE requirements**. Every composition MUST follow ALL of 
 ]
 ```
 
-### WRONG: C major triad (3 notes - FORBIDDEN)
+### ✗ WRONG: C major triad (3 notes - FORBIDDEN)
 ```json
 "piano": [
   {"pitch": "C4", "dur": "h", "vel": "med"},
@@ -131,21 +131,21 @@ These are **NON-NEGOTIABLE requirements**. Every composition MUST follow ALL of 
 
 ---
 
-### CORRECT: Latin hihat (upbeats emphasized)
+### ✓ CORRECT: Latin hihat (upbeats emphasized)
 ```json
 "hihat": [
   {"pitch": "rest", "dur": "e"},                    // 1 (SKIP downbeat!)
-  {"pitch": "hihat", "dur": "e", "vel": "hi"},      // and (UPBEAT!)
+  {"pitch": "hihat", "dur": "e", "vel": "hi"},      // and ✓ (UPBEAT!)
   {"pitch": "rest", "dur": "e"},                    // 2 (SKIP!)
-  {"pitch": "hihat", "dur": "e", "vel": "hi"},      // and (UPBEAT!)
+  {"pitch": "hihat", "dur": "e", "vel": "hi"},      // and ✓ (UPBEAT!)
   {"pitch": "hihat", "dur": "e", "vel": "med"},     // 3 (light ok)
-  {"pitch": "hihat", "dur": "e", "vel": "hi"},      // and (UPBEAT!)
+  {"pitch": "hihat", "dur": "e", "vel": "hi"},      // and ✓ (UPBEAT!)
   {"pitch": "rest", "dur": "e"},                    // 4 (SKIP!)
-  {"pitch": "hihat", "dur": "e", "vel": "hi"}       // and (UPBEAT!)
+  {"pitch": "hihat", "dur": "e", "vel": "hi"}       // and ✓ (UPBEAT!)
 ]
 ```
 
-### WRONG: Straight quarters (FORBIDDEN - not Latin jazz)
+### ✗ WRONG: Straight quarters (FORBIDDEN - not Latin jazz)
 ```json
 "hihat": [
   {"pitch": "hihat", "dur": "q", "vel": "med"},     // 1 - NO!
@@ -157,7 +157,7 @@ These are **NON-NEGOTIABLE requirements**. Every composition MUST follow ALL of 
 
 ---
 
-### CORRECT: Phrased melody (has shape + rests)
+### ✓ CORRECT: Phrased melody (has shape + rests)
 ```json
 "sax": [
   {"pitch": "rest", "dur": "e"},                // breathing space
@@ -170,7 +170,7 @@ These are **NON-NEGOTIABLE requirements**. Every composition MUST follow ALL of 
 ]
 ```
 
-### WRONG: Scalar run (FORBIDDEN - sounds like exercise)
+### ✗ WRONG: Scalar run (FORBIDDEN - sounds like exercise)
 ```json
 "sax": [
   {"pitch": "C4", "dur": "e", "vel": "med"},
@@ -198,3 +198,12 @@ Your composition MUST:
 - Activate trumpet in bars 3-8 (NOT silent for 8 bars)
 - Stay in one key (NO modulation)
 - Use strategic silence (NOT all instruments every bar)
+
+
+### GEPA-Evolved Constraints:
+- Replace piano triads with 7th chords (Cmaj7, Dm7, G7) minimum
+- Add chromatic approach notes to saxophone lines for bebop flavor
+
+### GEPA-Evolved Constraints:
+- Replace piano triads with 7th chords (Cmaj7, Dm7, G7) minimum
+- Add chromatic approach notes to saxophone lines for bebop flavor

@@ -1,15 +1,15 @@
 """
 LLM Inference Wrapper
 
-Mirrors the 2048.py pattern for OpenAI client usage with Weave logging.
+Mirrors the 2048.py pattern for ART TrainableModel usage with Weave logging.
 Supports dry-run mode for testing without LLM calls.
 
 Usage:
-    from jazz_band.agents.llm import get_llm_client, load_prompt
+    from jazz_band.agents.llm import init_model, load_prompt
 
-    client = get_llm_client(dry_run=False)
+    model = await init_model(project="jazz-band", dry_run=False)
     prompt = load_prompt("composer")
-    response = await client.chat.completions.create(...)
+    response = await call_llm(model, system_prompt, user_prompt)
 """
 
 import os
@@ -28,47 +28,67 @@ logging.getLogger("weave").setLevel(logging.CRITICAL)
 load_dotenv()
 
 
-def get_llm_client(dry_run: bool = False):
+async def init_model(
+    project: str = "jazz-band",
+    model_name: str = "composer-001",
+    base_model: str = "OpenPipe/Qwen3-14B-Instruct",
+    dry_run: bool = False
+):
     """
-    Get OpenAI client for LLM inference.
+    Initialize ART TrainableModel with ServerlessBackend.
 
-    Mirrors 2048.py pattern: uses WANDBAPIKEY for authentication.
-    In dry-run mode, returns None (calls will be mocked).
+    Mirrors 2048.py pattern exactly. In dry-run mode, returns None.
 
     Args:
+        project: W&B project name for this model
+        model_name: Name for this model instance
+        base_model: Base model to use (default: OpenPipe/Qwen3-14B-Instruct)
         dry_run: If True, return None (for testing without LLM)
 
     Returns:
-        AsyncOpenAI client or None
+        art.TrainableModel instance or None
 
     Raises:
-        ValueError: If WANDBAPIKEY not set and not in dry-run mode
+        ValueError: If WANDB_API_KEY not set and not in dry-run mode
     """
     if dry_run:
         return None
 
     # Check for API key (following 2048.py pattern)
-    api_key = os.environ.get("WANDBAPIKEY") or os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("WANDB_API_KEY") or os.environ.get("WANDBAPIKEY")
     if not api_key:
         raise ValueError(
-            "WANDBAPIKEY or OPENAI_API_KEY is required for LLM inference. "
+            "WANDB_API_KEY is required for inference and training. "
             "Set it in your environment or use --dry-run mode."
         )
 
+    # Set environment variable for ART
+    os.environ["WANDB_API_KEY"] = api_key
+
     # Import here to avoid dependency in dry-run mode
     try:
-        from openai import AsyncOpenAI
+        import art
+        from art.serverless.backend import ServerlessBackend
     except ImportError:
         raise ImportError(
-            "openai package required for LLM mode. "
-            "Install with: uv pip install openai"
+            "openpipe-art package required for LLM mode. "
+            "Install with: uv pip install openpipe-art"
         )
 
-    # Create client
-    # For now, use OpenAI directly. Later subplans will use ART/W&B infrastructure
-    client = AsyncOpenAI(api_key=api_key)
+    # Create model (following 2048.py pattern)
+    model = art.TrainableModel(
+        name=model_name,
+        project=project,
+        base_model=base_model,
+    )
 
-    return client
+    # Initialize the serverless backend
+    backend = ServerlessBackend()
+
+    # Register model with backend (sets up logging, inference, and training)
+    await model.register(backend)
+
+    return model
 
 
 def load_prompt(prompt_name: str) -> str:
@@ -101,23 +121,22 @@ def load_prompt(prompt_name: str) -> str:
 
 @weave.op
 async def call_llm(
-    client,
+    model,
     system_prompt: str,
     user_prompt: str,
-    model: str = "gpt-4o-mini",
     max_tokens: int = 2000,
     temperature: float = 0.7,
 ) -> str:
     """
     Call LLM with system and user prompts.
 
-    Decorated with @weave.op for automatic Weave logging (following 2048.py pattern).
+    Mirrors 2048.py pattern: uses ART model's inference endpoint.
+    Decorated with @weave.op for automatic Weave logging.
 
     Args:
-        client: AsyncOpenAI client (or None for dry-run)
+        model: art.TrainableModel instance (or None for dry-run)
         system_prompt: System message (role definition)
         user_prompt: User message (task description)
-        model: Model name (default: gpt-4o-mini for cost efficiency)
         max_tokens: Maximum response tokens
         temperature: Sampling temperature
 
@@ -127,18 +146,34 @@ async def call_llm(
     Raises:
         Exception: If LLM call fails
     """
-    if client is None:
+    if model is None:
         # Dry-run mode: return placeholder
         return '{"dry_run": true, "message": "This is a dry-run response"}'
 
+    # Import here to avoid dependency in dry-run mode
     try:
+        from openai import AsyncOpenAI
+    except ImportError:
+        raise ImportError(
+            "openai package required for LLM mode. "
+            "Install with: uv pip install openai"
+        )
+
+    try:
+        # Create client using model's inference endpoint (following 2048.py pattern)
+        client = AsyncOpenAI(
+            base_url=model.inference_base_url,
+            api_key=model.inference_api_key,
+        )
+
+        # Call with model's inference name (following 2048.py pattern)
         response = await client.chat.completions.create(
-            model=model,
+            model=model.get_inference_name(),
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature,
         )
 

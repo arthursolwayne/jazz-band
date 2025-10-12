@@ -2,18 +2,19 @@
 Agent Smoke Test for Subplan 2
 
 Tests the complete agent pipeline:
-1. Load Subplan 1 smoke jam (session_000.mid)
-2. Run Judge to evaluate and get feedback
-3. Update chemistry memory with patterns
-4. Optionally run Composer to add 4 more bars
-5. Export session_001.mid
-6. Log everything to W&B Weave
+1. Initialize ART model (OpenPipe/Qwen3-14B-Instruct via W&B Serverless)
+2. Load Subplan 1 smoke jam (session_000.mid)
+3. Run Judge to evaluate and get feedback
+4. Update chemistry memory with patterns
+5. Run Composer to add 4 more bars
+6. Export session_001.mid
+7. Log everything to W&B Weave
 
 Usage:
     # Dry-run mode (no LLM calls)
     python tests/agents_smoke_test.py --dry-run
 
-    # With LLM (requires WANDBAPIKEY)
+    # With LLM (requires WANDB_API_KEY)
     python tests/agents_smoke_test.py --use-llm
 """
 
@@ -31,6 +32,7 @@ from jazz_band.schema import validate_jam_json
 from jazz_band.score_builder import ScoreBuilder
 from jazz_band.memory import ChemistryMemory
 from jazz_band.agents import compose_bars, critique
+from jazz_band.agents.llm import init_model
 
 import weave
 
@@ -169,6 +171,21 @@ async def run_agent_smoke_test(dry_run: bool = True):
     print(f"Mode: {'DRY-RUN (no LLM)' if dry_run else 'LLM-ENABLED'}")
     print()
 
+    # Initialize ART model (following 2048.py pattern)
+    print("Step 0: Initializing ART model...")
+    if dry_run:
+        print("  ✓ Dry-run mode: model = None")
+        model = None
+    else:
+        print("  Initializing OpenPipe/Qwen3-14B-Instruct via W&B Serverless...")
+        model = await init_model(
+            project="jazz-band",
+            model_name="composer-001",
+            dry_run=False
+        )
+        print(f"  ✓ Model initialized: {model.get_inference_name()}")
+    print()
+
     # Step 1: Load Subplan 1 jam
     print("Step 1: Loading Subplan 1 smoke jam (4 bars)...")
     jam_json_original = await load_subplan1_jam()
@@ -178,9 +195,9 @@ async def run_agent_smoke_test(dry_run: bool = True):
     # Step 2: Run Judge
     print("Step 2: Running Judge agent to evaluate...")
     critique_result = await critique(
+        model=model,
         jam_json=jam_json_original,
         summary="Initial 4-bar jam from Subplan 1",
-        dry_run=dry_run,
     )
 
     print(f"  ✓ Overall Score: {critique_result['overall_score']}/10")
@@ -220,10 +237,10 @@ async def run_agent_smoke_test(dry_run: bool = True):
     }
 
     new_bars_json = await compose_bars(
+        model=model,
         jam_state=jam_state,
         memory=memory,
         bars_per_call=4,
-        dry_run=dry_run,
     )
 
     print(f"  ✓ Generated {new_bars_json['num_bars']} new bars")
@@ -310,16 +327,17 @@ def main():
     # Determine mode
     if args.use_llm:
         dry_run = False
-        # Validate API key
-        if not (os.environ.get("WANDBAPIKEY") or os.environ.get("OPENAI_API_KEY")):
-            print("ERROR: WANDBAPIKEY or OPENAI_API_KEY required for --use-llm mode")
+        # Validate API key (following 2048.py pattern)
+        if not (os.environ.get("WANDB_API_KEY") or os.environ.get("WANDBAPIKEY")):
+            print("ERROR: WANDB_API_KEY required for --use-llm mode")
             print("Set it in .env file or environment, or use --dry-run mode")
             sys.exit(1)
     else:
         dry_run = True
 
     # Initialize Weave (following 2048.py pattern)
-    os.environ["WANDB_API_KEY"] = os.environ.get("WANDBAPIKEY", "")
+    api_key = os.environ.get("WANDB_API_KEY") or os.environ.get("WANDBAPIKEY", "")
+    os.environ["WANDB_API_KEY"] = api_key
     weave.init("jazz-band")
 
     # Run test

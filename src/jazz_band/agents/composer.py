@@ -13,16 +13,15 @@ import weave
 
 from ..schema import validate_jam_json
 from ..memory.chemistry import ChemistryMemory
-from .llm import get_llm_client, load_prompt, call_llm, extract_json_from_response
+from .llm import load_prompt, call_llm, extract_json_from_response
 
 
 @weave.op
 async def compose_bars(
+    model,
     jam_state: Dict,
     memory: ChemistryMemory,
     bars_per_call: int = 4,
-    dry_run: bool = False,
-    model: str = "gpt-4o-mini",
 ) -> Dict:
     """
     Generate new bars of music using the Composer agent.
@@ -31,6 +30,7 @@ async def compose_bars(
     memory, then generates 1-4 new bars in strict JamJSON format.
 
     Args:
+        model: art.TrainableModel instance (or None for dry-run)
         jam_state: Musical context dictionary containing:
             - key: Key signature (e.g., "C", "Dm")
             - tempo: BPM (e.g., 120)
@@ -39,8 +39,6 @@ async def compose_bars(
             - form_position: Optional description of where we are (e.g., "verse", "chorus")
         memory: ChemistryMemory instance with motifs, style, interplay patterns
         bars_per_call: Number of bars to generate (1-4)
-        dry_run: If True, return deterministic stub instead of calling LLM
-        model: LLM model name (default: gpt-4o-mini)
 
     Returns:
         JamJSON dictionary containing the newly generated bars
@@ -51,11 +49,8 @@ async def compose_bars(
     """
 
     # Dry-run mode: return deterministic stub
-    if dry_run:
+    if model is None:
         return _generate_dry_run_bars(jam_state, bars_per_call)
-
-    # Get LLM client
-    client = get_llm_client(dry_run=False)
 
     # Load composer prompt
     system_prompt = load_prompt("composer")
@@ -63,13 +58,15 @@ async def compose_bars(
     # Build user prompt with context
     user_prompt = _build_composer_user_prompt(jam_state, memory, bars_per_call)
 
-    # Call LLM
+    # Call LLM (using ART model's inference endpoint)
+    # Increased max_tokens to 18000 to accommodate 16-bar JamJSON (~15000 tokens)
+    # Qwen3-14B-Instruct has 32K context window
+    # Set max_tokens to 8000 for 8-bar JamJSON (~6000-7000 tokens)
     response = await call_llm(
-        client=client,
+        model=model,
         system_prompt=system_prompt,
         user_prompt=user_prompt,
-        model=model,
-        max_tokens=2000,
+        max_tokens=8000,  # Reduced from 18000 for 8 bars
         temperature=0.7,
     )
 

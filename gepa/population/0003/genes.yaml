@@ -1,0 +1,12 @@
+chord_density: 0.0001088458377952739
+do_list:
+- Maintain walking bass with root-fifth patterns
+- Create call-response between sax and trumpet
+- Add piano voicings beyond simple triads
+dont_list:
+- Don't overuse chromatic runs in horns
+- Avoid excessive rests in bass line
+ghost_note_prob: 0.0
+interplay_density: 0.6786297518215214
+motif_reuse_weight: 0.3445377502603026
+syncopation_target: 0.4949857797592533

@@ -1,0 +1,9 @@
+chord_density: 0.48957798895782667
+do_list:
+- Add piano voicings beyond simple triads
+dont_list:
+- Avoid excessive rests in bass line
+ghost_note_prob: 0.13128795976011345
+interplay_density: 0.38357409821912214
+motif_reuse_weight: 0.4860686301769128
+syncopation_target: 0.3638270650039694
