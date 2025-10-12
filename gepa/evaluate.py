@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from jazz_band.schema import validate_jam_json
 from jazz_band.memory import ChemistryMemory
-from jazz_band.agents import compose_bars, critique
+from jazz_band.agents import compose_bars, critique_parallel
 
 
 @dataclass
@@ -303,8 +303,8 @@ async def evaluate_individual(
         bars_per_call=bars_to_generate,
     )
 
-    # Get Judge critique
-    critique_result = await critique(
+    # Get Judge critique (using parallel judge architecture)
+    critique_result = await critique_parallel(
         model=model,
         jam_json=jam_json,
         summary=f"GEPA evaluation: {bars_to_generate} bars",

@@ -126,41 +126,6 @@ def compute_seventh_chord_usage(jam_json: Dict) -> float:
     return bars_with_7th_chords / total_bars
 
 
-def compute_trumpet_activation(jam_json: Dict) -> float:
-    """
-    Metric 3: Trumpet Activation
-
-    Measures the fraction of bars where trumpet plays at least one non-rest note.
-    Trumpet is a lead instrument and should be active, not silent for entire piece.
-
-    Target: ≥50% of bars (i.e., 4+ bars out of 8).
-
-    Args:
-        jam_json: JamJSON dictionary
-
-    Returns:
-        Float 0.0 to 1.0 (proportion of bars with trumpet activity)
-    """
-    bars_with_trumpet = 0
-    total_bars = len(jam_json["bars"])
-
-    for bar in jam_json["bars"]:
-        trumpet_events = bar["parts"].get("trumpet", [])
-
-        # Check if any event in this bar is a non-rest note
-        has_trumpet = any(
-            event.get("pitch", "rest") != "rest"
-            for event in trumpet_events
-        )
-
-        if has_trumpet:
-            bars_with_trumpet += 1
-
-    if total_bars == 0:
-        return 0.5
-
-    return bars_with_trumpet / total_bars
-
 
 def compute_space_density(jam_json: Dict) -> float:
     """
@@ -379,7 +344,6 @@ def compute_all_metrics(jam_json: Dict, memory: ChemistryMemory = None) -> Dict[
         # Rhythm-first metrics (priority)
         "upbeat_syncopation": compute_upbeat_syncopation(jam_json),
         "seventh_chord_usage": compute_seventh_chord_usage(jam_json),
-        "trumpet_activation": compute_trumpet_activation(jam_json),
         "space_density": compute_space_density(jam_json),
 
         # Baseline metrics (stability)
