@@ -185,17 +185,10 @@ The prompt also gained architectural constraints:
 
 #### Audio Examples
 
-**Worst (Generation 0, Individual 5 - Judge Score: 3.6/10)**:
-<audio controls>
-  <source src="audio/gepa_worst.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
+Listen to GEPA compositions: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
 
-**Best (Generation 19, Individual 2 - Judge Score: 4.0/10)**:
-<audio controls>
-  <source src="audio/gepa_best.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
+- **Worst**: Generation 0, Individual 5 - Judge Score: 3.6/10 (`gepa_worst_gen0_ind5_judge3.6.mp3`)
+- **Best**: Generation 19, Individual 2 - Judge Score: 4.0/10 (`gepa_best_gen19_ind2_judge4.0.mp3`)
 
 See `artifacts/elites/gen_000_ind_0005/` for worst (3.6/10) and `artifacts/elites/gen_019_ind_0002/` for best (4.0/10).
 
@@ -304,17 +297,10 @@ RLVR uses ART (Algorithmic Reasoning Transformer) with trajectory-based reinforc
 
 #### Audio Examples
 
-**Worst (Step 25 - Reward: 0.635)**:
-<audio controls>
-  <source src="audio/rlvr_worst.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
+Listen to RLVR compositions: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
 
-**Best (Step 0 - Reward: 1.014)**:
-<audio controls>
-  <source src="audio/rlvr_best.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
+- **Worst**: Step 25 - Reward: 0.635 (`rlvr_worst_step25_reward0.64.mp3`)
+- **Best**: Step 0 - Reward: 1.014 (`rlvr_best_step0_reward1.01.mp3`)
 
 See `artifacts/checkpoints/step_030/` for final checkpoint artifacts.
 
