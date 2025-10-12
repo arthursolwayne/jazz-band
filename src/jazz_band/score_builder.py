@@ -96,21 +96,109 @@ class ScoreBuilder:
 
             parts[inst_name] = part
 
+        # Get expected bar duration from time signature
+        time_sig = meter.TimeSignature(jam_json["time_sig"])
+        bar_duration = time_sig.barDuration.quarterLength
+
         # Process each bar
         for bar_data in jam_json["bars"]:
             for inst_name, events in bar_data["parts"].items():
                 part = parts[inst_name]
-                for event in events:
-                    # Convert event to music21 object
-                    m21_obj = self._event_to_music21(event, inst_name)
-                    if m21_obj:
-                        part.append(m21_obj)
+
+                # Special handling for piano: check if events should be a chord
+                if inst_name == "piano" and self._should_be_chord(events):
+                    # Create a chord from all pitched notes with the same duration
+                    chord_notes = []
+                    duration_value = None
+                    velocity_value = 70  # default
+
+                    for event in events:
+                        if event["pitch"] != "rest":
+                            try:
+                                n = note.Note(event["pitch"])
+                                chord_notes.append(n)
+                                # Get duration from first note
+                                if duration_value is None:
+                                    duration_map = {"e": 0.5, "q": 1.0, "h": 2.0, "w": 4.0}
+                                    duration_value = duration_map.get(event["dur"], 1.0)
+                                # Get velocity
+                                if "vel" in event:
+                                    velocity_value = self.orchestra.get_velocity_value(event["vel"])
+                            except Exception:
+                                pass  # Skip invalid notes
+
+                    if chord_notes and duration_value:
+                        c = chord.Chord(chord_notes)
+                        c.quarterLength = duration_value
+                        c.volume.velocity = velocity_value
+                        part.append(c)
+                        # Pad if chord is shorter than bar
+                        if duration_value < bar_duration:
+                            rest_duration = bar_duration - duration_value
+                            r = note.Rest()
+                            r.quarterLength = rest_duration
+                            part.append(r)
+                else:
+                    # Sequential note processing for non-piano instruments
+                    current_bar_duration = 0.0
+                    for event in events:
+                        # Check if adding this event would exceed bar duration
+                        event_duration = {"e": 0.5, "q": 1.0, "h": 2.0, "w": 4.0}.get(event["dur"], 1.0)
+                        if current_bar_duration + event_duration > bar_duration:
+                            # Truncate: skip remaining events and pad with rest
+                            break
+
+                        # Convert event to music21 object
+                        m21_obj = self._event_to_music21(event, inst_name)
+                        if m21_obj:
+                            part.append(m21_obj)
+                            current_bar_duration += event_duration
+
+                    # Pad remaining duration with a rest if bar is incomplete
+                    if current_bar_duration < bar_duration:
+                        rest_duration = bar_duration - current_bar_duration
+                        r = note.Rest()
+                        r.quarterLength = rest_duration
+                        part.append(r)
 
         # Add all parts to the score
         for part in parts.values():
             score.append(part)
 
         return score
+
+    def _should_be_chord(self, events: list[JamEvent]) -> bool:
+        """
+        Determine if a list of piano events should be rendered as a chord.
+
+        Returns True if:
+        - There are multiple pitched notes (not rests)
+        - All notes have the same duration
+        - Total duration matches a single chord duration (not sequential notes)
+
+        Args:
+            events: List of JamEvents for a piano part in one bar
+
+        Returns:
+            True if events should be rendered as a simultaneous chord
+        """
+        # Filter out rests
+        pitched_events = [e for e in events if e["pitch"] != "rest"]
+
+        if len(pitched_events) < 2:
+            return False  # Need at least 2 notes for a chord
+
+        # Check if all notes have the same duration
+        durations = set(e["dur"] for e in pitched_events)
+        if len(durations) != 1:
+            return False  # Mixed durations means sequential, not chord
+
+        # If we have 3-4 notes with the same duration (typical jazz voicing),
+        # treat as a chord
+        if len(pitched_events) in [3, 4]:
+            return True
+
+        return False
 
     def _event_to_music21(
         self, event: JamEvent, inst_name: str
@@ -217,11 +305,12 @@ class ScoreBuilder:
         if time_sig:
             lines.append(f"  Time Signature: {time_sig[0].ratioString}")
 
-        # Count bars (approximate from duration and time signature)
-        if time_sig:
-            total_duration = score.quarterLength
+        # Count bars from the longest part duration
+        if time_sig and score.parts:
+            # Get the duration of the first part (all parts should be same length)
+            part_duration = score.parts[0].quarterLength
             bar_length = time_sig[0].barDuration.quarterLength
-            num_bars = int(total_duration / bar_length)
+            num_bars = int(part_duration / bar_length)
             lines.append(f"  Number of Bars: {num_bars}")
 
         lines.append("")
