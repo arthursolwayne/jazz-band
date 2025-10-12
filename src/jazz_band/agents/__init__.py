@@ -9,11 +9,11 @@ LLM-based agents for composition and critique:
 
 from .composer import compose_bars
 from .judge import critique
-from .llm import get_llm_client, load_prompt
+from .llm import init_model, load_prompt
 
 __all__ = [
     "compose_bars",
     "critique",
-    "get_llm_client",
+    "init_model",
     "load_prompt",
 ]

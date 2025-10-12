@@ -11,24 +11,22 @@ from typing import Dict
 
 import weave
 
-from .llm import get_llm_client, load_prompt, call_llm, extract_json_from_response
+from .llm import load_prompt, call_llm, extract_json_from_response
 
 
 @weave.op
 async def critique(
+    model,
     jam_json: Dict,
     summary: str = "",
-    dry_run: bool = False,
-    model: str = "gpt-4o-mini",
 ) -> Dict:
     """
     Evaluate a JamJSON arrangement and provide structured feedback.
 
     Args:
+        model: art.TrainableModel instance (or None for dry-run)
         jam_json: Complete JamJSON dictionary to evaluate
         summary: Optional high-level context (bar count, purpose, etc.)
-        dry_run: If True, return deterministic stub instead of calling LLM
-        model: LLM model name (default: gpt-4o-mini)
 
     Returns:
         Dictionary with structure:
@@ -51,11 +49,8 @@ async def critique(
     """
 
     # Dry-run mode: return deterministic stub
-    if dry_run:
+    if model is None:
         return _generate_dry_run_critique(jam_json)
-
-    # Get LLM client
-    client = get_llm_client(dry_run=False)
 
     # Load judge prompt
     system_prompt = load_prompt("judge")
@@ -63,12 +58,11 @@ async def critique(
     # Build user prompt
     user_prompt = _build_judge_user_prompt(jam_json, summary)
 
-    # Call LLM
+    # Call LLM (using ART model's inference endpoint)
     response = await call_llm(
-        client=client,
+        model=model,
         system_prompt=system_prompt,
         user_prompt=user_prompt,
-        model=model,
         max_tokens=1500,
         temperature=0.5,  # Lower temperature for more consistent critiques
     )
@@ -139,12 +133,13 @@ def _validate_critique_structure(critique: Dict) -> None:
         if field not in critique:
             raise ValueError(f"Critique missing required field: {field}")
 
-    # Validate scores structure
+    # Validate scores structure (updated for new jazz-focused criteria)
     required_scores = [
-        "harmonic_coherence",
-        "rhythmic_groove",
-        "melodic_interest",
-        "interplay_balance"
+        "jazz_harmony",
+        "latin_jazz_rhythm",
+        "jazz_melody",
+        "interplay_space",
+        "jazz_authenticity"
     ]
     scores = critique.get("scores", {})
     for score_name in required_scores:
@@ -173,35 +168,36 @@ def _generate_dry_run_critique(jam_json: Dict) -> Dict:
         jam_json: JamJSON being evaluated
 
     Returns:
-        Valid critique dictionary
+        Valid critique dictionary (with strict jazz standards - dry-run gets low scores)
     """
     num_bars = jam_json.get("num_bars", 0)
     key = jam_json.get("key", "C")
 
     return {
-        "overall_score": 7.0,
+        "overall_score": 4.2,  # Lowered for strict jazz standards
         "scores": {
-            "harmonic_coherence": 7,
-            "rhythmic_groove": 7,
-            "melodic_interest": 6,
-            "interplay_balance": 8
+            "jazz_harmony": 3,  # Basic triads, not jazz
+            "latin_jazz_rhythm": 4,  # Downbeat-heavy, no upbeat syncopation
+            "jazz_melody": 5,  # Simple scales, no bebop
+            "interplay_space": 5,  # Some call-response but basic
+            "jazz_authenticity": 4  # Sounds like exercise music
         },
         "rationale": (
-            f"This {num_bars}-bar arrangement in {key} demonstrates solid fundamentals. "
-            f"The rhythm section locks in well with clear snare backbeat. "
-            f"Harmonic structure is coherent, though melodic lines could be more developed. "
-            f"Good call-response moments between sax and trumpet."
+            f"This {num_bars}-bar arrangement in {key} uses basic triads and simple scale patterns - "
+            f"sounds more like a music theory exercise than jazz. The rhythm section is metronomic "
+            f"with no swing feel. Melodic lines lack bebop vocabulary and blues inflection. "
+            f"Some call-response between horns but overall feel is too stiff and academic."
         ),
         "suggestions": [
-            "Develop the sax motif with variations across bars",
-            "Add more rhythmic variety to the hihat pattern",
-            "Experiment with piano voicings beyond simple triads",
-            "Create more dynamic contrast between bars",
-            "Consider adding brief rests for breathing room"
+            "Replace piano triads with 7th chords (Cmaj7, Dm7, G7) minimum",
+            "Add chromatic approach notes to sax/trumpet lines for bebop flavor",
+            "Introduce swing eighth notes in hihat pattern instead of straight quarters",
+            "Use walking bass (roots, 3rds, 5ths, 7ths) instead of just root notes",
+            "Add ii-V-I progressions for authentic jazz harmony"
         ],
         "prompt_mutation": (
-            "Encourage more motivic development and rhythmic variety. "
-            "Suggest specific syncopation patterns for piano and bass. "
-            "Emphasize the importance of space and dynamics."
+            "Emphasize jazz-specific requirements: mandate 7th chords in piano, "
+            "demand chromatic approach notes in horn lines, require swing feel in rhythm section. "
+            "Add examples of ii-V-I progressions and bebop phrasing patterns."
         )
     }
