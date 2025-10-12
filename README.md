@@ -3,7 +3,7 @@
 
 ![JITSY Jazz](jit-sy_jazz.png)
 
-Despite not making it onto the Millburn Middle School Jazz Squad, I like Jazz. And after going to a SF Tech-Week AI DJ Penthouse Mixer on Monday, alongside having some recently-published work on the top of my mind, I was inspired to take matters into my own hands and re-realize my middle school dreams: I made my own Jazz Band.
+Despite not making it onto the Millburn Middle School Jazz Squad, I like Jazz. And after going to a SF Tech-Week AI DJ Penthouse Mixer, alongside having some recently-published work on the top of my mind, I was inspired to take matters into my own hands and re-realize my middle school dreams: I made my own Jazz Band.
 
 The approach was inspired by the following works:
 
