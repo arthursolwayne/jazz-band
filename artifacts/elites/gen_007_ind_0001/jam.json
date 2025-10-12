@@ -1,0 +1,1331 @@
+{
+  "tempo": 120,
+  "key": "C",
+  "time_sig": "4/4",
+  "num_bars": 8,
+  "bars": [
+    {
+      "bar_num": 1,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "C2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 2,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "C2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "C4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 3,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "D2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "F2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "A2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "C3",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "D4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "C4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "D4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 4,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "D2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "F2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "A2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "C3",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "D4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "A4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 5,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "G2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "D3",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "F3",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "D5",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "F5",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Eb4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 6,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "G2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "D3",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "F3",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "D5",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "F5",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "C4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "D4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "C4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 7,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "C2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "A4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "C4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 8,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "C2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "q",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Eb4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C4",
+            "dur": "q",
+            "vel": "med"
+          }
+        ],
+        "trumpet": [
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e"
+          }
+        ]
+      }
+    }
+  ]
+}

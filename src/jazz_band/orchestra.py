@@ -5,18 +5,17 @@ Defines the five-instrument ensemble with MIDI program mappings, channel assignm
 and pitch ranges. Follows General MIDI standard with drums on channel 10.
 
 Instruments:
-- Bass: Acoustic bass on channel 0
-- Drums: GM percussion on channel 10 (kick, snare, hihat)
+- Bass: Electric bass on channel 0
+- Drums: GM percussion on channel 10 (snare, hihat)
 - Piano: Acoustic grand piano on channel 1
 - Sax: Tenor saxophone on channel 2
-- Trumpet: Trumpet on channel 3
 """
 
 from dataclasses import dataclass
 from typing import Literal, Optional
 
 
-InstrumentName = Literal["bass", "snare", "hihat", "piano", "sax", "trumpet"]
+InstrumentName = Literal["bass", "snare", "hihat", "piano", "sax"]
 
 
 @dataclass
@@ -48,14 +47,14 @@ DRUM_PITCH_MAP = {
 
 class OrchestraSpec:
     """
-    Specification for the six-part jazz ensemble.
+    Specification for the five-part jazz ensemble.
 
     Provides instrument configurations, MIDI mappings, and utility functions
     for working with the ensemble.
     """
 
     def __init__(self):
-        """Initialize the orchestra with six parts."""
+        """Initialize the orchestra with five parts."""
         self.instruments = {
             "bass": Instrument(
                 name="bass",
@@ -91,13 +90,6 @@ class OrchestraSpec:
                 channel=2,
                 pitch_range=("Ab2", "E5"),
                 display_name="Tenor Saxophone"
-            ),
-            "trumpet": Instrument(
-                name="trumpet",
-                midi_program=56,  # Trumpet (program 57 in 1-indexed)
-                channel=3,
-                pitch_range=("E3", "C6"),
-                display_name="Trumpet"
             ),
         }
 

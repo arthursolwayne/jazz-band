@@ -1,0 +1,10 @@
+chord_density: 0.8570126665382531
+do_list:
+- Create call-response between sax and trumpet
+- Maintain walking bass with root-fifth patterns
+- Add piano voicings beyond simple triads
+dont_list: []
+ghost_note_prob: 0.10970213555865072
+interplay_density: 0.582637198482294
+motif_reuse_weight: 0.5041612454973072
+syncopation_target: 0.7557001558097833

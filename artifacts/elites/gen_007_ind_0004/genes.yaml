@@ -1,0 +1,8 @@
+chord_density: 0.3420605799949246
+do_list:
+- Maintain walking bass with root-fifth patterns
+dont_list: []
+ghost_note_prob: 0.049326624413621574
+interplay_density: 0.5785786889776598
+motif_reuse_weight: 0.42352068702035073
+syncopation_target: 0.5714980379493454

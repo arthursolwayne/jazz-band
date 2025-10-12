@@ -1,0 +1,19 @@
+{
+  "overall_score": 5.2,
+  "scores": {
+    "jazz_harmony": 4,
+    "latin_jazz_rhythm": 5,
+    "jazz_melody": 6,
+    "interplay_space": 5,
+    "jazz_authenticity": 6
+  },
+  "rationale": "This arrangement uses basic triads and simple scale patterns - sounds more like a music theory exercise than jazz. The C-G-Am-F progression lacks jazz harmony (no 7th chords, no extensions). Rhythms are mostly straight time with minimal syncopation. The sax line has some melodic movement but lacks bebop vocabulary or blues inflection. Some call-response between horns but the feel is too stiff and academic.",
+  "suggestions": [
+    "Replace piano triads with 7th chords (Cmaj7, Dm7, G7) minimum",
+    "Add chromatic approach notes to sax/trumpet lines for bebop flavor",
+    "Introduce swing eighth notes in hihat pattern instead of straight quarters",
+    "Use walking bass (roots, 3rds, 5ths, 7ths) instead of just root notes",
+    "Add ii-V-I progressions in bars 3-4 for authentic jazz harmony"
+  ],
+  "prompt_mutation": "Emphasize jazz-specific requirements: mandate 7th chords in piano, demand chromatic approach notes in horn lines, require swing feel in rhythm section. Add examples of ii-V-I progressions and bebop phrasing patterns."
+}
