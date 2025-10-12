@@ -3,7 +3,7 @@
 
 ![JITSY Jazz](jit-sy_jazz.png)
 
-I play alto saxophone, and I like Jazz, despite not making it onto the Millburn Middle School Jazz Squad. Going to a SF Tech-Week AI DJ Penthouse Mixer on Monday, alongside some recently-published work on continual learning, I was inspired to take matters into my own hands and put myself onto a Jazz Band.
+I play alto saxophone, and I like Jazz, despite not making it onto the Millburn Middle School Jazz Squad. After going to a SF Tech-Week AI DJ Penthouse Mixer on Monday, alongside having some recently-published work on the top of my mind, I was inspired to take matters into my own hands and put myself onto a Jazz Band.
 
 The approach was inspired by the following works:
 
