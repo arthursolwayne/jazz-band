@@ -47,8 +47,9 @@ Output format is **JamJSON** - a custom JSON schema for symbolic music with pitc
 
 ## Tech Stack
 - **music21**: Symbolic score representation and MIDI generation
-- **ART**: Agent training with rollouts (added in future subplans)
-- **W&B Weave**: Telemetry, logging, and artifact trackin
+- **OpenPipe/ART**: Agent training with rollouts (Qwen3-14B-Instruct via ServerlessBackend)
+- **W&B Weave**: Telemetry, logging, and artifact tracking
+- **W&B Inference**: LLM serving for Composer and Judge agents during training
 
 ---
 
