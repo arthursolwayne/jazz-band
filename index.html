@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JITSY Jazz - In-Context vs Reinforcement Learning for Compositional Skills</title>
+    <meta name="description" content="Comparing GEPA (Genetic-Pareto Evolution) and RLVR (Reinforcement Learning) for teaching language models to compose jazz music">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="container">
+            <img src="jit-sy_jazz.png" alt="JITSY Jazz" class="hero-image">
+            <p class="hero-subtitle">Just-in-Time-Symbolic Jazz: In-Context versus Reinforcement for Compositional Skill Learning</p>
+            <div class="hero-buttons">
+                <a href="#audio" class="btn btn-primary">Listen to Samples</a>
+                <a href="#results" class="btn btn-secondary">See Results</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Introduction -->
+    <section class="intro">
+        <div class="container">
+            <div class="intro-story">
+                <h2>The Story</h2>
+                <p>Despite not making it onto the Millburn Middle School Jazz Squad, I like Jazz. And after going to a SF Tech-Week AI DJ Penthouse Mixer, alongside having some recently-published work on the top of my mind, I was inspired to take matters into my own hands and re-realize my middle school dreams: to make a Jazz Band.</p>
+            </div>
+
+            <div class="research-questions">
+                <h2>Research Questions</h2>
+                <div class="questions-grid">
+                    <div class="question-card">
+                        <div class="question-number">1</div>
+                        <p>Is it possible for language models to acquire <em>new</em> compositional skills?</p>
+                    </div>
+                    <div class="question-card">
+                        <div class="question-number">2</div>
+                        <p>Is Reinforcement Learning or In-Context Learning a more effective approach to acquiring such compositional skills?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inspired-by">
+                <h2>Inspired By</h2>
+                <div class="papers">
+                    <div class="paper">
+                        <h3>Reinforcement Learning for Reasoning with One Training Example</h3>
+                        <a href="https://arxiv.org/abs/2504.20571" target="_blank">arxiv:2504.20571</a>
+                        <p>Shows RL with verifiable rewards unlocks latent mathematical reasoning (36% → 73.6% on MATH500)</p>
+                    </div>
+                    <div class="paper">
+                        <h3>Learning without training: The implicit dynamics of in-context learning</h3>
+                        <a href="https://arxiv.org/abs/2507.16003" target="_blank">arxiv:2507.16003</a>
+                        <p>Proves in-context learning mechanically implements implicit weight updates</p>
+                    </div>
+                    <div class="paper">
+                        <h3>GEPA: Reflective Prompt Evolution Can Outperform RL</h3>
+                        <a href="https://arxiv.org/abs/2507.19457" target="_blank">arxiv:2507.19457</a>
+                        <p>Demonstrates 35x greater sample efficiency than GRPO with 10-20% higher performance</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-overview">
+                <h2>The Compositional Task</h2>
+                <p>Creating a 5-part jazz composition for <strong>8 bars</strong> with progressive arrangement:</p>
+                <div class="instruments">
+                    <div class="instrument">Electric Bass</div>
+                    <div class="instrument">Snare Drum</div>
+                    <div class="instrument">Hi-Hat</div>
+                    <div class="instrument">Piano (7th chords)</div>
+                    <div class="instrument">Tenor Saxophone</div>
+                </div>
+                <div class="constraints">
+                    <strong>Key Constraints:</strong> Progressive arrangement (bar 1 = hi-hat only), >60% upbeat syncopation, 7th chords required, walking bass, memorable melodies, single key (C major)
+                </div>
+            </div>
+
+            <div class="reward-setup">
+                <h2>Reward Setup (RLVR)</h2>
+                <p>RLVR uses a 3-phase curriculum with dynamic weighting of 7 verifiable metrics:</p>
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Phase A (0-5)</th>
+                                <th>Phase B (6-10)</th>
+                                <th>Phase C (11+)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>upbeat_syncopation</td>
+                                <td>0.35</td>
+                                <td>0.25</td>
+                                <td>0.22</td>
+                            </tr>
+                            <tr>
+                                <td>groove_alignment</td>
+                                <td>0.25</td>
+                                <td>0.15</td>
+                                <td>0.13</td>
+                            </tr>
+                            <tr>
+                                <td>seventh_chord_usage</td>
+                                <td>0.12</td>
+                                <td>0.18</td>
+                                <td>0.16</td>
+                            </tr>
+                            <tr>
+                                <td>space_density</td>
+                                <td>0.08</td>
+                                <td>0.12</td>
+                                <td>0.11</td>
+                            </tr>
+                            <tr>
+                                <td>consonance</td>
+                                <td>0.10</td>
+                                <td>0.10</td>
+                                <td>0.04</td>
+                            </tr>
+                            <tr>
+                                <td>density_regularity</td>
+                                <td>0.05</td>
+                                <td>0.10</td>
+                                <td>0.04</td>
+                            </tr>
+                            <tr class="winner-row">
+                                <td>judge_score</td>
+                                <td>0.05</td>
+                                <td>0.10</td>
+                                <td class="highlight">0.30*</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="chart-note">*Anneals linearly from 0.10 to 0.30 during Phase C (steps 11-30). The curriculum starts with rhythm-heavy weights (syncopation + groove = 60%), adds harmony metrics in phase B, and gradually anneals the Judge weight up to 30% in the final phase.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audio Showcase -->
+    <section id="audio" class="audio-showcase">
+        <div class="container">
+            <h2>Listen to the Jazz Compositions</h2>
+            <p class="section-subtitle">Compare GEPA (evolutionary) vs RLVR (reinforcement learning) outputs</p>
+
+            <div class="audio-grid">
+                <!-- GEPA Best -->
+                <div class="audio-card">
+                    <div class="audio-header">
+                        <h3>GEPA Best</h3>
+                        <span class="badge badge-gepa">Evolutionary</span>
+                    </div>
+                    <div class="audio-meta">
+                        <span class="score">Judge Score: <strong>4.0/10</strong></span>
+                        <span class="details">Generation 12, Individual 3</span>
+                    </div>
+                    <div id="waveform-gepa-best" class="waveform"></div>
+                    <div class="audio-controls">
+                        <button class="play-btn" data-audio="gepa-best">▶ Play</button>
+                        <span class="time">0:00 / 0:18</span>
+                    </div>
+                    <audio id="audio-gepa-best" src="audio/gepa_best_gen12_ind3_judge4.0.mp3"></audio>
+                </div>
+
+                <!-- RLVR Best -->
+                <div class="audio-card featured">
+                    <div class="audio-header">
+                        <h3>RLVR Best</h3>
+                        <span class="badge badge-rlvr">PPO Training</span>
+                        <span class="badge badge-divergence">Reward Divergence!</span>
+                    </div>
+                    <div class="audio-meta">
+                        <span class="score">Judge Score: <strong>4.8/10</strong></span>
+                        <span class="details">Step 20, Reward: 0.654</span>
+                    </div>
+                    <div class="divergence-callout">
+                        <strong>Key Finding:</strong> Best judge score (4.8) came from a rollout with low reward (0.654), revealing optimization misalignment
+                    </div>
+                    <div id="waveform-rlvr-best" class="waveform"></div>
+                    <div class="audio-controls">
+                        <button class="play-btn" data-audio="rlvr-best">▶ Play</button>
+                        <span class="time">0:00 / 0:18</span>
+                    </div>
+                    <audio id="audio-rlvr-best" src="audio/rlvr_best_step20_reward0.654_judge4.8.mp3"></audio>
+                </div>
+
+                <!-- GEPA Worst -->
+                <div class="audio-card">
+                    <div class="audio-header">
+                        <h3>GEPA Worst</h3>
+                        <span class="badge badge-gepa">Evolutionary</span>
+                    </div>
+                    <div class="audio-meta">
+                        <span class="score">Judge Score: <strong>3.6/10</strong></span>
+                        <span class="details">Generation 0, Individual 5</span>
+                    </div>
+                    <div id="waveform-gepa-worst" class="waveform"></div>
+                    <div class="audio-controls">
+                        <button class="play-btn" data-audio="gepa-worst">▶ Play</button>
+                        <span class="time">0:00 / 0:18</span>
+                    </div>
+                    <audio id="audio-gepa-worst" src="audio/gepa_worst_gen0_ind5_judge3.6.mp3"></audio>
+                </div>
+
+                <!-- RLVR Worst -->
+                <div class="audio-card">
+                    <div class="audio-header">
+                        <h3>RLVR Worst</h3>
+                        <span class="badge badge-rlvr">PPO Training</span>
+                    </div>
+                    <div class="audio-meta">
+                        <span class="score">Judge Score: <strong>~4.2/10</strong></span>
+                        <span class="details">Step 21, Lowest avg judge (4.37)</span>
+                    </div>
+                    <div id="waveform-rlvr-worst" class="waveform"></div>
+                    <div class="audio-controls">
+                        <button class="play-btn" data-audio="rlvr-worst">▶ Play</button>
+                        <span class="time">0:00 / 0:18</span>
+                    </div>
+                    <audio id="audio-rlvr-worst" src="audio/rlvr_worst_step21_reward0.638_judge4.2.mp3"></audio>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results & Visualizations -->
+    <section id="results" class="results">
+        <div class="container">
+            <h2>Training Dynamics & Results</h2>
+
+            <!-- Comparison Table -->
+            <div class="comparison-table">
+                <h3>GEPA vs RLVR Comparison</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>GEPA</th>
+                            <th>RLVR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Best Judge Score</td>
+                            <td>4.0/10</td>
+                            <td class="highlight">4.8/10</td>
+                        </tr>
+                        <tr>
+                            <td>Avg Judge Score (final)</td>
+                            <td>3.7/10</td>
+                            <td class="highlight">4.57/10</td>
+                        </tr>
+                        <tr>
+                            <td>Judge Score Range</td>
+                            <td>3.6-4.0</td>
+                            <td>4.37-4.80</td>
+                        </tr>
+                        <tr>
+                            <td>Training Stability</td>
+                            <td>Fluctuates (exploration)</td>
+                            <td>Stable (4.37-4.60 avg)</td>
+                        </tr>
+                        <tr>
+                            <td>Approach</td>
+                            <td>Explicit textual constraints</td>
+                            <td>Implicit weight updates</td>
+                        </tr>
+                        <tr>
+                            <td>Sample Efficiency</td>
+                            <td>180 evals</td>
+                            <td>180 evals</td>
+                        </tr>
+                        <tr class="winner-row">
+                            <td>Winner</td>
+                            <td>-</td>
+                            <td class="highlight"><strong>RLVR (+20%)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts">
+                <div class="chart-container">
+                    <h3>Judge Scores Over Training</h3>
+                    <canvas id="judgeScoresChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Reward vs Judge Score Divergence</h3>
+                    <canvas id="divergenceChart"></canvas>
+                    <p class="chart-note">Red point shows best judge score (4.8) with low reward (0.654)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Findings -->
+    <section class="key-findings">
+        <div class="container">
+            <h2>Key Findings</h2>
+            <div class="findings-grid">
+                <div class="finding-card">
+                    <div class="finding-number">1</div>
+                    <h3>RLVR Outperforms GEPA</h3>
+                    <p>RLVR achieved <strong>4.8/10</strong> vs GEPA's <strong>4.0/10</strong> (+20% improvement), with similar sample efficiency (180 evaluations each)</p>
+                </div>
+
+                <div class="finding-card">
+                    <div class="finding-number">2</div>
+                    <h3>Different Training Dynamics</h3>
+                    <p><strong>GEPA:</strong> Fluctuates widely (3.6-4.0) due to evolutionary exploration<br>
+                    <strong>RLVR:</strong> Remarkably stable (4.37-4.60) with curriculum annealing</p>
+                </div>
+
+                <div class="finding-card">
+                    <div class="finding-number">3</div>
+                    <h3>Prompt Evolution vs Weight Updates</h3>
+                    <p>GEPA adds explicit textual constraints. RLVR uses implicit in-context learning via trajectory conditioning</p>
+                </div>
+
+                <div class="finding-card">
+                    <div class="finding-number">4</div>
+                    <h3>Curriculum Learning Works</h3>
+                    <p>RLVR's 3-phase curriculum (rhythm → harmony → judge annealing) proved highly effective</p>
+                </div>
+
+                <div class="finding-card">
+                    <div class="finding-number">5</div>
+                    <h3>Compositional Skill Acquisition</h3>
+                    <p>Both methods learned to satisfy hard constraints (progressive arrangement, 7th chords, upbeat syncopation)</p>
+                </div>
+
+                <div class="finding-card featured">
+                    <div class="finding-number">6</div>
+                    <h3>Reward-Judge Divergence</h3>
+                    <p><strong>Critical insight:</strong> RLVR's best judge score (4.8/10) came from a composition with reward 0.654, well below the step average (0.708). This reveals that verifiable metrics don't fully capture holistic musical quality.</p>
+                    <div class="finding-implication">
+                        → Suggests need for learned reward models to align with aesthetic judgments
+                    </div>
+                </div>
+
+                <div class="finding-card">
+                    <div class="finding-number">7</div>
+                    <h3>Caveats & Limitations</h3>
+                    <p>Training configs differed slightly (6 rollouts vs documented 4). LLM judge introduces variance. Different optimization approaches complicate direct comparison.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="tech-stack">
+        <div class="container">
+            <h2>Tech Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <h4>music21</h4>
+                    <p>Symbolic music representation</p>
+                </div>
+                <div class="tech-item">
+                    <h4>OpenPipe/ART</h4>
+                    <p>PPO training with rollouts</p>
+                </div>
+                <div class="tech-item">
+                    <h4>W&B Weave</h4>
+                    <p>Telemetry & logging</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Qwen3-14B-Instruct</h4>
+                    <p>Base language model</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Python</h4>
+                    <p>Implementation language</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>JITSY Jazz - Exploring compositional skill learning in language models</p>
+            <p><a href="https://github.com/arthursolwayne/jazz-band" target="_blank">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
