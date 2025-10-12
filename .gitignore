@@ -41,6 +41,7 @@ Thumbs.db
 artifacts/*.mid
 artifacts/memory.json
 !artifacts/.gitkeep
+audio/
 
 # Logs
 *.log
