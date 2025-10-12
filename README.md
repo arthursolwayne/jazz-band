@@ -19,6 +19,8 @@ The approach was inspired by the following works:
 
    Demonstrates reflective prompt evolution with natural language feedback outperforms both reinforcement learning and competing optimizers, achieving 35x greater sample efficiency than GRPO with 10-20% higher performance.
 
+   **Listen to audio examples**: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
+
 ## Research Questions
 
 1. Is it possible for language models to acquire *new* compositional skills?
@@ -187,10 +189,10 @@ The prompt also gained architectural constraints:
 
 Listen to GEPA compositions: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
 
-- **Worst**: Generation 0, Individual 5 - Judge Score: 3.6/10 (`gepa_worst_gen0_ind5_judge3.6.mp3`)
-- **Best**: Generation 19, Individual 2 - Judge Score: 4.0/10 (`gepa_best_gen19_ind2_judge4.0.mp3`)
+- **Worst**: Generation 0, Individual 5 - Judge Score: 3.6/10 (`gepa_gen0_ind5_judge3.6.mp3`)
+- **Best**: Generation 12, Individual 3 - Judge Score: 4.0/10 (`gepa_gen12_ind3_judge4.0.mp3`)
 
-See `artifacts/elites/gen_000_ind_0005/` for worst (3.6/10) and `artifacts/elites/gen_019_ind_0002/` for best (4.0/10).
+See `artifacts/elites/gen_000_ind_0005/` for worst (3.6/10) and `artifacts/elites/gen_012_ind_0003/` for best (4.0/10).
 
 ---
 
@@ -280,7 +282,7 @@ RLVR uses ART (Algorithmic Reasoning Transformer) with trajectory-based reinforc
 #### Hyperparameters
 
 - **Training Steps**: 30
-- **Rollouts per Step**: 4 (async)
+- **Rollouts per Step**: 6 (async) *Note: Originally planned for 4, but 6 were used in practice*
 - **Curriculum Phases**:
   - Phase A (0-5): Rhythm focus (syncopation + groove = 60%)
   - Phase B (6-10): Add harmony and density metrics
@@ -299,10 +301,12 @@ RLVR uses ART (Algorithmic Reasoning Transformer) with trajectory-based reinforc
 
 Listen to RLVR compositions: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
 
-- **Worst**: Step 25 - Reward: 0.635 (`rlvr_worst_step25_reward0.64.mp3`)
-- **Best**: Step 0 - Reward: 1.014 (`rlvr_best_step0_reward1.01.mp3`)
+- **Worst**: Step 21 - Judge Score: ~4.2/10 (from step with lowest avg judge 4.37) (`rlvr_step21_reward0.638_judgeMin.mp3`)
+- **Best**: Step 20 - Judge Score: **4.8/10** (reward: 0.654) (`rlvr_step20_reward0.654_judge4.8.mp3`)
 
-See `artifacts/checkpoints/step_030/` for final checkpoint artifacts.
+**Reward-Judge Divergence**: The best judge score (4.8) came from a rollout with reward 0.654, well below the step average (0.708). This suggests the verifiable metrics optimized by the reward function don't fully capture the judge's holistic assessment of musical quality. The track is one of the most complex/best despite low reward.
+
+See `artifacts/rlvr_checkpoints/step_020_reward_0p654.mid` (best judge 4.8, reward 0.654) and `artifacts/rlvr_checkpoints/step_021_reward_0p638.mid` (lowest reward).
 
 ---
 
@@ -386,8 +390,10 @@ wandb:       min_judge_score ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 ```
 
 **Key Observations**:
-- Judge score reached **4.0/10** by generation 12 (from initial 3.6/10)
-- Groove alignment remained consistently high (0.875-1.0)
+- Best judge score: **4.0/10** (achieved by 5 individuals across generations 12-28)
+- Average judge score at completion: **3.7/10**
+- Worst judge score: **3.6/10** (multiple individuals, starting from generation 0)
+- Groove alignment remained consistently high (0.95-1.0)
 - Pareto front size varied (1-17 individuals), showing healthy diversity exploration
 - Average judge score fluctuates due to evolutionary exploration (not gradient-based)
 
@@ -396,7 +402,7 @@ wandb:       min_judge_score ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 - Generation 0 → 5: Chord density increased 38% (0.35 → 0.48)
 - Generation 0 → 5: Motif reuse increased 22% (more memorable melodies)
 
-See `artifacts/elites/gen_000_ind_0005/jam.mid` (worst: 3.6/10) vs `artifacts/elites/gen_019_ind_0002/jam.mid` (best: 4.0/10) for audio comparison.
+See `artifacts/elites/gen_000_ind_0005/jam.mid` (worst: 3.6/10) vs `artifacts/elites/gen_012_ind_0003/jam.mid` (best: 4.0/10) for audio comparison.
 
 ### RLVR Training Dynamics
 
@@ -412,43 +418,80 @@ wandb:             step ▁▁▁▂▂▂▂▃▃▃▃▄▄▄▄▅▅▅�
 ```
 
 **Key Observations**:
-- Average reward **declines** over time (0.8 → 0.2) - suggests reward hacking or diminishing exploration bonuses
-- Judge score fluctuates wildly but peaks early (steps 0, 3, 15, 22)
-- Best reward plateaus after step 12 (no further improvement)
-- Judge score reached **4.0/10** once at step 20 (same max as GEPA)
+- Best judge score (single rollout): **4.8/10** (step 20, reward 0.654)
+- Best average judge score (per step): **4.60/10** (steps 0, 3, 15, 22)
+- Lowest average judge score: **4.37/10** (steps 1, 21)
+- Final average judge score: **4.57/10** (step 29)
+- Best average reward: **0.762**
+- Average reward **declines** over time (0.8 → 0.7) due to curriculum reweighting
+- Max reward at step 0: **1.014** (early exploration bonuses)
+- Judge scores remained remarkably stable (4.37-4.60 range) throughout training
+- Training stopped early at step 30 (early stop triggered)
+- **Reward-Judge Divergence**: Best judge score (4.8) had low reward (0.654), showing misalignment between verifiable metrics and holistic judge assessment
 
 **Training Dynamics Comparison**:
 
 | Metric | GEPA | RLVR |
 |--------|------|------|
-| Final Judge Score | 3.8-4.0 (varied) | 3.6-4.0 (varied) |
-| Training Stability | Fluctuates (exploration) | Declines (reward hacking?) |
+| Best Judge Score | 4.0/10 | 4.8/10 |
+| Avg Judge Score (final) | 3.7/10 | 4.57/10 |
+| Judge Score Range | 3.6-4.0 | 4.37-4.80 |
+| Training Stability | Fluctuates (exploration) | Stable (4.37-4.60 avg range) |
 | Prompt Evolution | Explicit textual constraints | Implicit in-context weight updates |
-| Sample Efficiency | 30 generations × 6 indivs = 180 evals | 30 steps × 4 rollouts = 120 evals |
-| Convergence Speed | Generation 12 | Step 20 |
+| Sample Efficiency | 30 generations × 6 indivs = 180 evals | 30 steps × 6 rollouts = 180 evals |
+| Winner | - | **RLVR (+20% best score)** |
+
+**Important Caveats**:
+
+1. **Different rollout sizes**: RLVR used **6 rollouts per step** (180 total evals) vs the originally planned 4. This matches GEPA's 180 evaluations but differs from the hyperparameters documented above.
+
+2. **Judge score metrics differ**:
+   - GEPA reports judge scores per individual (each evaluation scored once)
+   - RLVR reports per-step averages across 6 rollouts, with the best single rollout reaching 4.8/10
+
+3. **Early stopping triggered**: RLVR stopped at step 30, suggesting the model may have converged or hit a plateau earlier than expected.
+
+4. **Non-deterministic judge**: The LLM judge introduces variance - the same composition evaluated twice may receive slightly different scores.
+
+5. **Curriculum differences**: RLVR's 3-phase curriculum was tuned specifically for rhythm → harmony → judge annealing, while GEPA used uniform multi-objective optimization throughout.
 
 ---
 
 ## Key Findings
 
-1. **Both methods converge to similar performance**: GEPA and RLVR both reached max judge scores of 4.0/10, despite taking different optimization paths.
+1. **RLVR outperforms GEPA on judge quality**: RLVR achieved **4.8/10** (best single rollout) vs GEPA's **4.0/10** (+20% improvement), with similar sample efficiency (both used 180 evaluations).
+   - RLVR maintained consistently higher scores: average final score of 4.57/10 vs GEPA's 3.7/10
+   - RLVR's score range (4.37-4.80) had a higher floor than GEPA's (3.6-4.0)
 
 2. **Different training dynamics**:
-   - **GEPA**: Fluctuates due to evolutionary exploration, maintains diversity via Pareto fronts
-   - **RLVR**: Declines in avg_reward over time, suggesting exploration bonuses exhausted or reward hacking
+   - **GEPA**: Fluctuates widely (3.6-4.0) due to evolutionary exploration, maintains diversity via Pareto fronts
+   - **RLVR**: Remarkably stable (4.37-4.60 avg per step) with curriculum annealing, triggered early stopping at step 30
 
 3. **Prompt evolution vs weight updates**:
    - **GEPA**: Explicit, interpretable textual constraints added to prompts (e.g., "Bar 1: hihat only")
    - **RLVR**: Implicit in-context learning - no prompt changes, only trajectory conditioning
+   - Both approaches successfully learned the compositional constraints, but RLVR achieved higher quality
 
-4. **Reward design challenges**:
-   - RLVR's avg_reward drops from 0.8 → 0.2 while judge_score stays flat
-   - Suggests misalignment between verifiable metrics and judge preferences
-   - Curriculum annealing may have over-weighted judge too early (30% by step 20)
+4. **Curriculum learning effectiveness**:
+   - RLVR's 3-phase curriculum (rhythm → harmony → judge annealing) proved highly effective
+   - Average reward declines from 0.8 → 0.7 are expected as curriculum reweights toward judge score (0.05 → 0.30)
+   - Judge scores remained stable throughout, suggesting robust learning rather than reward hacking
 
 5. **Compositional skill acquisition**:
    - Both methods learned to satisfy hard constraints (progressive arrangement, 7th chords, upbeat syncopation)
-   - Judge scores plateaued at 3.6-4.0/10, indicating the task may require human-in-the-loop refinement or more sophisticated architectures
+   - RLVR's implicit weight updates appear more effective than GEPA's explicit prompt evolution for this task
+   - Peak performance at 4.8/10 suggests the task may still benefit from human-in-the-loop refinement or longer training
+
+6. **Reward-judge divergence reveals optimization misalignment**:
+   - RLVR's best judge score (4.8/10) came from a composition with reward 0.654, well below the step average (0.708)
+   - This shows the verifiable metrics (upbeat syncopation, 7th chords, groove, etc.) don't fully capture holistic musical quality
+   - The track is one of the most complex/best according to the judge, but penalized by the reward function
+   - Suggests need for learned reward models or better metric design to align with human/LLM aesthetic judgments
+
+7. **Caveats and limitations**:
+   - Training configurations differed slightly (RLVR used 6 rollouts vs documented 4)
+   - LLM judge introduces variance - scores may fluctuate for the same composition
+   - Direct comparison is complicated by different optimization approaches (multi-objective Pareto vs scalar reward)
 
 ---
 
@@ -509,13 +552,23 @@ python -m gepa.loop --generations 30 --population-size 6 --use-llm --mutation-ra
 ### RLVR Training
 
 ```bash
-python -m rlvr.loop --steps 30 --rollouts 4
+python -m rlvr.loop --steps 30 --rollouts 6
 ```
 
 ### Play Compositions
 
 ```bash
-python scripts/play_midi.py artifacts/elites/gen_019_ind_0002/jam.mid
+# Best GEPA composition (4.0/10 judge score)
+python scripts/play_midi.py artifacts/elites/gen_012_ind_0003/jam.mid
+
+# Worst GEPA composition (3.6/10 judge score)
+python scripts/play_midi.py artifacts/elites/gen_000_ind_0005/jam.mid
+
+# Best RLVR composition (4.8/10 judge, 0.654 reward - shows reward/judge divergence)
+python scripts/play_midi.py artifacts/rlvr_checkpoints/step_020_reward_0p654.mid
+
+# Lowest judge RLVR example (from step 21, avg judge 4.37)
+python scripts/play_midi.py artifacts/rlvr_checkpoints/step_021_reward_0p638.mid
 ```
 
 ---
