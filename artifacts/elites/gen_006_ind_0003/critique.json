@@ -1,0 +1,19 @@
+{
+  "overall_score": 4.8,
+  "scores": {
+    "jazz_harmony": 4,
+    "latin_jazz_rhythm": 5,
+    "jazz_melody": 5,
+    "interplay_space": 4,
+    "jazz_authenticity": 5
+  },
+  "rationale": "The arrangement uses basic triads in the piano (C, D, G, Am, F) with no 7th chords or extensions, which is far below jazz standards. The rhythm section has minimal syncopation with hihat hitting only on the 'and' of 2 and 4 in a very repetitive pattern, lacking the complexity of true Latin jazz. The saxophone has some melodic movement but lacks bebop vocabulary, chromaticism, or blues inflection. The trumpet is completely silent throughout, and there's no call-and-response or interplay between instruments. The overall feel is stiff and academic, lacking the spontaneity and sophistication of authentic jazz.",
+  "suggestions": [
+    "Replace piano triads with 7th chords (Cmaj7, Dm7, G7, Am7, F7) to add jazz harmony",
+    "Add chromatic approach notes and bebop phrasing to the saxophone lines for authentic jazz vocabulary",
+    "Introduce more syncopation in the hihat pattern and use swing eighth notes for a true Latin jazz feel",
+    "Add a walking bass line with roots, 3rds, 5ths, and 7ths to provide harmonic support",
+    "Include call-and-response between the saxophone and trumpet to create musical conversation"
+  ],
+  "prompt_mutation": "Mandate the use of jazz-specific elements: 7th chords in the piano, chromatic approach notes in horn lines, swing feel in the rhythm section, and call-and-response between instruments. Provide examples of ii-V-I progressions and bebop phrasing patterns to guide the composer."
+}

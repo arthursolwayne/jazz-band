@@ -1,0 +1,70 @@
+{
+  "motifs": {
+    "bass": {
+      "('C2', 'E2', 'Bb2')": 10,
+      "('E2', 'Bb2', 'B2')": 10,
+      "('G2', 'Bb2', 'D2')": 6,
+      "('Bb2', 'D2', 'Eb2')": 6
+    },
+    "sax": {
+      "('E4', 'G4', 'F4')": 2,
+      "('G4', 'F4', 'D4')": 2,
+      "('F4', 'D4', 'C4')": 2,
+      "('D4', 'F4', 'E4')": 6,
+      "('F4', 'E4', 'Bb3')": 6,
+      "('E4', 'Bb3', 'A3')": 6,
+      "('G4', 'Bb4', 'A4')": 4,
+      "('Bb4', 'A4', 'F4')": 4,
+      "('A4', 'F4', 'E4')": 4,
+      "('C4', 'D4', 'C4')": 4,
+      "('D4', 'C4', 'Bb3')": 4,
+      "('C4', 'Bb3', 'A3')": 4
+    },
+    "piano": {
+      "('C4', 'E4', 'G4')": 6,
+      "('E4', 'G4', 'B4')": 6,
+      "('D4', 'F4', 'A4')": 6,
+      "('F4', 'A4', 'C5')": 6,
+      "('G4', 'B4', 'D5')": 4,
+      "('B4', 'D5', 'F5')": 4
+    }
+  },
+  "style": {
+    "note_density": {
+      "bass": 4.0,
+      "sax": 5.0,
+      "piano": 4.0,
+      "trumpet": 1.0
+    },
+    "syncopation_proxy": 0.5,
+    "chord_tension": 0.3
+  },
+  "interplay": {
+    "interactions": [
+      {
+        "caller": "sax",
+        "call_bar": 2,
+        "responder": "trumpet",
+        "delay": 1
+      },
+      {
+        "caller": "sax",
+        "call_bar": 5,
+        "responder": "trumpet",
+        "delay": 1
+      },
+      {
+        "caller": "sax",
+        "call_bar": 2,
+        "responder": "trumpet",
+        "delay": 1
+      },
+      {
+        "caller": "sax",
+        "call_bar": 5,
+        "responder": "trumpet",
+        "delay": 1
+      }
+    ]
+  }
+}

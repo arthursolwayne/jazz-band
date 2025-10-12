@@ -2,7 +2,7 @@
 JamJSON Schema and Validator
 
 Defines the structured format for representing multi-instrument jazz performances.
-Each performance consists of bars containing events for 5 parts: bass, drums, piano, sax, trumpet.
+Each performance consists of bars containing events for 5 parts: bass, snare, hihat, piano, sax.
 
 JamJSON Structure:
 - Top-level: tempo, key, time_sig, num_bars, bars
@@ -39,17 +39,16 @@ class JamEvent(TypedDict, total=False):
 
 
 class JamParts(TypedDict):
-    """Six-part arrangement: bass, snare, hihat, piano, sax, trumpet."""
+    """Five-part arrangement: bass, snare, hihat, piano, sax."""
     bass: list[JamEvent]
     snare: list[JamEvent]
     hihat: list[JamEvent]
     piano: list[JamEvent]
     sax: list[JamEvent]
-    trumpet: list[JamEvent]
 
 
 class JamBar(TypedDict):
-    """A single bar containing events for all six parts."""
+    """A single bar containing events for all five parts."""
     bar_num: int
     parts: JamParts
 
@@ -123,7 +122,7 @@ def validate_jam_json(data: dict[str, Any]) -> tuple[bool, Optional[str], Option
     if len(data["bars"]) != data["num_bars"]:
         return False, f"bars length ({len(data['bars'])}) does not match num_bars ({data['num_bars']})", None
 
-    required_parts = {"bass", "snare", "hihat", "piano", "sax", "trumpet"}
+    required_parts = {"bass", "snare", "hihat", "piano", "sax"}
     valid_durations = {"e", "q", "h", "w"}
     valid_velocities = {"lo", "med", "hi"}
 
@@ -213,7 +212,6 @@ def create_empty_jam(tempo: int = 120, key: str = "C", time_sig: str = "4/4", nu
                     "hihat": [],
                     "piano": [],
                     "sax": [],
-                    "trumpet": [],
                 }
             }
             for i in range(num_bars)

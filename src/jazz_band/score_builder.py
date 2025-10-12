@@ -2,13 +2,13 @@
 Score Builder - JamJSON to music21 Conversion
 
 Converts JamJSON symbolic representation to music21 Score objects and exports to MIDI.
-Handles five-part arrangements with proper instrument assignments, MIDI channels,
-and General MIDI drums on channel 10.
+Handles five-part arrangements (bass, snare, hihat, piano, sax) with proper instrument
+assignments, MIDI channels, and General MIDI drums on channel 10.
 
 Key features:
 - Converts JamJSON events to music21 notes and rests
 - Assigns correct MIDI programs and channels
-- Maps drum names (kick/snare/hihat) to GM percussion pitches
+- Maps drum names (snare/hihat) to GM percussion pitches
 - Exports playable MIDI files
 - Provides console summaries of generated scores
 """
@@ -43,9 +43,9 @@ class ScoreBuilder:
         """
         Convert JamJSON to a music21 Score.
 
-        Creates a five-part score with proper instrument assignments, tempos,
-        key signatures, and time signatures. Each part is placed on its
-        designated MIDI channel.
+        Creates a five-part score (bass, snare, hihat, piano, sax) with proper
+        instrument assignments, tempos, key signatures, and time signatures.
+        Each part is placed on its designated MIDI channel.
 
         Args:
             jam_json: Validated JamJSON structure
@@ -66,7 +66,7 @@ class ScoreBuilder:
 
         # Create parts for each instrument
         parts = {}
-        for inst_name in ["bass", "snare", "hihat", "piano", "sax", "trumpet"]:
+        for inst_name in ["bass", "snare", "hihat", "piano", "sax"]:
             inst_config = self.orchestra.get_instrument(inst_name)
             part = stream.Part()
 
@@ -83,8 +83,6 @@ class ScoreBuilder:
                 part.insert(0, instrument.Piano())
             elif inst_name == "sax":
                 part.insert(0, instrument.TenorSaxophone())
-            elif inst_name == "trumpet":
-                part.insert(0, instrument.Trumpet())
 
             # Set MIDI channel and program
             if inst_name in ["snare", "hihat"]:
