@@ -1,513 +1,146 @@
 # JITSY Jazz
-## Just-in-Time-Symbolic Jazz: In-Context versus Reinforcement for Compositional Skill Learning
+## Just-in-Time Symbolic Jazz: Comparing In-Context Learning vs Reinforcement Learning for Compositional Skills
 
 ![JITSY Jazz](jit-sy_jazz.png)
 
-Despite not making it onto the Millburn Middle School Jazz Squad, I like Jazz. And after going to a SF Tech-Week AI DJ Penthouse Mixer, alongside having some recently-published work on the top of my mind, I was inspired to take matters into my own hands and re-realize my middle school dreams: to make a Jazz Band.
+**Listen to samples**: [Audio Examples on Google Drive](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
 
-**Listen to audio examples**: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
+---
 
-The approach was inspired by the following works:
+## Overview
 
-1. **Reinforcement Learning for Reasoning in Large Language Models with One Training Example** ([arxiv:2504.20571](https://arxiv.org/abs/2504.20571))
+This project explores how language models acquire *new* compositional skills through two approaches:
+1. **GEPA** (Genetic-Evolutionary Prompt Adaptation): Multi-objective prompt evolution with LLM-based mutation
+2. **RLVR** (Reinforcement Learning with Verifiable Rewards): Trajectory-based RL with algorithmic metrics
 
-   Shows a single training example with reinforcement learning and verifiable rewards unlocks latent mathematical reasoning, boosting performance from 36% to 73.6% on MATH500.
+**The Task**: Generate 8-bar Latin jazz compositions in JamJSON format (5 instruments: bass, drums, piano, sax, trumpet)
 
-2. **Learning without training: The implicit dynamics of in-context learning** ([arxiv:2507.16003](https://arxiv.org/abs/2507.16003))
+**Inspired by**:
+- [RL for Reasoning with One Training Example](https://arxiv.org/abs/2504.20571) - Verifiable rewards unlock latent reasoning
+- [In-Context Learning Dynamics](https://arxiv.org/abs/2507.16003) - ICL implements implicit weight updates
+- [GEPA Paper](https://arxiv.org/abs/2507.19457) - Prompt evolution outperforms RL on reasoning tasks
 
-   Proves in-context learning mechanically implements implicit weight updates by demonstrating exact equivalence between prompt-based and weight-modified predictions on linear functions.
-
-3. **GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning** ([arxiv:2507.19457](https://arxiv.org/abs/2507.19457))
-
-   Demonstrates reflective prompt evolution with natural language feedback outperforms both reinforcement learning and competing optimizers, achieving 35x greater sample efficiency than GRPO with 10-20% higher performance.
-
-## Research Questions
-
-1. How can language models to acquire *new* compositional skills?
-2. Is Reinforcement Learning or In-Context Learning a more effective approach to acquiring such compositional skills?
-
-## The Compositional Task
-
-The compositional task we focus on is creating a 5-part jazz composition for **4 bars** (later expanded to 8 bars). The instruments are:
-
-- **Electric Bass** (E1-G3): Walking basslines with root-fifth patterns
-- **Snare Drum**: Backbeat on beats 2 and 4 with ghost notes
-- **Hi-Hat**: Syncopated Latin jazz groove with upbeat emphasis
-- **Piano** (A0-C8): 7th chord voicings (Cmaj7, Dm7, G7, etc.)
-- **Tenor Saxophone** (Ab2-E5): Memorable melodic hooks
-
-### Key Constraints
-
-- **Progressive Arrangement**: Bar 1 = hi-hat only, Bars 2-4 = full ensemble
-- **Upbeat Syncopation**: >60% hi-hat emphasis on "and" beats (not downbeats)
-- **7th Chords Required**: No triads allowed - all piano chords must have 4 notes
-- **Walking Bass**: Never repeat the same note consecutively, mix quarter and eighth notes
-- **Memorable Melodies**: Short, catchy, repeatable riffs (think Star Wars Cantina Band)
-- **Single Key**: No modulation, stay diatonic to starting key (C major by default)
-
-Output format is **JamJSON** - a custom JSON schema for symbolic music with pitch, duration, and velocity for each event.
+---
 
 ## Tech Stack
+
 - **music21**: Symbolic score representation and MIDI generation
-- **OpenPipe/ART**: Agent training with rollouts (Qwen3-14B-Instruct via ServerlessBackend)
+- **OpenPipe/ART**: RL training framework (Qwen3-14B-Instruct base model)
 - **W&B Weave**: Telemetry, logging, and artifact tracking
-- **W&B Inference**: LLM serving for Composer and Judge agents during training
+- **Custom**: JamJSON schema, multi-objective Pareto optimization (NSGA-II)
 
 ---
 
-## Training Setup
+## Methods
 
-Both GEPA and RLVR were trained for **30 iterations** with the same Judge agent providing feedback.
+### GEPA: Evolutionary Prompt Optimization
 
-### GEPA: Genetic-Pareto Reflective Prompt Evolution
+**Approach**: Evolve a population of 6 individuals, each with:
+- **Numerical genes** (chord_density, syncopation_target, motif_reuse_weight, etc.)
+- **Textual prompts** (do/don't lists mutated by Judge LLM feedback)
 
-GEPA uses multi-objective evolutionary optimization to evolve both numerical genes and textual prompts simultaneously.
+**Training Loop** (30 generations):
+1. Generate 8-bar composition for each individual
+2. Evaluate on 6 objectives: consonance, groove, motif coherence, interplay, density, judge score
+3. Compute Pareto front (NSGA-II)
+4. Select top 50% by Pareto rank + crowding distance
+5. Mutate prompts via Judge LLM critique + Gaussian noise on genes
+6. Crossover survivors to create next generation
 
-#### Flow Diagram
+**Results**:
+- Best judge score: **4.0/10** (generation 12)
+- Average final score: **3.7/10**
+- Prompt evolution added explicit constraints (e.g., "Bar 1: hihat only")
+- Chord density increased 38% over 5 generations
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    GEPA Training Loop                        │
-└─────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-                    ┌────────────────┐
-                    │   Population   │
-                    │   (6 indivs)   │
-                    └────────────────┘
-                             │
-          ┌──────────────────┼──────────────────┐
-          ▼                  ▼                  ▼
-    ┌─────────┐        ┌─────────┐        ┌─────────┐
-    │  Ind 0  │        │  Ind 1  │   ...  │  Ind 5  │
-    │ Genes + │        │ Genes + │        │ Genes + │
-    │ Prompt  │        │ Prompt  │        │ Prompt  │
-    └─────────┘        └─────────┘        └─────────┘
-          │                  │                  │
-          ▼                  ▼                  ▼
-    ┌─────────────────────────────────────────────┐
-    │      Generate 8-bar JamJSON composition     │
-    │      using Composer LLM with prompt         │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │     Compute 6D Objective Vector:            │
-    │  1. Consonance (% notes in key scale)       │
-    │  2. Groove Alignment (bass-drum downbeats)  │
-    │  3. Motif Coherence (n-gram repetition)     │
-    │  4. Interplay (call-response patterns)      │
-    │  5. Density Regularity (note count variance)│
-    │  6. Judge Score (0-10 from Judge LLM)       │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │      Compute Pareto Front (NSGA-II):        │
-    │                                              │
-    │   Pareto Rank = # individuals dominating    │
-    │   Crowding Distance = diversity metric      │
-    │                                              │
-    │   Individual A dominates B if:              │
-    │   ∀i: A[i] ≥ B[i] AND ∃j: A[j] > B[j]      │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │         Selection (Elitism):                 │
-    │   - Rank 0 (Pareto front) → Archive         │
-    │   - Top 50% by (rank, crowding) → Survive   │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │          Mutation (via Judge LLM):           │
-    │   - Critique current composition             │
-    │   - Generate natural language suggestions    │
-    │   - LLM mutates prompt with reflective edits │
-    │   - Gaussian mutation on numerical genes     │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │         Crossover (Tournament):              │
-    │   - Select 2 parents by tournament           │
-    │   - Single-point crossover for genes         │
-    │   - Append best prompt sections together     │
-    └─────────────────────────────────────────────┘
-          │
-          └─────────────► Next Generation
-```
+### RLVR: Reinforcement Learning with Fixed Reward Weights
 
-#### Hyperparameters
+**Approach**: Fine-tune Qwen3-14B via policy gradient RL using trajectory-based training (OpenPipe/ART)
 
-- **Population Size**: 6 individuals
-- **Generations**: 30
-- **Mutation Rate**: 0.8 (high for exploration)
-- **Selection Pressure**: Top 50% survive (elitism)
-- **Objectives**: 6D (consonance, groove, motif, interplay, density, judge_score)
-- **Pareto Algorithm**: NSGA-II with crowding distance
-- **Genes**:
-  - `chord_density`: 0.0-1.0
-  - `ghost_note_prob`: 0.0-1.0
-  - `syncopation_target`: 0.0-1.0
-  - `motif_reuse_weight`: 0.0-1.0
-  - `interplay_density`: 0.0-1.0
-  - `do_list`: Textual guidelines to follow
-  - `dont_list`: Textual guidelines to avoid
+**Training Loop** (30 steps, 6 rollouts/step):
+1. Generate 8-bar composition using current model checkpoint
+2. Compute 9 verifiable metrics (upbeat syncopation, 7th chords, groove, etc.)
+3. Calculate reward: `R = Σ(w_i × metric_i) + exploration_bonuses - penalties`
+4. Train model on trajectories using advantage-weighted policy gradient
+5. Save checkpoint if reward improves
 
-#### Example Prompt Evolution
+**Fixed Weights** (no curriculum):
+| Metric | Weight | Description |
+|--------|--------|-------------|
+| upbeat_syncopation | 0.25 | % hihat hits on upbeats (target >0.6) |
+| groove_alignment | 0.15 | Bass-drum downbeat correlation |
+| seventh_chords | 0.10 | % bars with 7th chords |
+| textural_arc | 0.10 | Progressive instrument activation |
+| rhythmic_variety | 0.10 | Duration entropy + motif repetition |
+| dynamic_contrast | 0.10 | Between-instrument variance |
+| melodic_exploration | 0.10 | Pitch range + stepwise motion |
+| harmonic_movement | 0.05 | Chord change rate (1-3 per 8 bars) |
+| consonance | 0.05 | % notes in key scale |
 
-**Generation 0** (Initial):
-```yaml
-chord_density: 0.350
-ghost_note_prob: 0.145
-syncopation_target: 0.469
-do_list: []
-dont_list: []
-```
-
-**Generation 5** (Evolved):
-```yaml
-chord_density: 0.483  # +38% increase
-ghost_note_prob: 0.122  # -16% decrease
-syncopation_target: 0.417  # -11% decrease
-do_list: []
-dont_list:
-  - "Minimize simultaneous melodic motion in sax/trumpet"
-  - "Don't overuse chromatic runs in horns"
-```
-
-The prompt also gained architectural constraints:
-```markdown
-### GEPA-Evolved Constraints:
-- Bar 1: ONLY hihat should play. All other instruments rest.
-- Bars 2-4: Add snare and bass. Piano and sax still rest.
-```
-
-#### Audio Examples
-
-Listen to GEPA compositions: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
-
-- **Worst**: Generation 0, Individual 5 - Judge Score: 3.6/10 (`gepa_gen0_ind5_judge3.6.mp3`)
-- **Best**: Generation 12, Individual 3 - Judge Score: 4.0/10 (`gepa_gen12_ind3_judge4.0.mp3`)
-
-See `artifacts/elites/gen_000_ind_0005/` for worst (3.6/10) and `artifacts/elites/gen_012_ind_0003/` for best (4.0/10).
-
----
-
-### RLVR: Reinforcement Learning with Verifiable Rewards
-
-RLVR uses ART (Algorithmic Reasoning Transformer) with trajectory-based reinforcement learning and curriculum-weighted rewards.
-
-#### Flow Diagram
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    RLVR Training Loop                        │
-└─────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-                    ┌────────────────┐
-                    │  Training Step │
-                    │   (0 to 30)    │
-                    └────────────────┘
-                             │
-          ┌──────────────────┼──────────────────┐
-          │                  │                  │
-          ▼                  ▼                  ▼
-    ┌──────────┐       ┌──────────┐       ┌──────────┐
-    │ Rollout 1│       │ Rollout 2│       │ Rollout 4│
-    │ (async)  │       │ (async)  │  ...  │ (async)  │
-    └──────────┘       └──────────┘       └──────────┘
-          │                  │                  │
-          └──────────────────┼──────────────────┘
-                             ▼
-    ┌─────────────────────────────────────────────┐
-    │        Rollout: Generate 8-bar JamJSON       │
-    │     using current ART model checkpoint       │
-    │                                              │
-    │   Trajectory = [                             │
-    │     {"role": "system", "content": prompt},   │
-    │     {"role": "user", "content": "bars 1-4"}, │
-    │     {"role": "assistant", "content": JSON},  │
-    │     ...                                      │
-    │   ]                                          │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │         Compute Metrics (verifiable):        │
-    │   1. Upbeat Syncopation (0-1)               │
-    │   2. Groove Alignment (bass-drum sync)       │
-    │   3. Seventh Chord Usage (% 7th chords)      │
-    │   4. Space Density (progressive activation)  │
-    │   5. Consonance (% notes in key)            │
-    │   6. Density Regularity (bar-to-bar)        │
-    │   + Judge Score (0-10, from LLM Judge)       │
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │      Calculate Reward (curriculum-based):    │
-    │                                              │
-    │   Phase A (steps 0-5): Rhythm Focus          │
-    │     w_syncopation = 0.35                     │
-    │     w_groove = 0.25                          │
-    │     w_judge = 0.05                           │
-    │                                              │
-    │   Phase B (steps 6-10): Add Harmony          │
-    │     w_syncopation = 0.25                     │
-    │     w_7th_chords = 0.18                      │
-    │     w_judge = 0.10                           │
-    │                                              │
-    │   Phase C (steps 11+): Anneal Judge Weight   │
-    │     w_judge: 0.10 → 0.30 (linear anneal)    │
-    │                                              │
-    │   R = Σ(w_i * metric_i) + bonuses - penalties│
-    └─────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────┐
-    │      ART Training Update:                    │
-    │   - Collect 4 trajectories (rollouts)        │
-    │   - Compute advantage: A = R - baseline      │
-    │   - Update policy: ∇θ = ∇log π(a|s) * A     │
-    │   - Save checkpoint if R > best_reward       │
-    └─────────────────────────────────────────────┘
-          │
-          └─────────────► Next Training Step
-```
-
-#### Hyperparameters
-
-- **Training Steps**: 30
-- **Rollouts per Step**: 6 (async) *Note: Originally planned for 4, but 6 were used in practice*
-- **Curriculum Phases**:
-  - Phase A (0-5): Rhythm focus (syncopation + groove = 60%)
-  - Phase B (6-10): Add harmony and density metrics
-  - Phase C (11+): Anneal judge weight 0.10 → 0.30
-- **Exploration Bonuses**:
-  - First upbeat_syncopation ≥ 0.6: +0.2
-  - First seventh_chord_usage ≥ 0.75: +0.15
-  - First space_density ≥ 0.5: +0.15
-- **Penalties**:
-  - Invalid JamJSON: -1.0 (terminal)
-  - No 7th chords: -0.3
-  - No upbeat syncopation (<0.1): -0.3
-- **Early Stopping**: If judge score plateaus for 5 steps or drops below 6.0 at step 10
-
-#### Audio Examples
-
-Listen to RLVR compositions: [**Audio Samples on Google Drive**](https://drive.google.com/drive/folders/1jTNRG4S9uhjCpqjoJWInKOqZM51ORmS_?usp=drive_link)
-
-- **Worst**: Step 21 - Judge Score: ~4.2/10 (from step with lowest avg judge 4.37) (`rlvr_step21_reward0.638_judgeMin.mp3`)
-- **Best**: Step 20 - Judge Score: **4.8/10** (reward: 0.654) (`rlvr_step20_reward0.654_judge4.8.mp3`)
-
-**Reward-Judge Divergence**: The best judge score (4.8) came from a rollout with reward 0.654, well below the step average (0.708). This suggests the verifiable metrics optimized by the reward function don't fully capture the judge's holistic assessment of musical quality. The track is one of the most complex/best despite low reward.
-
-See `artifacts/rlvr_checkpoints/step_020_reward_0p654.mid` (best judge 4.8, reward 0.654) and `artifacts/rlvr_checkpoints/step_021_reward_0p638.mid` (lowest reward).
-
----
-
-## Reward Signals
-
-### GEPA: Multi-Objective Pareto Optimization
-
-GEPA does **not** use a single aggregate reward. Instead, it optimizes 6 independent objectives simultaneously using Pareto dominance:
-
-1. **Consonance**: Percentage of notes that fit in the key scale (avoids chromatic tension)
-2. **Groove Alignment**: Correlation of bass and drum hits on downbeats (tightness)
-3. **Motif Coherence**: Balance of n-gram repetition (catchiness) vs variation (interest)
-4. **Interplay**: Count of call-response patterns between instruments (conversation)
-5. **Density Regularity**: Low variance in note counts per bar (consistency)
-6. **Judge Score**: 0-10 rating from Judge LLM (holistic quality)
-
-An individual is **non-dominated** (Pareto optimal) if no other individual is better in all objectives. The Pareto front is the set of all non-dominated individuals.
-
-**Math**: Individual A dominates B if:
-```
-∀i ∈ {1..6}: objectives_A[i] ≥ objectives_B[i]
-AND
-∃j ∈ {1..6}: objectives_A[j] > objectives_B[j]
-```
-
-### RLVR: Curriculum-Weighted Scalar Reward
-
-RLVR uses a **single scalar reward** that is a weighted sum of verifiable metrics + judge score, with curriculum annealing:
-
-```
-R(step, metrics) = Σ(w_i(step) * metric_i) + bonuses - penalties
-
-where:
-  metrics = {
-    upbeat_syncopation,  # % hihat hits on upbeats (not downbeats)
-    groove_alignment,    # bass-drum synchronization
-    seventh_chord_usage, # % piano chords with 4 notes (7th chords)
-    space_density,       # progressive instrument activation (bars 1→4)
-    consonance,          # % notes in key scale
-    density_regularity,  # low variance in notes per bar
-  }
-
-  judge_score = 0-10 rating from Judge LLM (normalized to 0-1)
-
-  w_i(step) = curriculum weights that change over training
-```
-
-**Curriculum Weights**:
-
-| Metric | Phase A (0-5) | Phase B (6-10) | Phase C (11+) |
-|--------|---------------|----------------|---------------|
-| upbeat_syncopation | 0.35 | 0.25 | 0.22 |
-| groove_alignment | 0.25 | 0.15 | 0.13 |
-| seventh_chord_usage | 0.12 | 0.18 | 0.16 |
-| space_density | 0.08 | 0.12 | 0.11 |
-| consonance | 0.10 | 0.10 | 0.04 |
-| density_regularity | 0.05 | 0.10 | 0.04 |
-| judge_score | 0.05 | 0.10 | 0.30* |
-
-*Anneals linearly from 0.10 to 0.30 during Phase C (steps 11-30)
-
-The curriculum starts with **rhythm-heavy** weights (syncopation + groove = 60%), adds **harmony** metrics in phase B, and gradually **anneals the Judge weight** up to 30% in the final phase.
-
----
-
-## Results and Analysis
-
-### GEPA Training Dynamics
-
-```
-wandb: Run history:
-wandb:  avg_groove_alignment ▄▇▇█▅▇▇█▇▄▅▅▄▇▆▅▆▇▇▅▄▁▄▃▃▆▃▇▁▇
-wandb:       avg_judge_score ▄▁▇▂▅▅▄▁▅▂▄▄█▂▂▅▄▄▁▇▂▇▄▄▇▄▇▅▄▄
-wandb: best_groove_alignment █████████▁███████▁██████▅█████
-wandb:      best_judge_score █▁█▁▁████▁████▁█▁▁▁█▁██▁▁███▁█
-wandb:           front_sizes ▁▇▄▄▄▄▁▁▄▂▁▂▂▁▇▂█▅▇▄▄▁▁▄▂▂▂▂▂▁
-wandb:            generation ▁▁▁▂▂▂▂▃▃▃▃▄▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇███
-wandb:  max_groove_alignment ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:       max_judge_score ▁▁▁▁▁▁▁▁▁▁▁▁█▁█▁█▁▁█▁▁▁▁▁▁▁▁█▁
-wandb:       min_judge_score ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-```
-
-**Key Observations**:
-- Best judge score: **4.0/10** (achieved by 5 individuals across generations 12-28)
-- Average judge score at completion: **3.7/10**
-- Worst judge score: **3.6/10** (multiple individuals, starting from generation 0)
-- Groove alignment remained consistently high (0.95-1.0)
-- Pareto front size varied (1-17 individuals), showing healthy diversity exploration
-- Average judge score fluctuates due to evolutionary exploration (not gradient-based)
-
-**Prompt Evolution Examples**:
-- Generation 0 → 5: Added textual constraints ("Don't overuse chromatic runs")
-- Generation 0 → 5: Chord density increased 38% (0.35 → 0.48)
-- Generation 0 → 5: Motif reuse increased 22% (more memorable melodies)
-
-See `artifacts/elites/gen_000_ind_0005/jam.mid` (worst: 3.6/10) vs `artifacts/elites/gen_012_ind_0003/jam.mid` (best: 4.0/10) for audio comparison.
-
-### RLVR Training Dynamics
-
-```
-wandb: Run history:
-wandb:  avg_judge_score █▁▃█▄▄▅▇▂▄▄▃▃▂▃█▃▄▆▆▇▁█▄▄▄▅▅▄▇
-wandb:       avg_reward ▇▆▇▆▇█▆▆▆▆▆█▆▆▆▅▄▄▃▂▂▁▁▁▁▁▂▁▁▂
-wandb: best_judge_score ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      best_reward ▁▁▅▅▅▆▆▆▆▆▆███████████████████
-wandb:  max_judge_score ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁
-wandb:       max_reward █▇▇███▇▆▆▇▇▇▇▆▇▆▅▅▄▃▃▁▃▂▃▂▂▁▁▂
-wandb:             step ▁▁▁▂▂▂▂▃▃▃▃▄▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇███
-```
-
-**Key Observations**:
-- Best judge score (single rollout): **4.8/10** (step 20, reward 0.654)
-- Best average judge score (per step): **4.60/10** (steps 0, 3, 15, 22)
-- Lowest average judge score: **4.37/10** (steps 1, 21)
-- Final average judge score: **4.57/10** (step 29)
-- Best average reward: **0.762**
-- Average reward **declines** over time (0.8 → 0.7) due to curriculum reweighting
-- Max reward at step 0: **1.014** (early exploration bonuses)
-- Judge scores remained remarkably stable (4.37-4.60 range) throughout training
-- Training stopped early at step 30 (early stop triggered)
-- **Reward-Judge Divergence**: Best judge score (4.8) had low reward (0.654), showing misalignment between verifiable metrics and holistic judge assessment
-
-**Training Dynamics Comparison**:
-
-| Metric | GEPA | RLVR |
-|--------|------|------|
-| Best Judge Score | 4.0/10 | 4.8/10 |
-| Avg Judge Score (final) | 3.7/10 | 4.57/10 |
-| Judge Score Range | 3.6-4.0 | 4.37-4.80 |
-| Training Stability | Fluctuates (exploration) | Stable (4.37-4.60 avg range) |
-| Prompt Evolution | Explicit textual constraints | Implicit in-context weight updates |
-| Sample Efficiency | 30 generations × 6 indivs = 180 evals | 30 steps × 6 rollouts = 180 evals |
-| Winner | - | **RLVR (+20% best score)** |
-
-**Important Caveats**:
-
-1. **Different rollout sizes**: RLVR used **6 rollouts per step** (180 total evals) vs the originally planned 4. This matches GEPA's 180 evaluations but differs from the hyperparameters documented above.
-
-2. **Judge score metrics differ**:
-   - GEPA reports judge scores per individual (each evaluation scored once)
-   - RLVR reports per-step averages across 6 rollouts, with the best single rollout reaching 4.8/10
-
-3. **Early stopping triggered**: RLVR stopped at step 30, suggesting the model may have converged or hit a plateau earlier than expected.
-
-4. **Non-deterministic judge**: The LLM judge introduces variance - the same composition evaluated twice may receive slightly different scores.
-
-5. **Curriculum differences**: RLVR's 3-phase curriculum was tuned specifically for rhythm → harmony → judge annealing, while GEPA used uniform multi-objective optimization throughout.
+**Results**:
+- Best judge score: **4.8/10** (step 20, **+20% vs GEPA**)
+- Average final score: **4.57/10** (+23% vs GEPA)
+- Judge scores stable (4.37-4.60 range) throughout training
 
 ---
 
 ## Key Findings
 
-1. **RLVR outperforms GEPA on judge quality**: RLVR achieved **4.8/10** (best single rollout) vs GEPA's **4.0/10** (+20% improvement), with similar sample efficiency (both used 180 evaluations).
-   - RLVR maintained consistently higher scores: average final score of 4.57/10 vs GEPA's 3.7/10
-   - RLVR's score range (4.37-4.80) had a higher floor than GEPA's (3.6-4.0)
+### 1. RLVR Outperforms GEPA on Judge Quality
+- RLVR: 4.8/10 best, 4.57/10 average final
+- GEPA: 4.0/10 best, 3.7/10 average final
+- Both used 180 total evaluations (equal sample efficiency)
 
-2. **Different training dynamics**:
-   - **GEPA**: Fluctuates widely (3.6-4.0) due to evolutionary exploration, maintains diversity via Pareto fronts
-   - **RLVR**: Remarkably stable (4.37-4.60 avg per step) with curriculum annealing, triggered early stopping at step 30
+### 2. Critical Discovery: Metric Saturation Epidemic
+**56% of RLVR's reward function is saturated** (variance < 0.05):
+- `upbeat_syncopation`: **Zero variance** across all 30 steps (stuck at 0.5)
+- `groove_alignment`, `seventh_chords`, `textural_arc`, `harmonic_movement`: All frozen
+- Only 3 metrics show learning: `dynamic_contrast`, `melodic_exploration`, `rhythmic_variety`
 
-3. **Prompt evolution vs weight updates**:
-   - **GEPA**: Explicit, interpretable textual constraints added to prompts (e.g., "Bar 1: hihat only")
-   - **RLVR**: Implicit in-context learning - no prompt changes, only trajectory conditioning
-   - Both approaches successfully learned the compositional constraints, but RLVR achieved higher quality
+**Impact**: The reward function provides almost no learning signal. Training effectively optimizes <35% of the reward.
 
-4. **Curriculum learning effectiveness**:
-   - RLVR's 3-phase curriculum (rhythm → harmony → judge annealing) proved highly effective
-   - Average reward declines from 0.8 → 0.7 are expected as curriculum reweights toward judge score (0.05 → 0.30)
-   - Judge scores remained stable throughout, suggesting robust learning rather than reward hacking
+### 3. Reward-Judge Misalignment
+- **Correlation: 0.25** (essentially independent)
+- Best judge score (4.8) came from sample with reward 0.654 (below average)
+- Best reward (1.014) came from step 0 due to exploration bonuses, not quality
 
-5. **Compositional skill acquisition**:
-   - Both methods learned to satisfy hard constraints (progressive arrangement, 7th chords, upbeat syncopation)
-   - RLVR's implicit weight updates appear more effective than GEPA's explicit prompt evolution for this task
-   - Peak performance at 4.8/10 suggests the task may still benefit from human-in-the-loop refinement or longer training
+**Root Cause**: Algorithmic metrics measure *technical correctness* (stay in key, use 7th chords) but miss *musical quality* (catchiness, groove feel, harmonic interest).
 
-6. **Reward-judge divergence reveals optimization misalignment**:
-   - RLVR's best judge score (4.8/10) came from a composition with reward 0.654, well below the step average (0.708)
-   - This shows the verifiable metrics (upbeat syncopation, 7th chords, groove, etc.) don't fully capture holistic musical quality
-   - The track is one of the most complex/best according to the judge, but penalized by the reward function
-   - Suggests need for learned reward models or better metric design to align with human/LLM aesthetic judgments
+### 4. Both Methods Plateau Around 4.5/10
+- Neither approach broke past ~4.8/10 judge scores
+- Model learned constraints (7th chords, upbeat emphasis) but not deeper musicality
+- Suggests need for human-in-the-loop or learned reward models
 
-7. **Caveats and limitations**:
-   - Training configurations differed slightly (RLVR used 6 rollouts vs documented 4)
-   - LLM judge introduces variance - scores may fluctuate for the same composition
-   - Direct comparison is complicated by different optimization approaches (multi-objective Pareto vs scalar reward)
+### 5. Training Dynamics Differ
+- **GEPA**: Fluctuates (3.6-4.0) due to evolutionary exploration
+- **RLVR**: Remarkably stable (4.37-4.60 per-step average)
+- RLVR's stability suggests consistent but mediocre quality
 
 ---
 
-## Future Directions
+## Next Steps: Judge-in-the-Loop for Both Methods
 
-1. **Individual skill learning**: Instead of a single aggregate reward, train separate models for each sub-skill (harmony, rhythm, melody) and compose them hierarchically.
+Based on the analysis, **both GEPA and RLVR should use judge score as the primary reward signal**:
 
-2. **Reward model alignment**: Investigate why RLVR's verifiable metrics don't correlate well with judge preferences. Consider training a learned reward model instead of hand-crafted weights.
+### Proposed Reward Design (for both methods):
+```python
+reward = 0.50 × judge_score + 0.50 × algorithmic_metrics
+```
 
-3. **Human-in-the-loop**: Plateau at 4.0/10 suggests diminishing returns from LLM-only feedback. Add human preferences via RLHF or interactive critiques.
+Where `algorithmic_metrics` only includes actively-learning metrics:
+- Remove saturated metrics (upbeat_syncopation, groove_alignment, seventh_chords, etc.)
+- Keep only: dynamic_contrast (0.15), melodic_exploration (0.15), rhythmic_variety (0.15), consonance (0.05)
 
-4. **Longer compositions**: Scale from 4 bars → 16 bars → 32 bars to test generalization and long-term coherence.
+### Expected Improvements:
+1. **Alignment**: Reward-judge correlation will be 1.0 by construction
+2. **Learning signal**: Judge provides holistic gradient (not saturated)
+3. **Higher ceiling**: Should break past 4.8/10 plateau
+4. **Consistency**: Both methods optimize for same objective
 
-5. **Multi-instrument expansion**: Add trumpet, trombone, guitar to test 8-12 part ensemble arrangements.
-
-6. **Cross-domain transfer**: Apply GEPA/RLVR to other compositional tasks (poetry, code generation, visual design) to validate generalization.
+### Implementation Plan:
+- **GEPA**: Add judge_score weight (0.50) to Pareto objectives, reduce other weights
+- **RLVR**: Update `FIXED_WEIGHTS` to judge-primary design
+- Re-run both for 30 iterations with new reward design
 
 ---
 
@@ -515,28 +148,25 @@ wandb:             step ▁▁▁▂▂▂▂▃▃▃▃▄▄▄▄▅▅▅�
 
 ```
 jazz-band/
-├── src/
-│   └── jazz_band/
-│       ├── agents/         # Composer, Judge LLM agents
-│       ├── schema.py       # JamJSON validation
-│       ├── memory.py       # Chemistry memory for agent state
-│       └── score_builder.py # MIDI export utilities
-├── gepa/
-│   ├── loop.py             # Main training loop
-│   ├── population.py       # Individual/Population classes
-│   ├── evaluate.py         # 6D objective computation
-│   ├── pareto.py           # NSGA-II implementation
-│   └── mutate.py           # LLM-based prompt mutation
-├── rlvr/
-│   ├── loop.py             # ART training loop
-│   ├── reward.py           # Curriculum-weighted reward
-│   └── metrics.py          # Verifiable metric computation
+├── src/jazz_band/          # Core agents (Composer, Judge, memory, MIDI export)
+├── gepa/                   # Evolutionary prompt optimization
+│   ├── loop.py            # Main training loop
+│   ├── population.py      # Individual/Population classes
+│   ├── evaluate.py        # 6D objective computation
+│   ├── pareto.py          # NSGA-II Pareto optimization
+│   └── mutate.py          # LLM-based prompt mutation
+├── rlvr/                   # Reinforcement learning approach
+│   ├── loop.py            # ART training loop
+│   ├── reward.py          # Fixed-weight reward calculation
+│   └── metrics.py         # 9 verifiable metrics
 ├── artifacts/
-│   ├── elites/             # GEPA Pareto front snapshots
-│   └── checkpoints/        # RLVR model checkpoints
-├── scripts/
-│   └── play_midi.py        # FluidSynth playback utility
-└── README.md               # This file
+│   ├── elites/            # GEPA Pareto front snapshots
+│   └── rlvr_checkpoints/  # RLVR model checkpoints + MIDI exports
+├── analysis/              # Training run analysis reports
+│   ├── rlvr_analysis_report.html
+│   ├── rlvr_deep_dive_findings.html
+│   └── metric_rewards_simple.html
+└── README.md
 ```
 
 ---
@@ -544,44 +174,53 @@ jazz-band/
 ## Running the Code
 
 ### GEPA Training
-
 ```bash
-python -m gepa.loop --generations 30 --population-size 6 --use-llm --mutation-rate 0.8
+python -m gepa.loop --generations 30 --population-size 6 --mutation-rate 0.8
 ```
 
 ### RLVR Training
-
 ```bash
-python -m rlvr.loop --steps 30 --rollouts 6
+python -m rlvr.loop --steps 30 --rollouts 6 --lr 1e-5
 ```
 
-### Play Compositions
-
+### Play Best Samples
 ```bash
-# Best GEPA composition (4.0/10 judge score)
+# GEPA best (4.0/10)
 python scripts/play_midi.py artifacts/elites/gen_012_ind_0003/jam.mid
 
-# Worst GEPA composition (3.6/10 judge score)
-python scripts/play_midi.py artifacts/elites/gen_000_ind_0005/jam.mid
-
-# Best RLVR composition (4.8/10 judge, 0.654 reward - shows reward/judge divergence)
+# RLVR best (4.8/10, reward 0.654 - shows misalignment)
 python scripts/play_midi.py artifacts/rlvr_checkpoints/step_020_reward_0p654.mid
+```
 
-# Lowest judge RLVR example (from step 21, avg judge 4.37)
-python scripts/play_midi.py artifacts/rlvr_checkpoints/step_021_reward_0p638.mid
+### Analyze Training Run
+```bash
+python analyze_rlvr_run.py  # Generates comprehensive HTML reports
 ```
 
 ---
 
 ## Citation
 
-If you use this work, please cite:
-
 ```bibtex
 @misc{jitsyjazz2025,
-  title={JITSY Jazz: Just-in-Time-Symbolic Jazz for Compositional Skill Learning},
-  author={Your Name},
+  title={JITSY Jazz: Just-in-Time Symbolic Jazz for Compositional Skill Learning},
+  author={Wayne, Arthur},
   year={2025},
-  url={https://github.com/yourusername/jazz-band}
+  url={https://github.com/arthursolwayne/jazz-band}
 }
 ```
+
+---
+
+## Current Status
+
+✅ **Completed**:
+- GEPA training (30 generations, best: 4.0/10)
+- RLVR training (30 steps, best: 4.8/10)
+- Comprehensive analysis revealing metric saturation and reward-judge misalignment
+
+🚧 **In Progress**:
+- Implementing judge-in-the-loop reward design for both methods
+- Re-training with new reward weights (judge_score primary signal)
+
+📊 **Analysis Reports**: See `rlvr_analysis_report.html` for full findings
