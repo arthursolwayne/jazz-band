@@ -47,12 +47,6 @@ This project explores how language models acquire *new* compositional skills thr
 5. Mutate prompts via Judge LLM critique + Gaussian noise on genes
 6. Crossover survivors to create next generation
 
-**Results**:
-- Best judge score: **4.0/10** (generation 12)
-- Average final score: **3.7/10**
-- Prompt evolution added explicit constraints (e.g., "Bar 1: hihat only")
-- Chord density increased 38% over 5 generations
-
 ### RLVR: Reinforcement Learning with Fixed Reward Weights
 
 **Approach**: Fine-tune Qwen3-14B via policy gradient RL using trajectory-based training (OpenPipe/ART)
@@ -76,11 +70,6 @@ This project explores how language models acquire *new* compositional skills thr
 | melodic_exploration | 0.10 | Pitch range + stepwise motion |
 | harmonic_movement | 0.05 | Chord change rate (1-3 per 8 bars) |
 | consonance | 0.05 | % notes in key scale |
-
-**Results**:
-- Best judge score: **4.8/10** (step 20, **+20% vs GEPA**)
-- Average final score: **4.57/10** (+23% vs GEPA)
-- Judge scores stable (4.37-4.60 range) throughout training
 
 ---
 
