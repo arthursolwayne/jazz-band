@@ -34,8 +34,9 @@ piano = pretty_midi.Instrument(program=0)
 piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
 midi.instruments.append(piano)
 """
-    midi, cleaned = execute_midi_code(code)
+    midi, cleaned, error = execute_midi_code(code)
     assert midi is not None
+    assert error is None
     assert len(midi.instruments) == 1
     assert len(midi.instruments[0].notes) == 1
     print("✓ test_execute_midi_code_valid")
@@ -50,7 +51,7 @@ piano = pretty_midi.Instrument(program=0)
 piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
 midi.instruments.append(piano)
 ```"""
-    midi, cleaned = execute_midi_code(code)
+    midi, cleaned, error = execute_midi_code(code)
     assert midi is not None
     print("✓ test_execute_midi_code_with_markdown")
 
@@ -58,8 +59,9 @@ midi.instruments.append(piano)
 def test_execute_midi_code_invalid():
     """Verify execute_midi_code handles invalid code."""
     code = "this is not valid python"
-    midi, cleaned = execute_midi_code(code)
+    midi, cleaned, error = execute_midi_code(code)
     assert midi is None
+    assert error is not None
     print("✓ test_execute_midi_code_invalid")
 
 
