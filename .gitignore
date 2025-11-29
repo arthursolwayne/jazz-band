@@ -48,3 +48,9 @@ audio/
 
 # W&B
 wandb/
+
+# Trash
+.trash/
+
+# Archive (optional - uncomment to ignore)
+# archive/

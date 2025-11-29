@@ -1,0 +1,11 @@
+chord_density: 0.12730502079079767
+do_list:
+- Create call-response between sax and trumpet
+- Maintain walking bass with root-fifth patterns
+dont_list:
+- Avoid excessive rests in bass line
+- Reduce left-hand piano density
+ghost_note_prob: 0.10069029859060326
+interplay_density: 0.5518542972496336
+motif_reuse_weight: 0.3852393114189082
+syncopation_target: 0.47046068115924905

@@ -1,0 +1,1424 @@
+{
+  "tempo": 120,
+  "key": "C",
+  "time_sig": "4/4",
+  "num_bars": 8,
+  "bars": [
+    {
+      "bar_num": 1,
+      "parts": {
+        "bass": [],
+        "snare": [],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "piano": [],
+        "sax": []
+      }
+    },
+    {
+      "bar_num": 2,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "C3",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D3",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "F3",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G3",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "Bb3",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 3,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "Bb3",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "C4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "A4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "D4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 4,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "C4",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "G3",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "B3",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "D4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 5,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "C3",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D3",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "F3",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G3",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "Bb3",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 6,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "Bb3",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "C4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "A4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "D4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 7,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "C4",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "F4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "A4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Bb4",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "G3",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "B3",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "D4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "F4",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    },
+    {
+      "bar_num": 8,
+      "parts": {
+        "bass": [
+          {
+            "pitch": "E2",
+            "dur": "q",
+            "vel": "med"
+          },
+          {
+            "pitch": "G2",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "Bb2",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "C3",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D3",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "F3",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G3",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "Bb3",
+            "dur": "e",
+            "vel": "hi"
+          }
+        ],
+        "snare": [
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "snare",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "hihat": [
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "hihat",
+            "dur": "e",
+            "vel": "lo"
+          }
+        ],
+        "piano": [
+          {
+            "pitch": "C4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "E4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "w",
+            "vel": "med"
+          },
+          {
+            "pitch": "B4",
+            "dur": "w",
+            "vel": "med"
+          }
+        ],
+        "sax": [
+          {
+            "pitch": "D4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "E4",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "C5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "D5",
+            "dur": "e",
+            "vel": "hi"
+          },
+          {
+            "pitch": "rest",
+            "dur": "e",
+            "vel": "med"
+          },
+          {
+            "pitch": "G4",
+            "dur": "h",
+            "vel": "med"
+          }
+        ]
+      }
+    }
+  ]
+}

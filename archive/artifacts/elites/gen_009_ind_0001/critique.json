@@ -1,0 +1,21 @@
+{
+  "overall_score": 3.8,
+  "scores": {
+    "jazz_harmony": 3,
+    "latin_jazz_rhythm": 3,
+    "jazz_melody": 4,
+    "interplay_space": 4,
+    "jazz_authenticity": 5
+  },
+  "rationale": "This 8-bar arrangement uses only triads (capped jazz_harmony at 3/10) and lacks the 7th chords, extensions, and altered dominants essential to jazz. The hihat plays on every beat with no syncopation (capped latin_jazz_rhythm at 3/10), creating a straight-time feel rather than a Latin groove. The saxophone melody consists of repetitive scale patterns with minimal phrasing (4/10), lacking blues inflections and motivic development. All instruments start together in bar 1 with no progressive build (interplay_space capped at 4/10), and the piano plays constantly without rests. The arrangement feels academic and stiff (5/10), missing the spontaneity and soul of authentic jazz. Significant improvements are needed in harmony, rhythm, and interplay.",
+  "suggestions": [
+    "Bar 1: ONLY hihat should play. All other instruments rest.",
+    "Bars 2-4: Add snare and bass. Piano and sax still rest.",
+    "Bars 5-8: Full ensemble enters with piano 7th chords and memorable sax melody.",
+    "Replace ALL piano triads with 7th chords (Cmaj7: C-E-G-B, Dm7: D-F-A-C)",
+    "Increase hihat upbeat syncopation to >60% (hit more 'and's, skip more downbeats)",
+    "In bar 2, replace the D4-E4-F4-G4 pattern with a bluesy D4-rest-Eb4-D4-C4 phrase.",
+    "In bar 3, add a chromatic approach to B4 by playing A#4-B4 before resolving."
+  ],
+  "prompt_mutation": "Emphasize progressive arrangement structure more strongly. Add quantitative requirements: Bar 1 = hihat ONLY, Bars 2-4 = rhythm section ONLY (no piano/sax), Bars 5-8 = full ensemble. Make it impossible to ignore."
+}

@@ -1,0 +1,9 @@
+chord_density: 0.0
+do_list:
+- Maintain walking bass with root-fifth patterns
+dont_list:
+- Reduce left-hand piano density
+ghost_note_prob: 0.15923537191762727
+interplay_density: 0.877553242442754
+motif_reuse_weight: 0.427909814168273
+syncopation_target: 0.4267661058256113

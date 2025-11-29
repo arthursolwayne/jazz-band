@@ -1,0 +1,11 @@
+chord_density: 0.2826727097753464
+do_list:
+- Add piano voicings beyond simple triads
+- Create call-response between sax and trumpet
+- Maintain walking bass with root-fifth patterns
+dont_list:
+- Reduce left-hand piano density
+ghost_note_prob: 0.10334928965487349
+interplay_density: 0.3078449158516125
+motif_reuse_weight: 0.432167328472683
+syncopation_target: 0.18632292184033053

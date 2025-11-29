@@ -1,0 +1,9 @@
+chord_density: 0.5052926186452777
+do_list:
+- Create call-response between sax and trumpet
+dont_list:
+- Avoid excessive rests in bass line
+ghost_note_prob: 0.0
+interplay_density: 0.5150377598497065
+motif_reuse_weight: 0.5486326716243852
+syncopation_target: 0.6224246284275213

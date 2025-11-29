@@ -1,0 +1,9 @@
+chord_density: 0.24066430100698916
+do_list:
+- Maintain walking bass with root-fifth patterns
+dont_list:
+- Don't overuse chromatic runs in horns
+ghost_note_prob: 0.12218957260031472
+interplay_density: 0.541747577488752
+motif_reuse_weight: 0.5248532164225761
+syncopation_target: 0.0

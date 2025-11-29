@@ -1,0 +1,11 @@
+chord_density: 0.419268971656424
+do_list:
+- Use ii-V-I progressions at cadence points (bars 4, 8, 12)
+dont_list:
+- Minimize simultaneous melodic motion in sax/trumpet
+- Don't overuse chromatic runs in horns
+- Reduce left-hand piano density
+ghost_note_prob: 0.10581223273707221
+interplay_density: 0.27162102512615616
+motif_reuse_weight: 0.8734420076664369
+syncopation_target: 0.45086473082245887

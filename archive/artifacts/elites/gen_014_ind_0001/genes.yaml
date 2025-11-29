@@ -1,0 +1,9 @@
+chord_density: 0.5483752309394908
+do_list:
+- Create call-response between sax and trumpet
+- Use ii-V-I progressions at cadence points (bars 4, 8, 12)
+dont_list: []
+ghost_note_prob: 0.06120204279209023
+interplay_density: 0.6048580173481437
+motif_reuse_weight: 0.7198886993184663
+syncopation_target: 0.0854086105415274

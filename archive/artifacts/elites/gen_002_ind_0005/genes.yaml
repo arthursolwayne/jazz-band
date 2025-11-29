@@ -1,0 +1,9 @@
+chord_density: 0.6247133992308668
+do_list:
+- Use ii-V-I progressions at cadence points (bars 4, 8, 12)
+dont_list:
+- Avoid excessive rests in bass line
+ghost_note_prob: 0.10458842960666069
+interplay_density: 0.6593342693886608
+motif_reuse_weight: 0.46163366673795037
+syncopation_target: 0.28497036203500936
