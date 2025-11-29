@@ -79,10 +79,25 @@ def test_select_survivors():
     print("✓ test_select_survivors")
 
 
+def test_real_model_one_generation():
+    """Test 1 real evolution generation with W&B serverless. Requires WANDB_API_KEY."""
+    import os
+    if not (os.environ.get("WANDB_API_KEY") or os.environ.get("WANDBAPIKEY")):
+        print("⏭ test_real_model_one_generation (skipped - no API key)")
+        return
+
+    summary = asyncio.run(evolve(generations=1, population_size=2, dry_run=False))
+    assert summary["generations"] == 1
+    assert summary["total_evals"] == 2
+    assert "run_id" in summary
+    print("✓ test_real_model_one_generation")
+
+
 if __name__ == "__main__":
     test_dry_run_one_generation()
     test_dry_run_multiple_generations()
     test_dominates()
     test_pareto_fronts()
     test_select_survivors()
+    test_real_model_one_generation()
     print("\nAll tests passed!")

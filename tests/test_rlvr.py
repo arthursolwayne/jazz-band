@@ -140,6 +140,20 @@ def test_save_rollout():
     print("✓ test_save_rollout")
 
 
+def test_real_model_one_step():
+    """Test 1 real training step with W&B serverless. Requires WANDB_API_KEY."""
+    import os
+    if not (os.environ.get("WANDB_API_KEY") or os.environ.get("WANDBAPIKEY")):
+        print("⏭ test_real_model_one_step (skipped - no API key)")
+        return
+
+    summary = asyncio.run(train(num_steps=1, rollouts_per_step=2, dry_run=False))
+    assert summary["num_steps"] == 1
+    assert summary["total_rollouts"] == 2
+    assert "run_id" in summary
+    print("✓ test_real_model_one_step")
+
+
 if __name__ == "__main__":
     test_dry_run_one_step()
     test_dry_run_multiple_steps()
@@ -151,4 +165,5 @@ if __name__ == "__main__":
     test_compute_reward_empty()
     test_compute_reward_none()
     test_save_rollout()
+    test_real_model_one_step()
     print("\nAll tests passed!")
