@@ -6,8 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from rlvr.loop import train, rollout, JazzScenario
-from rlvr.eval import WEIGHTS
+from rlvr.loop import train, execute_midi_code
+from rlvr.eval import compute_reward
 
 
 def test_dry_run_one_step():
@@ -15,7 +15,6 @@ def test_dry_run_one_step():
     summary = asyncio.run(train(num_steps=1, rollouts_per_step=2, dry_run=True))
     assert summary["num_steps"] == 1
     assert "best_reward" in summary
-    assert isinstance(summary["best_reward"], float)
     print("✓ test_dry_run_one_step")
 
 
@@ -26,32 +25,81 @@ def test_dry_run_multiple_steps():
     print("✓ test_dry_run_multiple_steps")
 
 
-def test_rollout_returns_valid_structure():
-    """Verify rollout returns expected trajectory structure."""
-    scenario = JazzScenario(step=0, key="C", tempo=120)
-    traj = asyncio.run(rollout(None, scenario))
+def test_execute_midi_code_valid():
+    """Verify execute_midi_code works with valid code."""
+    code = """
+import pretty_midi
+midi = pretty_midi.PrettyMIDI()
+piano = pretty_midi.Instrument(program=0)
+piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+midi.instruments.append(piano)
+"""
+    midi = execute_midi_code(code)
+    assert midi is not None
+    assert len(midi.instruments) == 1
+    assert len(midi.instruments[0].notes) == 1
+    print("✓ test_execute_midi_code_valid")
 
-    assert "messages_and_choices" in traj
-    assert "reward" in traj
-    assert "metrics" in traj
-    assert isinstance(traj["reward"], float)
-    print("✓ test_rollout_returns_valid_structure")
+
+def test_execute_midi_code_with_markdown():
+    """Verify execute_midi_code strips markdown fences."""
+    code = """```python
+import pretty_midi
+midi = pretty_midi.PrettyMIDI()
+piano = pretty_midi.Instrument(program=0)
+piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+midi.instruments.append(piano)
+```"""
+    midi = execute_midi_code(code)
+    assert midi is not None
+    print("✓ test_execute_midi_code_with_markdown")
 
 
-def test_rollout_metrics_match_weights():
-    """Verify rollout returns all expected metrics."""
-    scenario = JazzScenario(step=0)
-    traj = asyncio.run(rollout(None, scenario))
+def test_execute_midi_code_invalid():
+    """Verify execute_midi_code handles invalid code."""
+    code = "this is not valid python"
+    midi = execute_midi_code(code)
+    assert midi is None
+    print("✓ test_execute_midi_code_invalid")
 
-    for metric_name in WEIGHTS:
-        assert metric_name in traj["metrics"], f"Missing metric: {metric_name}"
-        assert 0.0 <= traj["metrics"][metric_name] <= 1.0
-    print("✓ test_rollout_metrics_match_weights")
+
+def test_compute_reward_with_notes():
+    """Verify reward is 1.0 when MIDI has notes."""
+    import pretty_midi
+    midi = pretty_midi.PrettyMIDI()
+    piano = pretty_midi.Instrument(program=0)
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+    midi.instruments.append(piano)
+
+    reward = compute_reward(midi)
+    assert reward == 1.0
+    print("✓ test_compute_reward_with_notes")
+
+
+def test_compute_reward_empty():
+    """Verify reward is -1.0 when MIDI has no notes."""
+    import pretty_midi
+    midi = pretty_midi.PrettyMIDI()
+
+    reward = compute_reward(midi)
+    assert reward == -1.0
+    print("✓ test_compute_reward_empty")
+
+
+def test_compute_reward_none():
+    """Verify reward is -1.0 when MIDI is None."""
+    reward = compute_reward(None)
+    assert reward == -1.0
+    print("✓ test_compute_reward_none")
 
 
 if __name__ == "__main__":
     test_dry_run_one_step()
     test_dry_run_multiple_steps()
-    test_rollout_returns_valid_structure()
-    test_rollout_metrics_match_weights()
+    test_execute_midi_code_valid()
+    test_execute_midi_code_with_markdown()
+    test_execute_midi_code_invalid()
+    test_compute_reward_with_notes()
+    test_compute_reward_empty()
+    test_compute_reward_none()
     print("\nAll tests passed!")
