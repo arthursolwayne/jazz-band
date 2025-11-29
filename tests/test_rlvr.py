@@ -5,9 +5,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from rlvr.loop import train, execute_midi_code, save_rollout, JazzScenario, ARTIFACTS_DIR
-from rlvr.eval import compute_reward
+from rlvr.loop import train, save_rollout, JazzScenario, ARTIFACTS_DIR
+from jazz_band.symbol_engine import execute_midi_code, compute_reward
 
 
 def test_dry_run_one_step():
@@ -65,17 +66,35 @@ def test_execute_midi_code_invalid():
     print("✓ test_execute_midi_code_invalid")
 
 
-def test_compute_reward_with_notes():
-    """Verify reward is 1.0 when MIDI has notes."""
+def test_compute_reward_valid():
+    """Verify reward is 1.0 when MIDI has notes and correct duration."""
     import pretty_midi
     midi = pretty_midi.PrettyMIDI()
     piano = pretty_midi.Instrument(program=0)
-    piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+    # 4 bars at 120 BPM = 8 seconds
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=2.0))
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=64, start=2.0, end=4.0))
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=67, start=4.0, end=6.0))
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=72, start=6.0, end=8.0))
     midi.instruments.append(piano)
 
     reward = compute_reward(midi)
     assert reward == 1.0
-    print("✓ test_compute_reward_with_notes")
+    print("✓ test_compute_reward_valid")
+
+
+def test_compute_reward_wrong_duration():
+    """Verify reward is -1.0 when MIDI has wrong duration."""
+    import pretty_midi
+    midi = pretty_midi.PrettyMIDI()
+    piano = pretty_midi.Instrument(program=0)
+    # Only 2 seconds - too short
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=2.0))
+    midi.instruments.append(piano)
+
+    reward = compute_reward(midi)
+    assert reward == -1.0
+    print("✓ test_compute_reward_wrong_duration")
 
 
 def test_compute_reward_empty():
@@ -127,7 +146,8 @@ if __name__ == "__main__":
     test_execute_midi_code_valid()
     test_execute_midi_code_with_markdown()
     test_execute_midi_code_invalid()
-    test_compute_reward_with_notes()
+    test_compute_reward_valid()
+    test_compute_reward_wrong_duration()
     test_compute_reward_empty()
     test_compute_reward_none()
     test_save_rollout()

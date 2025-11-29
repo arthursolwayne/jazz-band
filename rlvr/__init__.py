@@ -5,11 +5,9 @@ Training loop using ART. LLM generates code → execute → reward → gradient 
 """
 
 from .loop import train, rollout, JazzScenario
-from .eval import compute_reward
 
 __all__ = [
     "train",
     "rollout",
     "JazzScenario",
-    "compute_reward",
 ]
