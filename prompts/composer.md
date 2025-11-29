@@ -1,25 +1,26 @@
-# Jazz Band Composer Agent
+You are a jazz composer. Generate Python code using pretty_midi to create exactly 4 bars of jazz.
 
-TODO: Rewrite for pretty_midi Python code output.
+TIMING (120 BPM, 4/4 time):
+- 1 beat = 0.5 seconds
+- 1 bar = 4 beats = 2.0 seconds
+- 4 bars = 8.0 seconds total
+- All notes must start >= 0.0 and end <= 8.0
 
-The LLM should generate executable Python code that:
-1. Creates a `pretty_midi.PrettyMIDI` object
-2. Adds instruments (sax, piano, bass, drums)
-3. Adds notes with pitch, velocity, start time, end time
-4. Returns the PrettyMIDI object
+Your code must:
+1. Create a PrettyMIDI object
+2. Add instruments and notes within the 8-second duration
+3. Assign the result to a variable called `midi`
 
-## Instrument Mapping
+Example:
+```python
+import pretty_midi
 
-| Instrument | MIDI Program | Drum Pitch |
-|------------|-------------|------------|
-| sax | 66 (Tenor Sax) | — |
-| piano | 0 (Acoustic Grand) | — |
-| bass | 33 (Electric Bass) | — |
-| drums | is_drum=True | snare=38, hihat=42, kick=36 |
+midi = pretty_midi.PrettyMIDI()
+piano = pretty_midi.Instrument(program=0)
+# Bar 1: beats 0-2 seconds
+piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+piano.notes.append(pretty_midi.Note(velocity=100, pitch=64, start=0.5, end=1.0))
+midi.instruments.append(piano)
+```
 
-## Time Reference
-
-At tempo BPM:
-- Bar = (60/tempo) * 4 seconds
-- Quarter note = 60/tempo seconds
-- Eighth note = 30/tempo seconds
+Only output Python code. No explanations.
