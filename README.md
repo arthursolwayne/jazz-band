@@ -47,14 +47,23 @@ Both use the **same 9 metrics** for evaluation. The difference is optimization:
 | harmonic_movement | 0.05 | 1-3 changes/4 bars |
 | consonance | 0.05 | % in key |
 
+## Setup
+
+```bash
+uv sync   # Install dependencies
+```
+
 ## Run
 
 ```bash
-# RLVR
-python -m rlvr.loop --steps 30 --dry-run
+# RLVR (dry-run)
+uv run python -m rlvr --dry-run --steps 3 --rollouts 4
 
-# GEPA
-python -m gepa.loop --generations 30 --dry-run
+# RLVR (real training with W&B)
+uv run python -m rlvr --steps 1 --rollouts 2
+
+# GEPA (TODO)
+uv run python -m gepa --dry-run --generations 10
 ```
 
 ## Reference Riffs
