@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from gepa.loop import evolve
-from gepa.eval import Individual, dominates, compute_pareto_fronts, select_survivors
+from gepa.pareto import Individual, dominates, compute_pareto_fronts, select_survivors
 
 
 def test_dry_run_one_generation():

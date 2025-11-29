@@ -32,58 +32,14 @@ except ImportError:
     art = None
     HAS_ART = False
 
-from .eval import Individual, compute_pareto_fronts, select_survivors, mutate_prompt
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from .pareto import Individual, compute_pareto_fronts, select_survivors, mutate_prompt
+from jazz_band.symbol_engine import SYSTEM_PROMPT as BASE_PROMPT, execute_midi_code, compute_reward
 
 # Artifacts directory
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "gepa"
-
-# Base system prompt for generating pretty_midi code
-BASE_PROMPT = """You are a jazz composer. Generate Python code using pretty_midi to create a 4-bar jazz composition.
-
-Your code must:
-1. Import pretty_midi
-2. Create a PrettyMIDI object
-3. Add instruments and notes
-4. Assign the final PrettyMIDI object to a variable called `midi`
-
-Example:
-```python
-import pretty_midi
-
-midi = pretty_midi.PrettyMIDI()
-piano = pretty_midi.Instrument(program=0)
-piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
-midi.instruments.append(piano)
-```
-
-Only output Python code. No explanations."""
-
-
-def execute_midi_code(code: str):
-    """Execute LLM-generated code and return PrettyMIDI object."""
-    import pretty_midi
-
-    # Clean code (remove markdown fences if present)
-    if "```python" in code:
-        code = code.split("```python")[1].split("```")[0]
-    elif "```" in code:
-        code = code.split("```")[1].split("```")[0]
-
-    # Execute in isolated namespace
-    namespace = {"pretty_midi": pretty_midi}
-    try:
-        exec(code, namespace)
-        return namespace.get("midi", None), code, None
-    except Exception as e:
-        return None, code, str(e)
-
-
-def compute_reward(midi) -> float:
-    """Dummy reward: 1.0 if MIDI has notes, -1.0 otherwise."""
-    if midi is None:
-        return -1.0
-    total_notes = sum(len(inst.notes) for inst in midi.instruments)
-    return 1.0 if total_notes > 0 else -1.0
 
 
 def save_individual(individual: Individual, gen: int, midi, code: str, run_id: str, error: str = None):
