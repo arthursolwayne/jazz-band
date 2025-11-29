@@ -5,8 +5,8 @@ description = "Multi-instrument symbolic music jam system with AI agents"
 requires-python = ">=3.10"
 dependencies = [
     "pretty_midi>=0.2.10",
-    "wandb>=0.18.0",
-    "weave>=0.51.0",
+    "wandb>=0.23.0",
+    "weave>=0.52.20",
     "python-dotenv>=1.0.0",
     "openai>=1.0.0",
     "openpipe-art>=0.5.0",

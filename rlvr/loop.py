@@ -5,13 +5,22 @@ Rollout → execute code → reward → gradient descent (via ART).
 """
 
 import os
+import json
 import asyncio
+import logging
+import subprocess
+from pathlib import Path
 from typing import Dict
+from datetime import datetime
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
+import weave
 
 load_dotenv()
+
+# Suppress weave info logs (keep errors)
+logging.getLogger("weave").setLevel(logging.ERROR)
 
 # ART imports (optional for dry-run)
 try:
@@ -23,6 +32,9 @@ except ImportError:
     HAS_ART = False
 
 from .eval import compute_reward
+
+# Artifacts directory
+ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "rollouts"
 
 # System prompt for generating pretty_midi code
 SYSTEM_PROMPT = """You are a jazz composer. Generate Python code using pretty_midi to create a 4-bar jazz composition.
@@ -51,6 +63,7 @@ class JazzScenario(BaseModel):
     step: int
     key: str = "C"
     tempo: int = 120
+    rollout_id: int = 0
 
 
 def execute_midi_code(code: str):
@@ -67,13 +80,47 @@ def execute_midi_code(code: str):
     namespace = {"pretty_midi": pretty_midi}
     try:
         exec(code, namespace)
-        return namespace.get("midi", None)
+        return namespace.get("midi", None), code, None
     except Exception as e:
-        print(f"Code execution failed: {e}")
-        return None
+        return None, code, str(e)
 
 
-async def rollout(model, scenario: JazzScenario) -> "art.Trajectory":
+def save_rollout(scenario: JazzScenario, code: str, midi, reward: float, run_id: str, error: str = None):
+    """Save rollout artifacts: code, MIDI, metadata."""
+    rollout_dir = ARTIFACTS_DIR / run_id / f"step_{scenario.step:03d}" / f"rollout_{scenario.rollout_id:03d}"
+    rollout_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save code
+    (rollout_dir / "code.py").write_text(code)
+
+    # Save MIDI if valid
+    if midi is not None:
+        midi_path = rollout_dir / "output.mid"
+        midi.write(str(midi_path))
+
+    # Save metadata
+    meta = {
+        "step": scenario.step,
+        "rollout_id": scenario.rollout_id,
+        "key": scenario.key,
+        "tempo": scenario.tempo,
+        "reward": reward,
+        "has_midi": midi is not None,
+        "error": error,
+        "timestamp": datetime.now().isoformat(),
+    }
+    (rollout_dir / "meta.json").write_text(json.dumps(meta, indent=2))
+
+    return rollout_dir
+
+
+def open_midi_in_garageband(midi_path: Path):
+    """Open MIDI file in GarageBand (macOS)."""
+    subprocess.run(["open", "-a", "GarageBand", str(midi_path)])
+
+
+@weave.op
+async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory":
     """
     Single rollout: prompt LLM → execute code → compute reward.
     """
@@ -97,6 +144,10 @@ async def rollout(model, scenario: JazzScenario) -> "art.Trajectory":
     user_prompt = f"Compose a 4-bar jazz piece in {scenario.key} at {scenario.tempo} BPM."
     trajectory.messages_and_choices.append({"role": "user", "content": user_prompt})
 
+    code = ""
+    midi = None
+    error = None
+
     # Call LLM
     try:
         completion = await client.chat.completions.create(
@@ -110,14 +161,27 @@ async def rollout(model, scenario: JazzScenario) -> "art.Trajectory":
 
         # Execute code
         code = choice.message.content
-        midi = execute_midi_code(code)
+        midi, cleaned_code, error = execute_midi_code(code)
+        code = cleaned_code
 
         # Compute reward
-        trajectory.reward = compute_reward(midi)
+        reward = compute_reward(midi)
+        trajectory.reward = reward
+
+        # Track metrics for W&B
+        note_count = sum(len(inst.notes) for inst in midi.instruments) if midi else 0
+        trajectory.metrics["note_count"] = note_count
+        trajectory.metrics["reward"] = reward
+        trajectory.metrics["valid_midi"] = 1.0 if midi else 0.0
 
     except Exception as e:
-        print(f"Rollout failed: {e}")
+        error = str(e)
         trajectory.reward = -1.0
+        trajectory.metrics["reward"] = -1.0
+        trajectory.metrics["valid_midi"] = 0.0
+
+    # Save artifacts
+    save_rollout(scenario, code, midi, trajectory.reward, run_id, error)
 
     return trajectory
 
@@ -155,53 +219,120 @@ async def train(
         raise ValueError("WANDB_API_KEY or WANDBAPIKEY required")
     os.environ["WANDB_API_KEY"] = api_key
 
-    # Initialize model
-    print(f"Initializing model: {model_name} (base: {base_model})")
+    # Initialize weave for logging
+    weave.init(project)
+
+    # Generate unique run name (each CLI call = fresh training run)
+    run_id = f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    run_name = run_id  # Use timestamped name so each run starts fresh
+
+    # Print header
+    artifacts_path = ARTIFACTS_DIR / run_id
+    artifacts_rel = f"artifacts/rollouts/{run_id}"
+
+    print()
+    print("=" * 60)
+    print(f"RLVR Training Run: {run_name}")
+    print("=" * 60)
+    print(f"  Base model:  {base_model}")
+    print(f"  Steps:       {num_steps}")
+    print(f"  Rollouts:    {rollouts_per_step} per step")
+    print(f"  Artifacts:   {artifacts_rel}")
+    print("=" * 60)
+    print()
+
     model = art.TrainableModel(
-        name=model_name,
+        name=run_name,
         project=project,
         base_model=base_model,
     )
 
     backend = ServerlessBackend()
     await model.register(backend)
-    print("Model registered with ServerlessBackend")
 
-    # Training loop
-    best_reward = float("-inf")
+    # Training loop stats
+    total_valid = 0
+    total_rollouts = 0
+    best_single_reward = float("-inf")
+    step_summaries = []
 
-    for step in range(await model.get_step(), num_steps):
-        print(f"\nStep {step}/{num_steps}")
+    start_step = await model.get_step()
 
+    for step in range(start_step, num_steps):
         train_groups = await art.gather_trajectory_groups(
             (
                 art.TrajectoryGroup(
-                    rollout(model, JazzScenario(step=step))
-                    for _ in range(rollouts_per_step)
+                    rollout(model, JazzScenario(step=step, rollout_id=i), run_id)
+                    for i in range(rollouts_per_step)
                 )
                 for _ in range(1)
             ),
-            pbar_desc=f"Step {step}",
+            pbar_desc=f"Step {step}/{num_steps}",
             max_exceptions=rollouts_per_step,
         )
 
         # Compute stats
-        all_rewards = []
+        step_rewards = []
+        step_valid = 0
+        step_errors = []
         for group in train_groups:
             for traj in group.trajectories:
-                all_rewards.append(traj.reward)
+                step_rewards.append(traj.reward)
+                if traj.reward > best_single_reward:
+                    best_single_reward = traj.reward
+                if traj.metrics.get("valid_midi", 0) > 0:
+                    step_valid += 1
 
-        if all_rewards:
-            avg_reward = sum(all_rewards) / len(all_rewards)
-            if avg_reward > best_reward:
-                best_reward = avg_reward
-            print(f"  avg_reward={avg_reward:.3f}, best={best_reward:.3f}")
+        total_valid += step_valid
+        total_rollouts += len(step_rewards)
+
+        avg_reward = sum(step_rewards) / len(step_rewards) if step_rewards else 0
+        step_summaries.append({
+            "step": step,
+            "avg_reward": avg_reward,
+            "valid": step_valid,
+            "total": len(step_rewards),
+        })
+
+        # Print step summary (clean, single line)
+        print(f"  Step {step}: reward={avg_reward:+.2f}  valid={step_valid}/{len(step_rewards)}")
 
         # Train
         await model.delete_checkpoints()
         await model.train(train_groups, config=art.TrainConfig(learning_rate=1e-5))
 
-    return {"num_steps": num_steps, "best_reward": best_reward}
+    # Find best MIDI and open in GarageBand
+    best_midi_path = None
+    for step_dir in sorted(artifacts_path.glob("step_*")):
+        for rollout_dir in sorted(step_dir.glob("rollout_*")):
+            midi_file = rollout_dir / "output.mid"
+            if midi_file.exists():
+                best_midi_path = midi_file
+
+    # Print final summary
+    print()
+    print("=" * 60)
+    print("Training Complete")
+    print("=" * 60)
+    print(f"  Steps completed:    {num_steps}")
+    print(f"  Total rollouts:     {total_rollouts}")
+    print(f"  Valid MIDIs:        {total_valid}/{total_rollouts} ({100*total_valid/total_rollouts:.0f}%)")
+    print(f"  Best single reward: {best_single_reward:+.2f}")
+    print(f"  Artifacts:          {artifacts_rel}")
+    print("=" * 60)
+
+    if best_midi_path:
+        print(f"\nOpening best MIDI in GarageBand...")
+        open_midi_in_garageband(best_midi_path)
+    print()
+
+    return {
+        "num_steps": num_steps,
+        "total_rollouts": total_rollouts,
+        "total_valid": total_valid,
+        "best_reward": best_single_reward,
+        "run_id": run_id,
+    }
 
 
 if __name__ == "__main__":
@@ -212,7 +343,7 @@ if __name__ == "__main__":
     parser.add_argument("--dry-run", action="store_true", help="Use mock rewards")
     parser.add_argument("--project", default="jazz-band-rlvr", help="W&B project")
     parser.add_argument("--model-name", default="composer-001", help="Model name")
-    parser.add_argument("--base-model", default="Qwen/Qwen2.5-Coder-7B-Instruct", help="Base model")
+    parser.add_argument("--base-model", default="OpenPipe/Qwen3-14B-Instruct", help="Base model")
     args = parser.parse_args()
 
     summary = asyncio.run(train(
@@ -223,4 +354,3 @@ if __name__ == "__main__":
         model_name=args.model_name,
         base_model=args.base_model,
     ))
-    print(f"Done: {summary}")
