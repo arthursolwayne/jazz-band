@@ -1,0 +1,14 @@
+{
+  "generation": 11,
+  "individual_id": 1,
+  "rank": 1,
+  "crowding_distance": Infinity,
+  "objectives": {
+    "consonance": 0.8571428571428571,
+    "groove_alignment": 0.75,
+    "motif_coherence": 1.0,
+    "interplay": 0.0,
+    "density_regularity": 0.0,
+    "judge_score": 3.8
+  }
+}

@@ -1,0 +1,11 @@
+chord_density: 0.4115378863579768
+do_list:
+- Maintain walking bass with root-fifth patterns
+dont_list:
+- Don't overuse chromatic runs in horns
+- Avoid excessive rests in bass line
+- Minimize simultaneous melodic motion in sax/trumpet
+ghost_note_prob: 0.06079236583202128
+interplay_density: 0.7292523778298553
+motif_reuse_weight: 0.7573884588381201
+syncopation_target: 0.4689220044202993

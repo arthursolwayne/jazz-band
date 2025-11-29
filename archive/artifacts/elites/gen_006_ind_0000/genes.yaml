@@ -1,0 +1,10 @@
+chord_density: 0.534654409637189
+do_list: []
+dont_list:
+- Minimize simultaneous melodic motion in sax/trumpet
+- Don't overuse chromatic runs in horns
+- Reduce left-hand piano density
+ghost_note_prob: 0.04934480455450002
+interplay_density: 0.4744624057168822
+motif_reuse_weight: 0.8437378765515237
+syncopation_target: 0.39180179407892685

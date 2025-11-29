@@ -1,0 +1,12 @@
+chord_density: 0.6475822969836803
+do_list:
+- Add piano voicings beyond simple triads
+dont_list:
+- Minimize simultaneous melodic motion in sax/trumpet
+- Don't overuse chromatic runs in horns
+- Reduce left-hand piano density
+- Avoid excessive rests in bass line
+ghost_note_prob: 0.1398531225335298
+interplay_density: 0.1905763645559589
+motif_reuse_weight: 1.0
+syncopation_target: 0.5099194190269637

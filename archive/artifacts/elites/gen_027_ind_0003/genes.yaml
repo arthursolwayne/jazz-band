@@ -1,0 +1,8 @@
+chord_density: 0.07183421955712772
+do_list:
+- Add piano voicings beyond simple triads
+dont_list: []
+ghost_note_prob: 0.05667254166353561
+interplay_density: 0.6053322778018065
+motif_reuse_weight: 0.6987266624350903
+syncopation_target: 0.27723826284633113

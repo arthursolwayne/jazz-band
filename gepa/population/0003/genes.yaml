@@ -1,8 +1,0 @@
-chord_density: 0.45537739051830023
-do_list:
-- Use ii-V-I progressions at cadence points (bars 4, 8, 12)
-dont_list: []
-ghost_note_prob: 0.06905743494735773
-interplay_density: 0.8171284674433532
-motif_reuse_weight: 0.37951163534844023
-syncopation_target: 0.0735699471041791

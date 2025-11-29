@@ -1,0 +1,11 @@
+chord_density: 0.07435579741825286
+do_list:
+- Add piano voicings beyond simple triads
+- Use ii-V-I progressions at cadence points (bars 4, 8, 12)
+- Create call-response between sax and trumpet
+dont_list:
+- Avoid excessive rests in bass line
+ghost_note_prob: 0.017760685675806864
+interplay_density: 0.07561754487686817
+motif_reuse_weight: 0.6820149710261002
+syncopation_target: 0.16640330697997238

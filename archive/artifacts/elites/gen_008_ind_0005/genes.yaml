@@ -1,0 +1,8 @@
+chord_density: 0.21508309223347882
+do_list: []
+dont_list:
+- Minimize simultaneous melodic motion in sax/trumpet
+ghost_note_prob: 0.07106359355099778
+interplay_density: 0.6921508079175861
+motif_reuse_weight: 0.8712961968749793
+syncopation_target: 0.4234281337550605

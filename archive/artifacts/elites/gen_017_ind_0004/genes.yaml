@@ -1,0 +1,9 @@
+chord_density: 0.24117908550329287
+do_list:
+- Add piano voicings beyond simple triads
+- Create call-response between sax and trumpet
+dont_list: []
+ghost_note_prob: 0.10334928965487349
+interplay_density: 0.2811838568586829
+motif_reuse_weight: 0.5678048096339938
+syncopation_target: 0.18632292184033053
