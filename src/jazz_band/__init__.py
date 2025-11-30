@@ -8,6 +8,7 @@ from .symbol_engine import (
     SYSTEM_PROMPT,
     execute_midi_code,
     compute_reward,
+    compute_combined_reward,
     TARGET_DURATION,
     DURATION_TOLERANCE,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "SYSTEM_PROMPT",
     "execute_midi_code",
     "compute_reward",
+    "compute_combined_reward",
     "TARGET_DURATION",
     "DURATION_TOLERANCE",
 ]

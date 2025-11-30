@@ -8,6 +8,7 @@ import os
 import json
 import asyncio
 import logging
+import random
 import subprocess
 from pathlib import Path
 from typing import Dict
@@ -34,7 +35,10 @@ except ImportError:
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from jazz_band.symbol_engine import SYSTEM_PROMPT, execute_midi_code, compute_reward
+from jazz_band.symbol_engine import SYSTEM_PROMPT, execute_midi_code, compute_combined_reward
+
+# Jazz keys from reference standards (Moanin', So What, Watermelon Man, Cantina, Song for My Father)
+JAZZ_KEYS = ["Dm", "Fm", "F", "D"]
 
 # Artifacts directory
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "rollouts"
@@ -44,7 +48,7 @@ class JazzScenario(BaseModel):
     """Scenario for a single rollout."""
     step: int
     key: str = "C"
-    tempo: int = 120
+    tempo: int = 160  # Must match composer.md timing (6.0s = 4 bars at 160 BPM)
     rollout_id: int = 0
 
 
@@ -127,8 +131,8 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
         midi, cleaned_code, error = execute_midi_code(code)
         code = cleaned_code
 
-        # Compute reward
-        reward = compute_reward(midi)
+        # Compute reward (all instruments combined)
+        reward = compute_combined_reward(midi) if midi else 0.0
         trajectory.reward = reward
 
         # Track metrics for W&B
@@ -163,7 +167,6 @@ async def train(
     """
     if dry_run:
         # Dry-run: mock rewards
-        import random
         best_reward = float("-inf")
         for step in range(num_steps):
             rewards = [random.choice([-1.0, 1.0]) for _ in range(rollouts_per_step)]
@@ -230,7 +233,7 @@ async def train(
         train_groups = await art.gather_trajectory_groups(
             (
                 art.TrajectoryGroup(
-                    rollout(model, JazzScenario(step=step, rollout_id=i), run_id)
+                    rollout(model, JazzScenario(step=step, rollout_id=i, key=random.choice(JAZZ_KEYS)), run_id)
                     for i in range(rollouts_per_step)
                 )
                 for _ in range(1)

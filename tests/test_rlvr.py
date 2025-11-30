@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from rlvr.loop import train, save_rollout, JazzScenario, ARTIFACTS_DIR
-from jazz_band.symbol_engine import execute_midi_code, compute_reward
+from jazz_band.symbol_engine import execute_midi_code, compute_reward, compute_combined_reward
 
 
 def test_dry_run_one_step():
@@ -67,7 +67,7 @@ def test_execute_midi_code_invalid():
 
 
 def test_compute_reward_valid():
-    """Verify reward is in valid range for MIDI with correct structure."""
+    """Verify sax reward returns a z-sum for valid MIDI."""
     import pretty_midi
     midi = pretty_midi.PrettyMIDI()
     sax = pretty_midi.Instrument(program=66)  # Tenor sax
@@ -80,8 +80,8 @@ def test_compute_reward_valid():
     midi.instruments.append(sax)
 
     reward = compute_reward(midi)
-    # Full scoring (passes sanity + gates): 0.3 to 1.0
-    assert 0.3 <= reward <= 1.0, f"Expected full scoring range, got {reward}"
+    # Now returns raw z-sum (any float), not sigmoid-mapped
+    assert isinstance(reward, float), f"Expected float, got {type(reward)}"
     print("✓ test_compute_reward_valid")
 
 
@@ -115,6 +115,31 @@ def test_compute_reward_none():
     reward = compute_reward(None)
     assert reward == 0.0
     print("✓ test_compute_reward_none")
+
+
+def test_compute_combined_reward():
+    """Verify combined reward returns [0, 1] range."""
+    import pretty_midi
+    midi = pretty_midi.PrettyMIDI(initial_tempo=160)
+
+    # Full quartet
+    sax = pretty_midi.Instrument(program=66)
+    bass = pretty_midi.Instrument(program=33)
+    piano = pretty_midi.Instrument(program=0)
+    drums = pretty_midi.Instrument(program=0, is_drum=True)
+
+    # Add notes for each instrument (4 bars = 6 seconds at 160 BPM)
+    for i in range(8):
+        sax.notes.append(pretty_midi.Note(100, 60 + i, i * 0.5, i * 0.5 + 0.4))
+        bass.notes.append(pretty_midi.Note(100, 36 + (i % 4), i * 0.5, i * 0.5 + 0.4))
+        piano.notes.append(pretty_midi.Note(80, 48 + i, i * 0.5, i * 0.5 + 0.3))
+        drums.notes.append(pretty_midi.Note(100, 36 if i % 2 == 0 else 38, i * 0.5, i * 0.5 + 0.1))
+
+    midi.instruments.extend([sax, bass, piano, drums])
+
+    reward = compute_combined_reward(midi)
+    assert 0.0 <= reward <= 1.0, f"Expected [0, 1] range, got {reward}"
+    print("✓ test_compute_combined_reward")
 
 
 def test_save_rollout():
@@ -167,6 +192,7 @@ if __name__ == "__main__":
     test_compute_reward_wrong_duration()
     test_compute_reward_empty()
     test_compute_reward_none()
+    test_compute_combined_reward()
     test_save_rollout()
     test_real_model_one_step()
     print("\nAll tests passed!")

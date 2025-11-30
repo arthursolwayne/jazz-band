@@ -39,11 +39,14 @@ from .pareto import Individual, compute_pareto_fronts, select_survivors, mutate_
 from jazz_band.symbol_engine import (
     SYSTEM_PROMPT as BASE_PROMPT,
     execute_midi_code,
-    compute_reward,
+    compute_combined_reward,
     get_sax_notes,
     unique_durations,
     has_rests,
 )
+
+# Jazz keys from reference standards
+JAZZ_KEYS = ["Dm", "Fm", "F", "D"]
 
 # Artifacts directory
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "gepa"
@@ -93,7 +96,7 @@ async def evaluate_individual(
     gen: int,
     run_id: str,
     key: str = "C",
-    tempo: int = 120,
+    tempo: int = 160,  # Must match composer.md timing
 ) -> Individual:
     """Evaluate one individual: prompt → code → execute → reward."""
 
@@ -113,8 +116,8 @@ async def evaluate_individual(
         midi, cleaned_code, error = execute_midi_code(code)
         code = cleaned_code
 
-        # Compute reward
-        reward = compute_reward(midi)
+        # Compute reward (all instruments combined)
+        reward = compute_combined_reward(midi) if midi else 0.0
         individual.reward = reward
 
         # Extract trace info for reflection
@@ -238,9 +241,9 @@ async def evolve(
     best_single_reward = float("-inf")
 
     for gen in range(generations):
-        # Evaluate all individuals in parallel
+        # Evaluate all individuals in parallel (random key per individual)
         tasks = [
-            evaluate_individual(client, model_name, ind, gen, run_id)
+            evaluate_individual(client, model_name, ind, gen, run_id, key=random.choice(JAZZ_KEYS))
             for ind in population
         ]
         population = await asyncio.gather(*tasks)

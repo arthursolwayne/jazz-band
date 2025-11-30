@@ -11,7 +11,7 @@ from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-from jazz_band.symbol_engine import SYSTEM_PROMPT, execute_midi_code, compute_reward
+from jazz_band.symbol_engine import SYSTEM_PROMPT, execute_midi_code, compute_combined_reward
 
 MODELS = {
     "opus": "claude-opus-4-5-20251101",
@@ -59,7 +59,7 @@ def run_baseline(model_name: str, model_id: str, n_runs: int):
 
         # Execute and score
         midi, cleaned_code, error = execute_midi_code(code)
-        reward = compute_reward(midi)  # handles None internally (returns 0.0)
+        reward = compute_combined_reward(midi) if midi else 0.0
 
         # Track stats
         if midi:
