@@ -116,8 +116,8 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
         completion = await client.chat.completions.create(
             model=model.get_inference_name(),
             messages=trajectory.messages(),
-            max_completion_tokens=1000,
-            temperature=0.7,
+            max_completion_tokens=12000,
+            temperature=0.75,
         )
         choice = completion.choices[0]
         trajectory.messages_and_choices.append(choice)
@@ -139,8 +139,8 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
 
     except Exception as e:
         error = str(e)
-        trajectory.reward = -1.0
-        trajectory.metrics["reward"] = -1.0
+        trajectory.reward = 0.0  # Floor at 0, not negative (for GRPO)
+        trajectory.metrics["reward"] = 0.0
         trajectory.metrics["valid_midi"] = 0.0
 
     # Save artifacts
@@ -151,11 +151,12 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
 
 async def train(
     num_steps: int = 20,
-    rollouts_per_step: int = 8,
+    rollouts_per_step: int = 24,
     dry_run: bool = False,
     project: str = "jazz-band-rlvr",
     model_name: str = "composer-001",
     base_model: str = "OpenPipe/Qwen3-14B-Instruct",
+    resume: str = None,  # Pass run_id to resume
 ) -> Dict:
     """
     Main training loop.
@@ -185,9 +186,13 @@ async def train(
     # Initialize weave for logging
     weave.init(project)
 
-    # Generate unique run name (each CLI call = fresh training run)
-    run_id = f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    run_name = run_id  # Use timestamped name so each run starts fresh
+    # Resume existing run or create new one
+    if resume:
+        run_id = resume
+        run_name = resume
+    else:
+        run_id = f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        run_name = run_id
 
     # Print header
     artifacts_path = ARTIFACTS_DIR / run_id
@@ -262,7 +267,11 @@ async def train(
 
         # Train
         await model.delete_checkpoints()
-        await model.train(train_groups, config=art.TrainConfig(learning_rate=1e-5))
+        await model.train(
+            train_groups,
+            config=art.TrainConfig(learning_rate=5e-6),
+            _config={"advantage_balance": 0.3},
+        )
 
     # Find best MIDI and open in GarageBand
     best_midi_path = None
@@ -302,11 +311,12 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="RLVR Training")
     parser.add_argument("--steps", type=int, default=20, help="Training steps")
-    parser.add_argument("--rollouts", type=int, default=8, help="Rollouts per step")
+    parser.add_argument("--rollouts", type=int, default=24, help="Rollouts per step")
     parser.add_argument("--dry-run", action="store_true", help="Use mock rewards")
     parser.add_argument("--project", default="jazz-band-rlvr", help="W&B project")
     parser.add_argument("--model-name", default="composer-001", help="Model name")
     parser.add_argument("--base-model", default="OpenPipe/Qwen3-14B-Instruct", help="Base model")
+    parser.add_argument("--resume", type=str, default=None, help="Run ID to resume")
     args = parser.parse_args()
 
     summary = asyncio.run(train(
@@ -316,4 +326,5 @@ if __name__ == "__main__":
         project=args.project,
         model_name=args.model_name,
         base_model=args.base_model,
+        resume=args.resume,
     ))

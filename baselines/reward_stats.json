@@ -1,0 +1,29 @@
+{
+  "n_samples": 11,
+  "features": {
+    "melodic_entropy": {
+      "mean": 2.3967,
+      "std": 0.4844
+    },
+    "dur_cv": {
+      "mean": 0.5404,
+      "std": 0.6085
+    },
+    "sax_arpeggio_runs": {
+      "mean": 3.6364,
+      "std": 8.7622
+    },
+    "peak_not_late": {
+      "mean": 0.7273,
+      "std": 0.4454
+    },
+    "blue_ratio": {
+      "mean": 0.1983,
+      "std": 0.1252
+    },
+    "rhythm_2grams": {
+      "mean": 2.0,
+      "std": 1.1282
+    }
+  }
+}

@@ -67,24 +67,26 @@ def test_execute_midi_code_invalid():
 
 
 def test_compute_reward_valid():
-    """Verify reward is 1.0 when MIDI has notes and correct duration."""
+    """Verify reward is in valid range for MIDI with correct structure."""
     import pretty_midi
     midi = pretty_midi.PrettyMIDI()
-    piano = pretty_midi.Instrument(program=0)
-    # 4 bars at 120 BPM = 8 seconds
-    piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=2.0))
-    piano.notes.append(pretty_midi.Note(velocity=100, pitch=64, start=2.0, end=4.0))
-    piano.notes.append(pretty_midi.Note(velocity=100, pitch=67, start=4.0, end=6.0))
-    piano.notes.append(pretty_midi.Note(velocity=100, pitch=72, start=6.0, end=8.0))
-    midi.instruments.append(piano)
+    sax = pretty_midi.Instrument(program=66)  # Tenor sax
+    # 4 bars at 160 BPM = 6 seconds, varied durations with rests
+    sax.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+    sax.notes.append(pretty_midi.Note(velocity=100, pitch=64, start=0.7, end=1.5))  # rest before
+    sax.notes.append(pretty_midi.Note(velocity=100, pitch=67, start=2.0, end=3.0))  # rest before
+    sax.notes.append(pretty_midi.Note(velocity=100, pitch=63, start=3.5, end=4.0))  # blue note (Eb)
+    sax.notes.append(pretty_midi.Note(velocity=100, pitch=72, start=4.5, end=6.0))
+    midi.instruments.append(sax)
 
     reward = compute_reward(midi)
-    assert reward == 1.0
+    # Full scoring (passes sanity + gates): 0.3 to 1.0
+    assert 0.3 <= reward <= 1.0, f"Expected full scoring range, got {reward}"
     print("✓ test_compute_reward_valid")
 
 
 def test_compute_reward_wrong_duration():
-    """Verify reward is -1.0 when MIDI has wrong duration."""
+    """Verify reward is partial credit when MIDI has wrong duration."""
     import pretty_midi
     midi = pretty_midi.PrettyMIDI()
     piano = pretty_midi.Instrument(program=0)
@@ -93,24 +95,25 @@ def test_compute_reward_wrong_duration():
     midi.instruments.append(piano)
 
     reward = compute_reward(midi)
-    assert reward == -1.0
+    # Partial credit: has notes (0.05) + log bonus (~0.03) = ~0.08
+    assert 0.0 < reward <= 0.25, f"Expected partial credit, got {reward}"
     print("✓ test_compute_reward_wrong_duration")
 
 
 def test_compute_reward_empty():
-    """Verify reward is -1.0 when MIDI has no notes."""
+    """Verify reward is 0.0 when MIDI has no notes (no partial credit)."""
     import pretty_midi
     midi = pretty_midi.PrettyMIDI()
 
     reward = compute_reward(midi)
-    assert reward == -1.0
+    assert reward == 0.0
     print("✓ test_compute_reward_empty")
 
 
 def test_compute_reward_none():
-    """Verify reward is -1.0 when MIDI is None."""
+    """Verify reward is 0.0 when MIDI is None."""
     reward = compute_reward(None)
-    assert reward == -1.0
+    assert reward == 0.0
     print("✓ test_compute_reward_none")
 
 

@@ -5,8 +5,8 @@ import asyncio
 from .loop import evolve
 
 parser = argparse.ArgumentParser(description="GEPA Evolution")
-parser.add_argument("--generations", type=int, default=10, help="Number of generations")
-parser.add_argument("--population", type=int, default=8, help="Population size")
+parser.add_argument("--generations", type=int, default=20, help="Number of generations")
+parser.add_argument("--population", type=int, default=24, help="Population size")
 parser.add_argument("--dry-run", action="store_true", help="Use mock rewards")
 parser.add_argument("--project", default="jazz-band-gepa", help="W&B project")
 parser.add_argument("--base-model", default="OpenPipe/Qwen3-14B-Instruct", help="Base model")
