@@ -295,6 +295,7 @@ def compute_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     sax_notes = get_sax_notes(midi)
 
     # Soft gates: variety multiplier (penalize degenerate outputs)
+    # NOTE: These are SAX-specific gates. Other instruments have their own gates.
     variety = 1.0
     if unique_durations(sax_notes) < 2:
         variety *= 0.5  # 50% penalty for monotone rhythm
@@ -321,15 +322,9 @@ def compute_reward(midi: "pretty_midi.PrettyMIDI") -> float:
         if std > 0:
             raw_reward += (value - mean) / std
 
-    # Map to [0.3, 1.0] range
-    # sigmoid(x/4) maps raw z-sum to (0, 1), then scale/shift
-    sigmoid_val = 1 / (1 + math.exp(-raw_reward / 4))
-    quality = 0.3 + 0.7 * sigmoid_val
-
-    # Apply variety gates
-    reward = quality * variety
-
-    return reward
+    # Apply variety gates to raw z-sum
+    # NOTE: Sigmoid is applied in compute_combined_reward() for final output
+    return raw_reward * variety
 
 
 def compute_features(midi: "pretty_midi.PrettyMIDI") -> Dict[str, float]:
@@ -349,3 +344,46 @@ def compute_features(midi: "pretty_midi.PrettyMIDI") -> Dict[str, float]:
         'blue_ratio': blue_ratio(sax_notes),
         'rhythm_2grams': rhythm_2grams(sax_notes),
     }
+
+
+# =============================================================================
+# Combined Reward (all instruments)
+# =============================================================================
+
+def compute_combined_reward(midi: "pretty_midi.PrettyMIDI") -> float:
+    """
+    Compute combined reward from all 5 instrument rewards.
+
+    Sums raw z-scores from:
+        - Sax (6 features)
+        - Bass (2 features)
+        - Piano (4 features)
+        - Drums (4 features)
+        - Ensemble (4 features)
+
+    Then applies ONE final sigmoid to map to [0, 1] range.
+    This ensures non-negative rewards for GRPO training.
+
+    Returns:
+        float: Combined reward in [0, 1] range.
+               0.5 = all instruments at mean (z-sum = 0)
+               ~1.0 = significantly above mean
+               ~0.0 = significantly below mean
+    """
+    from jazz_band.reward_bass import compute_bass_reward
+    from jazz_band.reward_piano import compute_piano_reward
+    from jazz_band.reward_drums import compute_drum_reward
+    from jazz_band.reward_ensemble import compute_ensemble_reward
+
+    # Sum all raw z-scores
+    z_sum = 0.0
+    z_sum += compute_reward(midi)          # Sax
+    z_sum += compute_bass_reward(midi)     # Bass
+    z_sum += compute_piano_reward(midi)    # Piano
+    z_sum += compute_drum_reward(midi)     # Drums
+    z_sum += compute_ensemble_reward(midi) # Ensemble
+
+    # Map to [0, 1] using sigmoid
+    # Scale factor 6 chosen because we have ~20 features total
+    # GRPO normalizes within groups anyway, so absolute range doesn't matter
+    return 1 / (1 + math.exp(-z_sum / 6))
