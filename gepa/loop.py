@@ -36,7 +36,14 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from .pareto import Individual, compute_pareto_fronts, select_survivors, mutate_prompt
-from jazz_band.symbol_engine import SYSTEM_PROMPT as BASE_PROMPT, execute_midi_code, compute_reward
+from jazz_band.symbol_engine import (
+    SYSTEM_PROMPT as BASE_PROMPT,
+    execute_midi_code,
+    compute_reward,
+    get_sax_notes,
+    unique_durations,
+    has_rests,
+)
 
 # Artifacts directory
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "gepa"
@@ -99,8 +106,8 @@ async def evaluate_individual(
                 {"role": "system", "content": individual.prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            max_completion_tokens=1000,
-            temperature=0.7,
+            max_completion_tokens=12000,
+            temperature=0.75,
         )
         code = completion.choices[0].message.content
         midi, cleaned_code, error = execute_midi_code(code)
@@ -109,18 +116,41 @@ async def evaluate_individual(
         # Compute reward
         reward = compute_reward(midi)
         individual.reward = reward
+
+        # Extract trace info for reflection
+        sax_notes = get_sax_notes(midi) if midi else []
+        ud = unique_durations(sax_notes)
+        hr = has_rests(sax_notes)
+
         individual.metrics = {
             "reward": reward,
             "note_count": sum(len(inst.notes) for inst in midi.instruments) if midi else 0,
             "valid_midi": 1.0 if midi else 0.0,
+            "unique_durs": ud,
+            "has_rests": hr,
         }
+
+        # Collect trace for reflective mutation
+        individual.traces.append({
+            "reward": reward,
+            "unique_durs": ud,
+            "has_rests": hr,
+            "error": error,
+            "code": code,
+        })
 
     except Exception as e:
         error = str(e)
-        code = ""
         midi = None
-        individual.reward = -1.0
-        individual.metrics = {"reward": -1.0, "valid_midi": 0.0}
+        individual.reward = 0.0  # was -1.0
+        individual.metrics = {"reward": 0.0, "valid_midi": 0.0}
+        individual.traces.append({
+            "reward": 0.0,
+            "unique_durs": 0,
+            "has_rests": False,
+            "error": error,
+            "code": code if code else "",
+        })
 
     # Save artifacts
     save_individual(individual, gen, midi, code, run_id, error)
@@ -231,14 +261,26 @@ async def evolve(
         if gen < generations - 1:
             survivors = select_survivors(population, population_size // 2)
 
-            # Create next generation
+            # Create next generation with reflective mutation
             next_pop = []
+            mutation_tasks = []
             for i, survivor in enumerate(survivors):
-                # Keep survivor
-                child1 = Individual(id=i * 2, prompt=survivor.prompt)
-                # Mutate copy (for now, just copy - mutation TODO)
-                child2 = Individual(id=i * 2 + 1, prompt=mutate_prompt(survivor.prompt))
-                next_pop.extend([child1, child2])
+                # Keep survivor (inherits traces)
+                child1 = Individual(id=i * 2, prompt=survivor.prompt, traces=survivor.traces.copy())
+                next_pop.append(child1)
+                # Queue mutation for child2
+                mutation_tasks.append((i, survivor))
+
+            # Run mutations in parallel
+            mutated_prompts = await asyncio.gather(*[
+                mutate_prompt(client, model_name, s.prompt, s.traces)
+                for _, s in mutation_tasks
+            ])
+
+            # Create mutated children
+            for (i, survivor), mutated in zip(mutation_tasks, mutated_prompts):
+                child2 = Individual(id=i * 2 + 1, prompt=mutated, traces=survivor.traces.copy())
+                next_pop.append(child2)
 
             population = next_pop[:population_size]
 
@@ -279,8 +321,8 @@ async def evolve(
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="GEPA Evolution")
-    parser.add_argument("--generations", type=int, default=10, help="Number of generations")
-    parser.add_argument("--population", type=int, default=8, help="Population size")
+    parser.add_argument("--generations", type=int, default=20, help="Number of generations")
+    parser.add_argument("--population", type=int, default=24, help="Population size")
     parser.add_argument("--dry-run", action="store_true", help="Use mock rewards")
     parser.add_argument("--project", default="jazz-band-gepa", help="W&B project")
     parser.add_argument("--base-model", default="OpenPipe/Qwen3-14B-Instruct", help="Base model")
