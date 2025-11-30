@@ -96,44 +96,46 @@ async def mutate_prompt(
     if not traces:
         return prompt  # No traces to reflect on yet
 
-    # Use most recent trace with code
-    t = traces[-1]
-    error_str = f", error={t['error']}" if t.get('error') else ""
+    # Find best and worst traces
+    sorted_traces = sorted(traces, key=lambda t: t.get('reward', 0))
+    worst = sorted_traces[0]
+    best = sorted_traces[-1]
 
-    # Extract sax-related code if available
-    code = t.get('code', '')
-    if code:
-        # Try to extract just the sax portion
-        lines = code.split('\n')
-        sax_lines = []
-        in_sax = False
-        for line in lines:
-            if 'sax' in line.lower() or in_sax:
-                sax_lines.append(line)
-                if 'sax.notes' in line and 'extend' in line:
-                    in_sax = False
-                elif 'sax_notes' in line and '=' in line:
-                    in_sax = True
-        code_snippet = '\n'.join(sax_lines[:30]) if sax_lines else code[:1500]
-    else:
-        code_snippet = "(no code available)"
+    def extract_code_snippet(t):
+        """Extract relevant code from trace."""
+        code = t.get('code', '')
+        if not code:
+            return "(no code available)"
+        # Truncate to reasonable length
+        return code[:1200] + "..." if len(code) > 1200 else code
 
-    reflection_prompt = f"""You are improving a system prompt for jazz MIDI generation.
+    def format_trace(t, label):
+        """Format a trace for display."""
+        error_str = f", error={t['error']}" if t.get('error') else ""
+        return f"""{label}:
+reward={t.get('reward', 0):.2f}, unique_durs={t.get('unique_durs', '?')}, has_rests={t.get('has_rests', '?')}{error_str}
 
-CURRENT PROMPT:
+```python
+{extract_code_snippet(t)}
+```"""
+
+    best_section = format_trace(best, "BEST OUTPUT")
+    worst_section = format_trace(worst, "WORST OUTPUT")
+
+    reflection_prompt = f"""You are Wayne Shorter. You've been playing saxophone for sixty years. You've played with Miles, with Art Blakey, with Weather Report. You've heard everything.
+
+You're sitting in the back of The Cellar at 2am. A young composer shows you two pieces — one that made you lean forward, one that made you look away. Both came from the same instructions.
+
+THEIR PROMPT:
 {prompt}
 
-LAST OUTPUT:
-reward={t['reward']:.2f}, unique_durs={t.get('unique_durs', '?')} (distinct note lengths), has_rests={t.get('has_rests', '?')} (gaps between notes){error_str}
+{best_section}
 
-SAX CODE:
-```python
-{code_snippet}
-```
+{worst_section}
 
-Analyze the code. What's causing the metrics? Propose an improved prompt.
+The difference matters. What's working in the best one? What's failing in the worst? How would you change their instructions so every output sounds like the best one?
 
-Output ONLY the improved prompt, no explanation."""
+Write the improved prompt. Nothing else. Just the prompt that would make you stay for the next set."""
 
     try:
         response = await client.chat.completions.create(
