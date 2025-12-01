@@ -346,6 +346,60 @@ def compute_features(midi: "pretty_midi.PrettyMIDI") -> Dict[str, float]:
     }
 
 
+def compute_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
+    """
+    Compute sax reward with per-feature breakdown.
+
+    Returns dict with:
+        - total: final reward (z-sum * gates)
+        - variety_gate: gate multiplier applied
+        - features: {name: {raw, z_score}} for each of 6 features
+    """
+    if not passes_sanity_checks(midi):
+        return {
+            "total": compute_partial_reward(midi),
+            "variety_gate": 0.0,
+            "features": {},
+        }
+
+    sax_notes = get_sax_notes(midi)
+    stats = load_stats()
+
+    # Gates
+    variety = 1.0
+    if unique_durations(sax_notes) < 2:
+        variety *= 0.5
+    if not has_rests(sax_notes):
+        variety *= 0.5
+
+    # Compute features with breakdown
+    feature_names = ['melodic_entropy', 'dur_cv', 'sax_arpeggio_runs', 'peak_not_late', 'blue_ratio', 'rhythm_2grams']
+    feature_funcs = {
+        'melodic_entropy': lambda: melodic_entropy(sax_notes),
+        'dur_cv': lambda: dur_cv(sax_notes),
+        'sax_arpeggio_runs': lambda: sax_arpeggio_runs(sax_notes),
+        'peak_not_late': lambda: peak_not_late(sax_notes),
+        'blue_ratio': lambda: blue_ratio(sax_notes),
+        'rhythm_2grams': lambda: rhythm_2grams(sax_notes),
+    }
+
+    features = {}
+    z_sum = 0.0
+    for fname in feature_names:
+        raw = feature_funcs[fname]()
+        mean, std = stats[fname]
+        z = (raw - mean) / std if std > 0 else 0.0
+        z = max(-3.0, min(3.0, z))  # Clamp to ±3 to prevent exploits
+        z_sum += z
+        features[fname] = {"raw": raw, "z_score": z}
+
+    return {
+        "total": z_sum * variety,
+        "variety_gate": variety,
+        "features": features,
+    }
+
+
 # =============================================================================
 # Combined Reward (all instruments)
 # =============================================================================
@@ -387,3 +441,62 @@ def compute_combined_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     # Scale factor 6 chosen because we have ~20 features total
     # GRPO normalizes within groups anyway, so absolute range doesn't matter
     return 1 / (1 + math.exp(-z_sum / 6))
+
+
+def _sigmoid(z: float) -> float:
+    """Sigmoid for individual instrument z-score (scale factor 1.5 for ~6 features each)."""
+    return 1 / (1 + math.exp(-z / 1.5))
+
+
+def compute_reward_breakdown(midi: "pretty_midi.PrettyMIDI") -> dict:
+    """
+    Compute per-instrument reward breakdown with full feature details.
+
+    Returns:
+        dict with:
+        - Per instrument: z-score, sigmoid, and detailed features
+        - z_sum: total z-score across all instruments
+        - combined: final sigmoid reward [0,1]
+    """
+    from jazz_band.reward_bass import compute_bass_reward_detailed
+    from jazz_band.reward_piano import compute_piano_reward_detailed
+    from jazz_band.reward_drums import compute_drum_reward_detailed
+    from jazz_band.reward_ensemble import compute_ensemble_reward_detailed
+
+    # Get detailed breakdowns for each instrument
+    sax_detail = compute_reward_detailed(midi)
+    bass_detail = compute_bass_reward_detailed(midi)
+    piano_detail = compute_piano_reward_detailed(midi)
+    drums_detail = compute_drum_reward_detailed(midi)
+    ensemble_detail = compute_ensemble_reward_detailed(midi)
+
+    sax = sax_detail["total"]
+    bass = bass_detail["total"]
+    piano = piano_detail["total"]
+    drums = drums_detail["total"]
+    ensemble = ensemble_detail["total"]
+
+    z_sum = sax + bass + piano + drums + ensemble
+    combined = 1 / (1 + math.exp(-z_sum / 6))
+
+    return {
+        # Summary scores
+        "sax": sax,
+        "sax_sig": _sigmoid(sax),
+        "bass": bass,
+        "bass_sig": _sigmoid(bass),
+        "piano": piano,
+        "piano_sig": _sigmoid(piano),
+        "drums": drums,
+        "drums_sig": _sigmoid(drums),
+        "ensemble": ensemble,
+        "ensemble_sig": _sigmoid(ensemble),
+        "z_sum": z_sum,
+        "combined": combined,
+        # Detailed per-feature breakdowns
+        "sax_detail": sax_detail,
+        "bass_detail": bass_detail,
+        "piano_detail": piano_detail,
+        "drums_detail": drums_detail,
+        "ensemble_detail": ensemble_detail,
+    }

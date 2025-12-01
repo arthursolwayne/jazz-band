@@ -651,12 +651,12 @@ FEATURE_METADATA = {
 # but the combination still yields the best z-sum R^2.
 # =============================================================================
 
-# Reference stats from n=11 sample set (for z-score normalization)
+# Model-derived stats (n=568 RLVR outputs, 2024-11-30)
 PIANO_REFERENCE_STATS = {
-    'avg_chord_spread': {'mean': 9.246, 'std': 5.725, 'direction': 1},
-    'gap_ratio': {'mean': 0.444, 'std': 0.217, 'direction': -1},
-    'register_separation': {'mean': 7.050, 'std': 6.846, 'direction': 1},
-    'velocity_variance': {'mean': 0.055, 'std': 0.095, 'direction': 1},
+    'avg_chord_spread': {'mean': 7.994, 'std': 2.363, 'direction': 1},
+    'gap_ratio': {'mean': 0.601, 'std': 0.170, 'direction': -1},
+    'register_separation': {'mean': 3.805, 'std': 3.692, 'direction': 1},
+    'velocity_variance': {'mean': 0.003, 'std': 0.013, 'direction': 1},
 }
 
 
@@ -709,15 +709,19 @@ def compute_piano_reward(midi: "pretty_midi.PrettyMIDI") -> float:
 
     # Feature 1: avg_chord_spread (higher = better)
     spread_z = (spread - stats['avg_chord_spread']['mean']) / stats['avg_chord_spread']['std']
+    spread_z = max(-3.0, min(3.0, spread_z))
 
     # Feature 2: gap_ratio (lower = better, direction = -1)
     gap_z = -(gap - stats['gap_ratio']['mean']) / stats['gap_ratio']['std']
+    gap_z = max(-3.0, min(3.0, gap_z))
 
     # Feature 3: register_separation (higher = better)
     reg_z = (reg_sep - stats['register_separation']['mean']) / stats['register_separation']['std']
+    reg_z = max(-3.0, min(3.0, reg_z))
 
     # Feature 4: velocity_variance (higher = better)
     vel_z = (vel_var - stats['velocity_variance']['mean']) / stats['velocity_variance']['std']
+    vel_z = max(-3.0, min(3.0, vel_z))
 
     # Sum z-scores (equal weights)
     raw_reward = spread_z + gap_z + reg_z + vel_z
@@ -725,6 +729,64 @@ def compute_piano_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     # Apply variety gate to raw z-sum
     # NOTE: Sigmoid is applied in compute_combined_reward() for final output
     return raw_reward * variety
+
+
+def compute_piano_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
+    """
+    Compute piano reward with per-feature breakdown.
+
+    Returns dict with:
+        - total: final reward (z-sum * gate)
+        - variety_gate: gate multiplier applied
+        - features: {name: {raw, z_score}} for each feature
+    """
+    piano_notes = get_piano_notes(midi)
+    sax_notes = get_sax_notes(midi)
+
+    if len(piano_notes) < 4:
+        partial = 0.0 if len(piano_notes) == 0 else 0.05 + 0.05 * len(piano_notes) / 4
+        return {
+            "total": partial,
+            "variety_gate": 0.0,
+            "features": {},
+        }
+
+    # Compute raw values
+    spread = avg_chord_spread(piano_notes)
+    gap = gap_ratio(piano_notes)
+    reg_sep = register_separation(piano_notes, sax_notes)
+    vel_var = velocity_variance(piano_notes)
+    attack_var = attack_variance(piano_notes)
+
+    # Gate
+    variety = 1.0
+    if vel_var == 0 and attack_var == 0:
+        variety *= 0.5
+
+    stats = PIANO_REFERENCE_STATS
+
+    # Z-scores with ±3 clamp
+    spread_z = (spread - stats['avg_chord_spread']['mean']) / stats['avg_chord_spread']['std']
+    spread_z = max(-3.0, min(3.0, spread_z))
+    gap_z = -(gap - stats['gap_ratio']['mean']) / stats['gap_ratio']['std']  # inverted
+    gap_z = max(-3.0, min(3.0, gap_z))
+    reg_z = (reg_sep - stats['register_separation']['mean']) / stats['register_separation']['std']
+    reg_z = max(-3.0, min(3.0, reg_z))
+    vel_z = (vel_var - stats['velocity_variance']['mean']) / stats['velocity_variance']['std']
+    vel_z = max(-3.0, min(3.0, vel_z))
+
+    z_sum = spread_z + gap_z + reg_z + vel_z
+
+    return {
+        "total": z_sum * variety,
+        "variety_gate": variety,
+        "features": {
+            "avg_chord_spread": {"raw": spread, "z_score": spread_z},
+            "gap_ratio": {"raw": gap, "z_score": gap_z},
+            "register_separation": {"raw": reg_sep, "z_score": reg_z},
+            "velocity_variance": {"raw": vel_var, "z_score": vel_z},
+        },
+    }
 
 
 def compute_recommended_features(midi: "pretty_midi.PrettyMIDI") -> Dict[str, float]:

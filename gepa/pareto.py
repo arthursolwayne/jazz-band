@@ -135,7 +135,9 @@ THEIR PROMPT:
 
 The difference matters. What's working in the best one? What's failing in the worst? How would you change their instructions so every output sounds like the best one?
 
-Write the improved prompt. Nothing else. Just the prompt that would make you stay for the next set."""
+Write the improved prompt. Nothing else. Just the prompt that would make you stay for the next set.
+
+IMPORTANT: Don't copy the raw metrics (reward scores, numbers) into your prompt. Translate what they mean into musical guidance the composer can act on."""
 
     try:
         response = await client.chat.completions.create(

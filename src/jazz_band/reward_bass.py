@@ -555,11 +555,10 @@ instruction and actual jazz practice.
 # FINAL REWARD FUNCTION (from regression analysis)
 # =============================================================================
 
-# Statistics from n=11 samples (5 standards + 3 opus + 3 rlvr)
-# Used for z-score normalization
+# Model-derived stats (n=568 RLVR outputs, 2024-11-30)
 BASS_REWARD_STATS = {
-    "ioi_swing": {"mean": 0.2692, "std": 0.3321},
-    "non_chromatic_ratio": {"mean": 0.7173, "std": 0.3151},
+    "ioi_swing": {"mean": 0.043, "std": 0.173},
+    "non_chromatic_ratio": {"mean": 0.487, "std": 0.259},
 }
 
 # Features selected via exhaustive search
@@ -618,10 +617,53 @@ def compute_bass_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     swing = ioi_swing(notes)
     non_chrom = non_chromatic_ratio(notes)
 
-    # Z-score normalization
+    # Z-score normalization with ±3 clamp
     z_swing = (swing - BASS_REWARD_STATS["ioi_swing"]["mean"]) / BASS_REWARD_STATS["ioi_swing"]["std"]
+    z_swing = max(-3.0, min(3.0, z_swing))
     z_non_chrom = (non_chrom - BASS_REWARD_STATS["non_chromatic_ratio"]["mean"]) / BASS_REWARD_STATS["non_chromatic_ratio"]["std"]
+    z_non_chrom = max(-3.0, min(3.0, z_non_chrom))
 
     # Equal-weighted z-sum with gate
     raw_reward = z_swing + z_non_chrom
     return raw_reward * gate_multiplier
+
+
+def compute_bass_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
+    """
+    Compute bass reward with per-feature breakdown.
+
+    Returns dict with:
+        - total: final reward (z-sum * gate)
+        - direction_gate: gate multiplier applied
+        - features: {name: {raw, z_score}} for each feature
+    """
+    notes = get_bass_notes(midi)
+    if len(notes) < 2:
+        return {
+            "total": -3.0,
+            "direction_gate": 0.0,
+            "features": {},
+        }
+
+    # Gate
+    gate = 1.0 if has_direction_variety(notes) else 0.5
+
+    # Features
+    swing = ioi_swing(notes)
+    non_chrom = non_chromatic_ratio(notes)
+
+    z_swing = (swing - BASS_REWARD_STATS["ioi_swing"]["mean"]) / BASS_REWARD_STATS["ioi_swing"]["std"]
+    z_swing = max(-3.0, min(3.0, z_swing))
+    z_non_chrom = (non_chrom - BASS_REWARD_STATS["non_chromatic_ratio"]["mean"]) / BASS_REWARD_STATS["non_chromatic_ratio"]["std"]
+    z_non_chrom = max(-3.0, min(3.0, z_non_chrom))
+
+    z_sum = z_swing + z_non_chrom
+
+    return {
+        "total": z_sum * gate,
+        "direction_gate": gate,
+        "features": {
+            "ioi_swing": {"raw": swing, "z_score": z_swing},
+            "non_chromatic_ratio": {"raw": non_chrom, "z_score": z_non_chrom},
+        },
+    }

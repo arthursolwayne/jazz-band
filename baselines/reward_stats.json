@@ -1,29 +1,30 @@
 {
-  "n_samples": 11,
+  "n_samples": 568,
+  "source": "model_outputs_rlvr_20251130",
   "features": {
     "melodic_entropy": {
-      "mean": 2.3967,
-      "std": 0.4844
+      "mean": 1.853,
+      "std": 0.478
     },
     "dur_cv": {
-      "mean": 0.5404,
-      "std": 0.6085
+      "mean": 0.028,
+      "std": 0.094
     },
     "sax_arpeggio_runs": {
-      "mean": 3.6364,
-      "std": 8.7622
+      "mean": 0.465,
+      "std": 1.371
     },
     "peak_not_late": {
-      "mean": 0.7273,
-      "std": 0.4454
+      "mean": 0.844,
+      "std": 0.363
     },
     "blue_ratio": {
-      "mean": 0.1983,
-      "std": 0.1252
+      "mean": 0.183,
+      "std": 0.156
     },
     "rhythm_2grams": {
-      "mean": 2.0,
-      "std": 1.1282
+      "mean": 1.035,
+      "std": 0.264
     }
   }
 }

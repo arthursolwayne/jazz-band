@@ -35,7 +35,7 @@ except ImportError:
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from jazz_band.symbol_engine import SYSTEM_PROMPT, execute_midi_code, compute_combined_reward
+from jazz_band.symbol_engine import SYSTEM_PROMPT, execute_midi_code, compute_reward_breakdown
 
 # Jazz keys from reference standards (Moanin', So What, Watermelon Man, Cantina, Song for My Father)
 JAZZ_KEYS = ["Dm", "Fm", "F", "D"]
@@ -52,7 +52,7 @@ class JazzScenario(BaseModel):
     rollout_id: int = 0
 
 
-def save_rollout(scenario: JazzScenario, code: str, midi, reward: float, run_id: str, error: str = None):
+def save_rollout(scenario: JazzScenario, code: str, midi, breakdown: dict, run_id: str, error: str = None):
     """Save rollout artifacts: code, MIDI, metadata."""
     rollout_dir = ARTIFACTS_DIR / run_id / f"step_{scenario.step:03d}" / f"rollout_{scenario.rollout_id:03d}"
     rollout_dir.mkdir(parents=True, exist_ok=True)
@@ -65,13 +65,14 @@ def save_rollout(scenario: JazzScenario, code: str, midi, reward: float, run_id:
         midi_path = rollout_dir / "output.mid"
         midi.write(str(midi_path))
 
-    # Save metadata
+    # Save metadata with per-instrument breakdown
     meta = {
         "step": scenario.step,
         "rollout_id": scenario.rollout_id,
         "key": scenario.key,
         "tempo": scenario.tempo,
-        "reward": reward,
+        "reward": breakdown.get("combined", 0.0) if breakdown else 0.0,
+        "breakdown": breakdown,
         "has_midi": midi is not None,
         "error": error,
         "timestamp": datetime.now().isoformat(),
@@ -114,6 +115,7 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
     code = ""
     midi = None
     error = None
+    breakdown = None
 
     # Call LLM
     try:
@@ -131,8 +133,9 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
         midi, cleaned_code, error = execute_midi_code(code)
         code = cleaned_code
 
-        # Compute reward (all instruments combined)
-        reward = compute_combined_reward(midi) if midi else 0.0
+        # Compute reward breakdown (all instruments)
+        breakdown = compute_reward_breakdown(midi) if midi else None
+        reward = breakdown["combined"] if breakdown else 0.0
         trajectory.reward = reward
 
         # Track metrics for W&B
@@ -148,7 +151,7 @@ async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory
         trajectory.metrics["valid_midi"] = 0.0
 
     # Save artifacts
-    save_rollout(scenario, code, midi, trajectory.reward, run_id, error)
+    save_rollout(scenario, code, midi, breakdown, run_id, error)
 
     return trajectory
 
@@ -276,13 +279,20 @@ async def train(
             _config={"advantage_balance": 0.3},
         )
 
-    # Find best MIDI and open in GarageBand
+    # Find best MIDI by reward (scan meta.json files)
     best_midi_path = None
+    best_midi_reward = float("-inf")
+    best_midi_meta = None
     for step_dir in sorted(artifacts_path.glob("step_*")):
         for rollout_dir in sorted(step_dir.glob("rollout_*")):
             midi_file = rollout_dir / "output.mid"
-            if midi_file.exists():
-                best_midi_path = midi_file
+            meta_file = rollout_dir / "meta.json"
+            if midi_file.exists() and meta_file.exists():
+                meta = json.loads(meta_file.read_text())
+                if meta.get("reward", 0) > best_midi_reward:
+                    best_midi_reward = meta["reward"]
+                    best_midi_path = midi_file
+                    best_midi_meta = meta
 
     # Print final summary
     print()
@@ -296,8 +306,24 @@ async def train(
     print(f"  Artifacts:          {artifacts_rel}")
     print("=" * 60)
 
-    if best_midi_path:
-        print(f"\nOpening best MIDI in GarageBand...")
+    if best_midi_path and best_midi_meta:
+        print(f"\n  Best MIDI:")
+        print(f"    Path:   {best_midi_path.relative_to(artifacts_path.parent.parent)}")
+        print(f"    Reward: {best_midi_meta['reward']:.3f}")
+        print(f"    Key:    {best_midi_meta.get('key', '?')}")
+        print(f"    Step:   {best_midi_meta.get('step', '?')}")
+        bd = best_midi_meta.get("breakdown")
+        if bd:
+            print(f"    ───────────────────────────")
+            print(f"              z-score   sigmoid")
+            print(f"    Sax:      {bd.get('sax', 0):+6.2f}    {bd.get('sax_sig', 0):.3f}")
+            print(f"    Bass:     {bd.get('bass', 0):+6.2f}    {bd.get('bass_sig', 0):.3f}")
+            print(f"    Piano:    {bd.get('piano', 0):+6.2f}    {bd.get('piano_sig', 0):.3f}")
+            print(f"    Drums:    {bd.get('drums', 0):+6.2f}    {bd.get('drums_sig', 0):.3f}")
+            print(f"    Ensemble: {bd.get('ensemble', 0):+6.2f}    {bd.get('ensemble_sig', 0):.3f}")
+            print(f"    ───────────────────────────")
+            print(f"    Total:    {bd.get('z_sum', 0):+6.2f}    {bd.get('combined', 0):.3f}")
+        print(f"\nOpening in GarageBand...")
         open_midi_in_garageband(best_midi_path)
     print()
 
