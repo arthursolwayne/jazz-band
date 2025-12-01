@@ -464,11 +464,12 @@ REWARD_FEATURES = [
     "duration_variety",
 ]
 
+# Model-derived stats (n=568 RLVR outputs, 2024-11-30)
 REWARD_STATS = {
-    "kick_off_beat_ratio": {"mean": 0.715909, "std": 0.261611},
-    "snare_backbeat_ratio": {"mean": 0.097326, "std": 0.166207},
-    "velocity_variance": {"mean": 13.775822, "std": 10.138839},
-    "duration_variety": {"mean": 2.181818, "std": 0.833196},
+    "kick_off_beat_ratio": {"mean": 0.466, "std": 0.141},
+    "snare_backbeat_ratio": {"mean": 0.038, "std": 0.106},
+    "velocity_variance": {"mean": 5.156, "std": 4.820},
+    "duration_variety": {"mean": 1.926, "std": 0.808},
 }
 
 
@@ -497,9 +498,43 @@ def compute_drum_reward(midi: "pretty_midi.PrettyMIDI") -> float:
         mean = REWARD_STATS[fname]["mean"]
         std = REWARD_STATS[fname]["std"]
         if std > 0:
-            z_sum += (value - mean) / std
+            z = (value - mean) / std
+            z = max(-3.0, min(3.0, z))  # Clamp to ±3
+            z_sum += z
 
     return z_sum
+
+
+def compute_drum_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
+    """
+    Compute drum reward with per-feature breakdown.
+
+    Returns dict with:
+        - total: final reward (z-sum)
+        - features: {name: {raw, z_score}} for each feature
+    """
+    features = compute_drum_features(midi)
+    if not features:
+        return {
+            "total": -10.0,
+            "features": {},
+        }
+
+    feature_details = {}
+    z_sum = 0.0
+    for fname in REWARD_FEATURES:
+        raw = features.get(fname, 0.0)
+        mean = REWARD_STATS[fname]["mean"]
+        std = REWARD_STATS[fname]["std"]
+        z = (raw - mean) / std if std > 0 else 0.0
+        z = max(-3.0, min(3.0, z))  # Clamp to ±3
+        z_sum += z
+        feature_details[fname] = {"raw": raw, "z_score": z}
+
+    return {
+        "total": z_sum,
+        "features": feature_details,
+    }
 
 
 def compute_drum_reward_from_notes(notes: List) -> float:
@@ -517,7 +552,9 @@ def compute_drum_reward_from_notes(notes: List) -> float:
         mean = REWARD_STATS[fname]["mean"]
         std = REWARD_STATS[fname]["std"]
         if std > 0:
-            z_sum += (value - mean) / std
+            z = (value - mean) / std
+            z = max(-3.0, min(3.0, z))  # Clamp to ±3
+            z_sum += z
 
     return z_sum
 

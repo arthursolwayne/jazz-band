@@ -771,12 +771,12 @@ def compute_ensemble_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     - Less rigid phrase alignment (more natural flow)
     - Sparser texture (cleaner, less cluttered)
     """
-    # Reference stats (computed from n=11 samples: 5 standards, 3 Opus, 3 RLVR)
+    # Model-derived stats (n=568 RLVR outputs, 2024-11-30)
     STATS = {
-        'collision_rate': {'mean': 0.389, 'std': 0.268},
-        'phrase_alignment': {'mean': 0.466, 'std': 0.320},
-        'texture_density': {'mean': 0.531, 'std': 0.369},
-        'harmonic_consonance': {'mean': 0.763, 'std': 0.111},
+        'collision_rate': {'mean': 0.230, 'std': 0.188},
+        'phrase_alignment': {'mean': 0.710, 'std': 0.257},
+        'texture_density': {'mean': 0.669, 'std': 0.272},
+        'harmonic_consonance': {'mean': 0.647, 'std': 0.119},
     }
 
     # Compute features
@@ -792,14 +792,63 @@ def compute_ensemble_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     if not duration_on_target(midi):
         gate_multiplier *= 0.8  # 20% penalty for wrong duration (not 4 bars)
 
-    # Z-score sum with direction adjustment
+    # Z-score sum with direction adjustment and ±3 clamp
     z_sum = 0.0
     for f, value in features.items():
         mean, std = STATS[f]['mean'], STATS[f]['std']
         if std > 0:
             z = (value - mean) / std * FEATURE_DIRECTIONS[f]
+            z = max(-3.0, min(3.0, z))  # Clamp to ±3
             z_sum += z
 
     # Apply gate to raw z-sum
     # NOTE: Sigmoid is applied in compute_combined_reward() for final output
     return z_sum * gate_multiplier
+
+
+def compute_ensemble_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
+    """
+    Compute ensemble reward with per-feature breakdown.
+
+    Returns dict with:
+        - total: final reward (z-sum * gate)
+        - duration_gate: gate multiplier applied
+        - features: {name: {raw, z_score}} for each feature
+    """
+    # Model-derived stats (n=568 RLVR outputs, 2024-11-30)
+    STATS = {
+        'collision_rate': {'mean': 0.230, 'std': 0.188},
+        'phrase_alignment': {'mean': 0.710, 'std': 0.257},
+        'texture_density': {'mean': 0.669, 'std': 0.272},
+        'harmonic_consonance': {'mean': 0.647, 'std': 0.119},
+    }
+
+    # Compute features
+    features = {
+        'collision_rate': collision_rate(midi),
+        'phrase_alignment': phrase_alignment(midi),
+        'texture_density': texture_density(midi),
+        'harmonic_consonance': harmonic_consonance(midi),
+    }
+
+    # Gate
+    gate = 1.0
+    if not duration_on_target(midi):
+        gate *= 0.8
+
+    # Z-score sum with direction adjustment and ±3 clamp
+    feature_details = {}
+    z_sum = 0.0
+    for f, raw in features.items():
+        mean, std = STATS[f]['mean'], STATS[f]['std']
+        if std > 0:
+            z = (raw - mean) / std * FEATURE_DIRECTIONS[f]
+            z = max(-3.0, min(3.0, z))  # Clamp to ±3
+            z_sum += z
+            feature_details[f] = {"raw": raw, "z_score": z}
+
+    return {
+        "total": z_sum * gate,
+        "duration_gate": gate,
+        "features": feature_details,
+    }

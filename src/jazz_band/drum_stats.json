@@ -1,0 +1,29 @@
+{
+  "model": "drum_reward_v2_model_calibrated",
+  "n_samples": 568,
+  "source": "model_outputs_rlvr_20251130",
+  "features": [
+    "kick_off_beat_ratio",
+    "snare_backbeat_ratio",
+    "velocity_variance",
+    "duration_variety"
+  ],
+  "stats": {
+    "kick_off_beat_ratio": {
+      "mean": 0.466,
+      "std": 0.141
+    },
+    "snare_backbeat_ratio": {
+      "mean": 0.038,
+      "std": 0.106
+    },
+    "velocity_variance": {
+      "mean": 5.156,
+      "std": 4.820
+    },
+    "duration_variety": {
+      "mean": 1.926,
+      "std": 0.808
+    }
+  }
+}

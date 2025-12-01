@@ -39,7 +39,7 @@ from .pareto import Individual, compute_pareto_fronts, select_survivors, mutate_
 from jazz_band.symbol_engine import (
     SYSTEM_PROMPT as BASE_PROMPT,
     execute_midi_code,
-    compute_combined_reward,
+    compute_reward_breakdown,
     get_sax_notes,
     unique_durations,
     has_rests,
@@ -52,7 +52,7 @@ JAZZ_KEYS = ["Dm", "Fm", "F", "D"]
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "gepa"
 
 
-def save_individual(individual: Individual, gen: int, midi, code: str, run_id: str, error: str = None):
+def save_individual(individual: Individual, gen: int, midi, code: str, run_id: str, breakdown: dict = None, error: str = None):
     """Save individual artifacts: code, MIDI, metadata."""
     ind_dir = ARTIFACTS_DIR / run_id / f"gen_{gen:03d}" / f"ind_{individual.id:03d}"
     ind_dir.mkdir(parents=True, exist_ok=True)
@@ -68,11 +68,12 @@ def save_individual(individual: Individual, gen: int, midi, code: str, run_id: s
         midi_path = ind_dir / "output.mid"
         midi.write(str(midi_path))
 
-    # Save metadata
+    # Save metadata with per-instrument breakdown
     meta = {
         "id": individual.id,
         "generation": gen,
         "reward": individual.reward,
+        "breakdown": breakdown,
         "metrics": individual.metrics,
         "has_midi": midi is not None,
         "error": error,
@@ -102,6 +103,7 @@ async def evaluate_individual(
 
     user_prompt = f"Compose a 4-bar jazz piece in {key} at {tempo} BPM."
 
+    breakdown = None
     try:
         completion = await client.chat.completions.create(
             model=model_name,
@@ -116,8 +118,9 @@ async def evaluate_individual(
         midi, cleaned_code, error = execute_midi_code(code)
         code = cleaned_code
 
-        # Compute reward (all instruments combined)
-        reward = compute_combined_reward(midi) if midi else 0.0
+        # Compute reward breakdown (all instruments)
+        breakdown = compute_reward_breakdown(midi) if midi else None
+        reward = breakdown["combined"] if breakdown else 0.0
         individual.reward = reward
 
         # Extract trace info for reflection
@@ -156,9 +159,47 @@ async def evaluate_individual(
         })
 
     # Save artifacts
-    save_individual(individual, gen, midi, code, run_id, error)
+    save_individual(individual, gen, midi, code, run_id, breakdown, error)
 
     return individual
+
+
+def load_population_from_run(run_id: str, population_size: int) -> tuple[List[Individual], int]:
+    """Load population state from a previous run's last generation."""
+    run_dir = ARTIFACTS_DIR / run_id
+    if not run_dir.exists():
+        raise ValueError(f"Run directory not found: {run_dir}")
+
+    # Find the last generation
+    gen_dirs = sorted(run_dir.glob("gen_*"))
+    if not gen_dirs:
+        raise ValueError(f"No generations found in {run_dir}")
+
+    last_gen_dir = gen_dirs[-1]
+    last_gen = int(last_gen_dir.name.split("_")[1])
+
+    # Load individuals from last generation
+    population = []
+    for ind_dir in sorted(last_gen_dir.glob("ind_*")):
+        prompt_file = ind_dir / "prompt.txt"
+        meta_file = ind_dir / "meta.json"
+
+        if prompt_file.exists() and meta_file.exists():
+            prompt = prompt_file.read_text()
+            meta = json.loads(meta_file.read_text())
+            ind = Individual(
+                id=meta["id"],
+                prompt=prompt,
+                reward=meta.get("reward", 0.0),
+                metrics=meta.get("metrics", {}),
+            )
+            population.append(ind)
+
+    # Pad if needed
+    while len(population) < population_size:
+        population.append(Individual(id=len(population), prompt=BASE_PROMPT))
+
+    return population[:population_size], last_gen + 1
 
 
 async def evolve(
@@ -167,6 +208,7 @@ async def evolve(
     dry_run: bool = False,
     project: str = "jazz-band-gepa",
     base_model: str = "OpenPipe/Qwen3-14B-Instruct",
+    resume: str = None,  # Pass run_id to resume
 ) -> Dict:
     """
     Main evolution loop.
@@ -195,8 +237,15 @@ async def evolve(
     # Initialize weave for logging
     weave.init(project)
 
-    # Generate unique run ID
-    run_id = f"gepa_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    # Resume existing run or create new one
+    if resume:
+        run_id = resume
+        population, start_gen = load_population_from_run(resume, population_size)
+    else:
+        run_id = f"gepa_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        population = [Individual(id=i, prompt=BASE_PROMPT) for i in range(population_size)]
+        start_gen = 0
+
     artifacts_path = ARTIFACTS_DIR / run_id
     artifacts_rel = f"artifacts/gepa/{run_id}"
 
@@ -204,6 +253,8 @@ async def evolve(
     print()
     print("=" * 60)
     print(f"GEPA Evolution Run: {run_id}")
+    if resume:
+        print(f"  (Resuming from generation {start_gen})")
     print("=" * 60)
     print(f"  Base model:   {base_model}")
     print(f"  Generations:  {generations}")
@@ -229,18 +280,12 @@ async def evolve(
     )
     model_name = model.get_inference_name()
 
-    # Initialize population
-    population = [
-        Individual(id=i, prompt=BASE_PROMPT)
-        for i in range(population_size)
-    ]
-
     # Evolution stats
     total_valid = 0
     total_evals = 0
     best_single_reward = float("-inf")
 
-    for gen in range(generations):
+    for gen in range(start_gen, generations):
         # Evaluate all individuals in parallel (random key per individual)
         tasks = [
             evaluate_individual(client, model_name, ind, gen, run_id, key=random.choice(JAZZ_KEYS))
@@ -264,36 +309,60 @@ async def evolve(
         if gen < generations - 1:
             survivors = select_survivors(population, population_size // 2)
 
-            # Create next generation with reflective mutation
+            # Create next generation with acceptance-gated mutation
+            # Like GEPA-Lite: mutant must produce valid MIDI and not regress to be accepted
             next_pop = []
-            mutation_tasks = []
+            accepted_mutations = 0
+            rejected_mutations = 0
+
             for i, survivor in enumerate(survivors):
-                # Keep survivor (inherits traces)
+                # Keep survivor as child1 (inherits traces)
                 child1 = Individual(id=i * 2, prompt=survivor.prompt, traces=survivor.traces.copy())
                 next_pop.append(child1)
-                # Queue mutation for child2
-                mutation_tasks.append((i, survivor))
 
-            # Run mutations in parallel
-            mutated_prompts = await asyncio.gather(*[
-                mutate_prompt(client, model_name, s.prompt, s.traces)
-                for _, s in mutation_tasks
-            ])
+                # Create mutant candidate for child2
+                mutated_prompt = await mutate_prompt(client, model_name, survivor.prompt, survivor.traces)
+                mutant = Individual(id=i * 2 + 1, prompt=mutated_prompt, traces=survivor.traces.copy())
 
-            # Create mutated children
-            for (i, survivor), mutated in zip(mutation_tasks, mutated_prompts):
-                child2 = Individual(id=i * 2 + 1, prompt=mutated, traces=survivor.traces.copy())
+                # Evaluate mutant to check acceptance (save to gen+1 since it's for next gen)
+                mutant = await evaluate_individual(
+                    client, model_name, mutant, gen + 1, run_id,
+                    key=random.choice(JAZZ_KEYS)
+                )
+
+                # Acceptance gating: mutant must be valid AND not regress
+                mutant_valid = mutant.metrics.get("valid_midi", 0) > 0
+                mutant_reward = mutant.reward
+                parent_reward = survivor.reward
+
+                if mutant_valid and mutant_reward >= parent_reward:
+                    # Accept mutation
+                    child2 = mutant
+                    accepted_mutations += 1
+                else:
+                    # Reject mutation - keep parent prompt (with new ID)
+                    child2 = Individual(id=i * 2 + 1, prompt=survivor.prompt, traces=survivor.traces.copy())
+                    rejected_mutations += 1
+
                 next_pop.append(child2)
 
+            print(f"         mutations: {accepted_mutations} accepted, {rejected_mutations} rejected")
             population = next_pop[:population_size]
 
-    # Find best MIDI
+    # Find best MIDI by reward (scan meta.json files)
     best_midi_path = None
+    best_midi_reward = float("-inf")
+    best_midi_meta = None
     for gen_dir in sorted(artifacts_path.glob("gen_*")):
         for ind_dir in sorted(gen_dir.glob("ind_*")):
             midi_file = ind_dir / "output.mid"
-            if midi_file.exists():
-                best_midi_path = midi_file
+            meta_file = ind_dir / "meta.json"
+            if midi_file.exists() and meta_file.exists():
+                meta = json.loads(meta_file.read_text())
+                if meta.get("reward", 0) > best_midi_reward:
+                    best_midi_reward = meta["reward"]
+                    best_midi_path = midi_file
+                    best_midi_meta = meta
 
     # Print final summary
     print()
@@ -307,8 +376,24 @@ async def evolve(
     print(f"  Artifacts:          {artifacts_rel}")
     print("=" * 60)
 
-    if best_midi_path:
-        print(f"\nOpening best MIDI in GarageBand...")
+    if best_midi_path and best_midi_meta:
+        print(f"\n  Best MIDI:")
+        print(f"    Path:       {best_midi_path.relative_to(artifacts_path.parent.parent)}")
+        print(f"    Reward:     {best_midi_meta['reward']:.3f}")
+        print(f"    Generation: {best_midi_meta.get('generation', '?')}")
+        print(f"    Individual: {best_midi_meta.get('id', '?')}")
+        bd = best_midi_meta.get("breakdown")
+        if bd:
+            print(f"    ───────────────────────────")
+            print(f"              z-score   sigmoid")
+            print(f"    Sax:      {bd.get('sax', 0):+6.2f}    {bd.get('sax_sig', 0):.3f}")
+            print(f"    Bass:     {bd.get('bass', 0):+6.2f}    {bd.get('bass_sig', 0):.3f}")
+            print(f"    Piano:    {bd.get('piano', 0):+6.2f}    {bd.get('piano_sig', 0):.3f}")
+            print(f"    Drums:    {bd.get('drums', 0):+6.2f}    {bd.get('drums_sig', 0):.3f}")
+            print(f"    Ensemble: {bd.get('ensemble', 0):+6.2f}    {bd.get('ensemble_sig', 0):.3f}")
+            print(f"    ───────────────────────────")
+            print(f"    Total:    {bd.get('z_sum', 0):+6.2f}    {bd.get('combined', 0):.3f}")
+        print(f"\nOpening in GarageBand...")
         open_midi_in_garageband(best_midi_path)
     print()
 
@@ -329,6 +414,7 @@ if __name__ == "__main__":
     parser.add_argument("--dry-run", action="store_true", help="Use mock rewards")
     parser.add_argument("--project", default="jazz-band-gepa", help="W&B project")
     parser.add_argument("--base-model", default="OpenPipe/Qwen3-14B-Instruct", help="Base model")
+    parser.add_argument("--resume", type=str, default=None, help="Run ID to resume")
     args = parser.parse_args()
 
     summary = asyncio.run(evolve(
@@ -337,5 +423,6 @@ if __name__ == "__main__":
         dry_run=args.dry_run,
         project=args.project,
         base_model=args.base_model,
+        resume=args.resume,
     ))
     print(f"Done: {summary}")

@@ -1,0 +1,35 @@
+{
+  "model_type": "equal_z_sum_model_calibrated",
+  "n_samples": 568,
+  "source": "model_outputs_rlvr_20251130",
+  "features": [
+    "collision_rate",
+    "phrase_alignment",
+    "texture_density",
+    "harmonic_consonance"
+  ],
+  "directions": {
+    "collision_rate": -1,
+    "phrase_alignment": -1,
+    "texture_density": -1,
+    "harmonic_consonance": 1
+  },
+  "stats": {
+    "collision_rate": {
+      "mean": 0.230,
+      "std": 0.188
+    },
+    "phrase_alignment": {
+      "mean": 0.710,
+      "std": 0.257
+    },
+    "texture_density": {
+      "mean": 0.669,
+      "std": 0.272
+    },
+    "harmonic_consonance": {
+      "mean": 0.647,
+      "std": 0.119
+    }
+  }
+}
