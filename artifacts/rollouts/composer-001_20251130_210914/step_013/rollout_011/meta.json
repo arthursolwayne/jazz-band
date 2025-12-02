@@ -1,0 +1,11 @@
+{
+  "step": 13,
+  "rollout_id": 11,
+  "key": "D",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "closing parenthesis ']' does not match opening parenthesis '(' on line 68 (<string>, line 69)",
+  "timestamp": "2025-11-30T22:26:29.374527"
+}

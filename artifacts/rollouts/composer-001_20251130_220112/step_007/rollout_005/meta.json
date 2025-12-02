@@ -1,0 +1,11 @@
+{
+  "step": 7,
+  "rollout_id": 5,
+  "key": "D",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "Note.__init__() got an unexpected keyword argument 'note_number'",
+  "timestamp": "2025-11-30T22:43:17.516144"
+}

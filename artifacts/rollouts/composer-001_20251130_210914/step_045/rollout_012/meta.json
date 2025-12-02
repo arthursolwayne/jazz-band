@@ -1,0 +1,11 @@
+{
+  "step": 45,
+  "rollout_id": 12,
+  "key": "Dm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "'Note' object has no attribute 'copy'",
+  "timestamp": "2025-12-01T03:09:48.771458"
+}

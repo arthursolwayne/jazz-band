@@ -1,0 +1,11 @@
+{
+  "step": 48,
+  "rollout_id": 10,
+  "key": "Fm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "name 'pretty_mmidi' is not defined",
+  "timestamp": "2025-12-01T03:35:35.638299"
+}

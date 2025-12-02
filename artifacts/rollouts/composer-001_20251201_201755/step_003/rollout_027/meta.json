@@ -1,0 +1,103 @@
+{
+  "step": 3,
+  "rollout_id": 27,
+  "key": "D",
+  "tempo": 160,
+  "reward": 0.6343815996627026,
+  "breakdown": {
+    "sax": 0.23594344562222097,
+    "sax_sig": 0.539243028641765,
+    "bass": -0.3223060723060722,
+    "bass_sig": 0.44648804769839096,
+    "piano": 2.4032076527294364,
+    "piano_sig": 0.8323170487747703,
+    "drums": 0.23864207593013437,
+    "drums_sig": 0.5396899980611237,
+    "ensemble_mult": 1.0149071198499986,
+    "z_sum": 2.5554871019757193,
+    "base_reward": 0.6250637001703792,
+    "combined": 0.6343815996627026,
+    "sax_detail": {
+      "total": 0.23594344562222097,
+      "variety_gate": 0.0,
+      "features": {}
+    },
+    "bass_detail": {
+      "total": -0.3223060723060722,
+      "chromatic_gate": 1.0,
+      "direction_gate": 1.0,
+      "features": {
+        "duration_variety": {
+          "raw": 2,
+          "z_score": 0.0
+        },
+        "velocity_variance": {
+          "raw": 0.0,
+          "z_score": -1.25
+        },
+        "non_chromatic_ratio": {
+          "raw": 0.7272727272727273,
+          "z_score": 0.9276939276939278
+        }
+      }
+    },
+    "piano_detail": {
+      "total": 2.4032076527294364,
+      "tonic_bonus": 1.2,
+      "register_failed": false,
+      "avg_pitch": 59.583333333333336,
+      "features": {
+        "unique_chords": {
+          "raw": 3,
+          "capped": 3,
+          "z_score": 1.0086206896551724,
+          "weight": 1.0
+        },
+        "avg_chord_duration": {
+          "raw": 0.5,
+          "z_score": 1.5819672131147542,
+          "weight": 1.5
+        },
+        "cluster_ratio": {
+          "raw": 0.3333333333333333,
+          "z_score": -0.13269384492406067,
+          "weight": 1.0
+        },
+        "out_of_key_ratio": {
+          "raw": 0.16666666666666666,
+          "z_score": -1.046204620462046,
+          "weight": 1.0
+        },
+        "chord_duration_variety": {
+          "raw": 1,
+          "z_score": -0.20000000000000018,
+          "weight": 1.0
+        }
+      }
+    },
+    "drums_detail": {
+      "total": 0.23864207593013437,
+      "features": {
+        "duration_variety": {
+          "raw": 2,
+          "z_score": 0.06567534076827748
+        },
+        "kick_off_beat_ratio": {
+          "raw": 0.5,
+          "z_score": 0.23571428571428552
+        },
+        "velocity_variance": {
+          "raw": 5.0,
+          "z_score": -0.06274755055242864
+        }
+      }
+    },
+    "ensemble_detail": {
+      "total": 1.0149071198499986,
+      "dynamic_coherence": 0.574535599249993
+    }
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-12-01T20:40:29.319976"
+}

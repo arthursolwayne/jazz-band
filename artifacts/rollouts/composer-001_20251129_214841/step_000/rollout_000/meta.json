@@ -1,0 +1,10 @@
+{
+  "step": 0,
+  "rollout_id": 0,
+  "key": "C",
+  "tempo": 120,
+  "reward": 0.0,
+  "has_midi": false,
+  "error": "PrettyMIDI.__init__() got an unexpected keyword argument 'tempo'",
+  "timestamp": "2025-11-29T21:50:38.207042"
+}

@@ -1,0 +1,11 @@
+{
+  "step": 13,
+  "rollout_id": 31,
+  "key": "F",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "'PrettyMIDI' object has no attribute 'save'",
+  "timestamp": "2025-11-30T18:30:50.528573"
+}

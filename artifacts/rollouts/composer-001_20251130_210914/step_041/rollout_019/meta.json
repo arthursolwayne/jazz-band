@@ -1,0 +1,11 @@
+{
+  "step": 41,
+  "rollout_id": 19,
+  "key": "D",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "'float' object cannot be interpreted as an integer",
+  "timestamp": "2025-12-01T02:43:18.131505"
+}

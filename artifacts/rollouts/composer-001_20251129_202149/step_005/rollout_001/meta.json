@@ -1,0 +1,10 @@
+{
+  "step": 5,
+  "rollout_id": 1,
+  "key": "C",
+  "tempo": 120,
+  "reward": -0.6522767593769674,
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-11-29T20:33:03.093933"
+}

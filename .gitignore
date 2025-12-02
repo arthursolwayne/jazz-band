@@ -38,7 +38,7 @@ wheels/
 Thumbs.db
 
 # Project specific
-artifacts/
+# artifacts/
 audio/
 
 # Logs

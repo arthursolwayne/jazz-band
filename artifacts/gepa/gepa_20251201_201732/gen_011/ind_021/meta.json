@@ -1,0 +1,91 @@
+{
+  "id": 21,
+  "generation": 11,
+  "reward": 0.5853845216751735,
+  "breakdown": {
+    "sax": 9.520070755449709,
+    "sax_sig": 0.998250569197748,
+    "bass": 5.20451624882788,
+    "bass_sig": 0.9698125783661125,
+    "piano": -3.0,
+    "piano_sig": 0.11920292202211755,
+    "drums": -10.0,
+    "drums_sig": 0.001271016263081358,
+    "ensemble_mult": 1.0,
+    "z_sum": 1.7245870042775877,
+    "base_reward": 0.5853845216751735,
+    "combined": 0.5853845216751735,
+    "sax_detail": {
+      "total": 9.520070755449709,
+      "variety_gate": 1.0,
+      "features": {
+        "melodic_entropy": {
+          "raw": 3.708132064658602,
+          "z_score": 3.0
+        },
+        "dur_cv": {
+          "raw": 0.7614996105085897,
+          "z_score": 3.0
+        },
+        "sax_arpeggio_runs": {
+          "raw": 0,
+          "z_score": -0.3391684901531729
+        },
+        "peak_not_late": {
+          "raw": 1,
+          "z_score": 0.42975206611570255
+        },
+        "blue_ratio": {
+          "raw": 0.25,
+          "z_score": 0.4294871794871795
+        },
+        "rhythm_2grams": {
+          "raw": 2,
+          "z_score": 3.0
+        }
+      }
+    },
+    "bass_detail": {
+      "total": 5.20451624882788,
+      "chromatic_gate": 1.0,
+      "direction_gate": 1.0,
+      "features": {
+        "duration_variety": {
+          "raw": 4,
+          "z_score": 2.0
+        },
+        "velocity_variance": {
+          "raw": 9.895285072531598,
+          "z_score": 1.2238212681328995
+        },
+        "non_chromatic_ratio": {
+          "raw": 1.0,
+          "z_score": 1.9806949806949807
+        }
+      }
+    },
+    "piano_detail": {
+      "total": -3.0,
+      "tonic_bonus": 1.0,
+      "features": {}
+    },
+    "drums_detail": {
+      "total": -10.0,
+      "features": {}
+    },
+    "ensemble_detail": {
+      "total": 1.0,
+      "dynamic_coherence": 0.5
+    }
+  },
+  "metrics": {
+    "reward": 0.5853845216751735,
+    "note_count": 24,
+    "valid_midi": 1.0,
+    "unique_durs": 4,
+    "has_rests": true
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-12-01T22:34:11.582113"
+}

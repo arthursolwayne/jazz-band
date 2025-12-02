@@ -1,0 +1,11 @@
+{
+  "step": 0,
+  "rollout_id": 12,
+  "key": "Fm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "Note end time must be greater than start time",
+  "timestamp": "2025-11-30T21:11:55.552245"
+}

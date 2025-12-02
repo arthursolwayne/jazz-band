@@ -1,0 +1,15 @@
+{
+  "id": 6,
+  "generation": 0,
+  "reward": 0.1292953743655114,
+  "metrics": {
+    "reward": 0.1292953743655114,
+    "note_count": 61,
+    "valid_midi": 1.0,
+    "unique_durs": 1,
+    "has_rests": false
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-11-30T15:54:15.693908"
+}

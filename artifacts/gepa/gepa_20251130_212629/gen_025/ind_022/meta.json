@@ -1,0 +1,16 @@
+{
+  "id": 22,
+  "generation": 25,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "'float' object cannot be interpreted as an integer",
+  "timestamp": "2025-11-30T21:42:07.243526"
+}

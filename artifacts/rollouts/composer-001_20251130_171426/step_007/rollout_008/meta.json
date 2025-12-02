@@ -1,0 +1,11 @@
+{
+  "step": 7,
+  "rollout_id": 8,
+  "key": "Fm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "'PrettyMIDI' object has no attribute 'dump'",
+  "timestamp": "2025-11-30T17:57:32.801821"
+}
