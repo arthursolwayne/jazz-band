@@ -330,13 +330,20 @@ async def evolve(
                     key=random.choice(JAZZ_KEYS)
                 )
 
-                # Acceptance gating: mutant must be valid AND not regress
+                # Acceptance gating with exploration
                 mutant_valid = mutant.metrics.get("valid_midi", 0) > 0
                 mutant_reward = mutant.reward
                 parent_reward = survivor.reward
 
+                # Accept if: valid AND not regressed, OR 20% chance for exploration
+                explore_accept = random.random() < 0.2
+
                 if mutant_valid and mutant_reward >= parent_reward:
-                    # Accept mutation
+                    # Accept mutation (passed gate)
+                    child2 = mutant
+                    accepted_mutations += 1
+                elif explore_accept:
+                    # Accept anyway for exploration (even if invalid or worse)
                     child2 = mutant
                     accepted_mutations += 1
                 else:
