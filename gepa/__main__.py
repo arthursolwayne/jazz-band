@@ -10,6 +10,7 @@ parser.add_argument("--population", type=int, default=24, help="Population size"
 parser.add_argument("--dry-run", action="store_true", help="Use mock rewards")
 parser.add_argument("--project", default="jazz-band-gepa", help="W&B project")
 parser.add_argument("--base-model", default="OpenPipe/Qwen3-14B-Instruct", help="Base model")
+parser.add_argument("--resume", type=str, default=None, help="Run ID to resume")
 args = parser.parse_args()
 
 summary = asyncio.run(evolve(
@@ -18,4 +19,5 @@ summary = asyncio.run(evolve(
     dry_run=args.dry_run,
     project=args.project,
     base_model=args.base_model,
+    resume=args.resume,
 ))

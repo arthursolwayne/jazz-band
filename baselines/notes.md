@@ -883,3 +883,702 @@ Current state:
 - `src/jazz_band/reward_ensemble.py` - remove sigmoid, return raw z-sum
 - `src/jazz_band/symbol_engine.py` - remove sigmoid from sax, add combined reward function
 - Create `compute_combined_reward()` that sums all 5 + applies final sigmoid + gates
+
+---
+
+## GEPA Dynamics Comparison (2024-12-01)
+
+### Runs Compared
+
+| Run | Config | Generations |
+|-----|--------|-------------|
+| `gepa_20251130_171422` | OLD: no acceptance gating, no z-clamp, old baselines | 30 |
+| `gepa_20251130_220038` | NEW: acceptance gating + z-clamp (±3) + recalibrated baselines | 30 |
+
+### Trajectory Stats (gen 0-29)
+
+| Metric | OLD RUN | NEW RUN |
+|--------|---------|---------|
+| Early reward (gen 0-4) | +0.13 | +0.48 |
+| Late reward (gen 25-29) | +0.15 | +0.42 |
+| Δ reward | +0.01 | **-0.06** |
+| Early valid % | 62% | 96% |
+| Late valid % | 58% | 90% |
+
+**Key finding**: New run maintains higher validity and reward, but reward drifted DOWN slightly. Acceptance gating prevents collapse but doesn't push upward.
+
+### Listening Test Results
+
+Played 3 samples from each run: best by score, best by balance, random.
+
+| Run | Sample | Reward | Balance | Verdict |
+|-----|--------|--------|---------|---------|
+| OLD | gen_28/ind_010 (best score) | 0.84 | drums=+14.24 | Exploit. Drums spiked. |
+| OLD | gen_19/ind_015 (best balance) | 0.24 | spread=0.26 | **Good! Bass+sax complemented well.** |
+| OLD | gen_05/ind_030 (random) | 0.40 | bass=-0.19 | Bass too high (wrong register). |
+| NEW | gen_00/ind_011 (best score) | 0.95 | sax=+11.71 | **Terrible. No jazz. Musically empty.** |
+| NEW | gen_03/ind_024 (best balance) | 0.50 | spread=0.21 | **Best one. Very balanced. Unique story. Better than any Opus run. Cohesive.** |
+| NEW | gen_23/ind_013 (random) | 0.49 | sax=+0.97 | Bad. Super random. |
+
+### Key Insight
+
+**Balance (low spread across instrument z-sums) is a better quality proxy than raw reward.**
+
+The reward function produces musically coherent output when no single instrument dominates. High scores from spiking one instrument (sax=+11.71) sound terrible. Balanced scores (~0.5 with spread<0.3) sound like real jazz.
+
+### Best Output Found
+
+**gen_03/ind_024 from NEW run** (`gepa_20251130_220038`)
+- Reward: 0.504
+- Spread: 0.21 (lowest)
+- sax=-0.05, bass=-0.02, piano=-0.07, drums=+0.14
+- User verdict: "Best one. Very balanced. Unique, there's a bit of a story. Better than any Opus run. Cohesive."
+
+### Implication
+
+Consider adding a **balance penalty** to the reward function — penalize high spread between instrument z-sums. Or use balance as a selection criterion in GEPA (Pareto front: reward vs balance).
+
+### Extended Listening Test (balance metric variations)
+
+Tested multiple balance metrics on NEW run. All metrics converged on the same winner (gen_03/ind_024):
+- spread_4 (range of 4 instruments)
+- spread_5 (range including ensemble)
+- std_4 (stddev of 4 instruments)
+- std_5 (stddev including ensemble)
+- pareto (reward>0.45, then lowest spread)
+
+Listened to top 5 most balanced from NEW run:
+
+| Rank | Sample | Spread | Verdict |
+|------|--------|--------|---------|
+| 1 | gen_03/ind_024 | 0.21 | **Winner. Cohesive, story, better than Opus.** |
+| 2 | gen_29/ind_020 | 0.42 | Repetitive, but unique high pitch |
+| 3 | gen_23/ind_030 | 0.47 | Terribly out of tune (consonance=0.43) |
+| 4 | gen_20/ind_006 | 0.47 | Similar to #3, not great |
+
+Tried filtering by consonance>0.6:
+
+| Sample | Spread | Consonance | Verdict |
+|--------|--------|------------|---------|
+| gen_22/ind_020 | 0.51 | 0.61 | Not jazz, out of tune, but resolved |
+| gen_07/ind_023 | 0.52 | 0.71 | Potential in sax, everything else bland |
+
+### OLD Run Balanced Comparison
+
+| Rank | Sample | Spread | Verdict |
+|------|--------|--------|---------|
+| 1 | gen_19/ind_015 | 0.27 | Good bass, complemented sax well |
+| 2 | gen_24/ind_018 | 0.38 | Piano made ears bleed |
+| 3 | gen_08/ind_022 | 0.40 | Decent sax, less impressive after hearing winner |
+
+### Key Finding: Spread Threshold
+
+**spread < 0.3 is the quality threshold.**
+
+| Spread Range | Quality |
+|--------------|---------|
+| < 0.3 | Good (cohesive, musical) |
+| 0.3 - 0.4 | Okay (some good elements) |
+| > 0.4 | Bad (dissonant, bland, or exploity) |
+
+NEW run's best balanced (spread=0.21) beats OLD run's best balanced (spread=0.27). Recalibrated baselines + z-clamp produce better quality even without reward climbing over generations.
+
+### Fine-Grained Feature Analysis
+
+Detailed breakdown of key samples:
+
+#### NEW Winner (gen_03/ind_024) - "Cohesive, story, better than Opus"
+
+| Instrument | z-sum | Key Features |
+|------------|-------|--------------|
+| SAX | -0.05 | blue_ratio=+1.23 (good), peak_not_late=+0.43, but melodic_entropy=-0.99, dur_cv=-0.30 |
+| BASS | -0.02 | non_chromatic_ratio=+0.23 (varied intervals), ioi_swing=-0.25 |
+| PIANO | -0.07 | avg_chord_spread=+1.41 (open voicings), but gap_ratio=-0.39, velocity_variance=-0.23 |
+| DRUMS | +0.14 | duration_variety=+1.33 (good), kick_off_beat=+0.24, but velocity_variance=-1.07 |
+| ENSEMBLE | +0.09 | phrase_alignment=+0.82, collision_rate=-0.11, harmonic_consonance=-0.18 |
+
+**Why it works**: No extreme z-scores. Blue notes present. Open piano voicings. Drum duration variety. Nothing broken.
+
+#### OLD #1 (gen_19/ind_015) - "Good bass, complemented sax"
+
+| Instrument | z-sum | Key Features |
+|------------|-------|--------------|
+| SAX | -1.24 | peak_not_late=-1.63 (bad ending), blue_ratio=-0.92, variety_gate=0.25 (penalized) |
+| BASS | -1.07 | non_chromatic_ratio=-0.26, ioi_swing=-0.81 |
+| PIANO | -1.27 | variety_gate=1.0 (good), but gap_ratio=-0.72 |
+| DRUMS | -1.33 | snare_backbeat=+1.42 (good!), but kick_off_beat=-0.83, duration_variety=-1.42 |
+| ENSEMBLE | -1.99 | collision_rate=+1.45 (no collisions!), but phrase_alignment=-1.67, harmonic_consonance=-1.40 |
+
+**Why bass sounded good**: collision_rate=0.0 (bass never stepped on other instruments). But low overall scores from old baselines.
+
+#### NEW Exploit (gen_00/ind_011) - "Terrible, no jazz"
+
+| Instrument | z-sum | Key Features |
+|------------|-------|--------------|
+| SAX | **+11.71** | melodic_entropy=+3.00 (CLAMPED), dur_cv=+3.00 (CLAMPED), rhythm_2grams=+3.00 (CLAMPED) |
+| BASS | +2.61 | non_chromatic_ratio=+1.98 |
+| PIANO | +0.78 | register_separation=+2.74 |
+| DRUMS | +0.62 | velocity_variance=+0.65 |
+| ENSEMBLE | +2.53 | phrase_alignment=+1.98, harmonic_consonance=+1.17 |
+
+**Why it sounded terrible**: Sax maxed 3 features at the ±3 clamp ceiling. High scores ≠ good music. The features measure statistical properties, not musicality. Extreme values on multiple features simultaneously = gaming.
+
+### Feature-Quality Correlations from Listening
+
+| Feature | High z-score | Musical Quality |
+|---------|--------------|-----------------|
+| blue_ratio | +1.23 | Good (jazz identity) |
+| collision_rate | +1.45 (low raw) | Good (instruments don't clash) |
+| duration_variety | +1.33 | Good (rhythmic interest) |
+| melodic_entropy | +3.00 (clamped) | Bad when maxed (random, not melodic) |
+| dur_cv | +3.00 (clamped) | Bad when maxed (erratic, not groovy) |
+| rhythm_2grams | +3.00 (clamped) | Bad when maxed (mechanical repetition) |
+
+### Conclusion
+
+The reward function works when:
+1. **No instrument dominates** (spread < 0.3)
+2. **No features are clamped** (all z-scores within ±2)
+3. **Key features are positive**: blue_ratio, collision_rate (inverted), duration_variety
+
+The reward function fails when:
+1. **Single instrument spikes** (sax=+11.71)
+2. **Multiple features hit clamp ceiling** (3 features at +3.00)
+3. **Statistical extremes don't translate to musical quality**
+
+---
+
+## RLVR vs GEPA Comparison (2024-12-01)
+
+### Runs Compared
+
+| Run | Type | Config |
+|-----|------|--------|
+| `composer-001_20251130_220112` | RLVR | z-clamp ±3, recalibrated baselines, 30 steps |
+| `gepa_20251130_220038` | GEPA | z-clamp ±3, acceptance gating, recalibrated baselines, 30 gens |
+
+Both runs use the **same reward schema** (capped z-scores ±3, model-derived baselines).
+
+### RLVR Dynamics
+
+| Step | Reward | Sax | Bass | Piano | Drums | Ens |
+|------|--------|-----|------|-------|-------|-----|
+| 0 | 0.501 | +0.13 | -0.07 | -0.09 | -0.06 | +0.37 |
+| 10 | 0.483 | +0.20 | +0.16 | -0.18 | -0.47 | -0.08 |
+| 20 | 0.568 | -0.02 | +0.34 | +0.20 | **+1.52** | -0.13 |
+| 29 | 0.667 | +0.18 | +0.49 | +1.56 | **+2.41** | -0.15 |
+
+**Key finding:** RLVR learned to exploit drums. Drums z-score climbed from -0.06 → +2.41 over 30 steps. Reward increased (+0.16) but quality did not.
+
+### Listening Test Results
+
+| Sample | Reward | Spread | Verdict |
+|--------|--------|--------|---------|
+| RLVR best score (step_00/rollout_013) | 0.968 | 10.03 | Terrible. No jazz, piano makes ears bleed, random, too high pitched, no depth |
+| RLVR best balance (step_12/rollout_002) | 0.409 | 0.25 | Not good. Bass too high, sax random, no coherence |
+| RLVR #3 balanced (step_23/rollout_020) | 0.681 | 0.27 | 4/10. Best RLVR but low bar |
+| RLVR #6 balanced (step_28/rollout_011) | 0.699 | 0.44 | Promising. "Start of something good" |
+| **GEPA winner (gen_03/ind_024)** | 0.504 | 0.21 | **Best overall. Cohesive, story, better than Opus** |
+
+### Feature Analysis: Why Samples Sound Good or Bad
+
+#### RLVR Best Score (terrible, reward=0.968)
+```
+SAX (z=+9.77):  dur_cv=+3.00⚠️  rhythm_2grams=+3.00⚠️  melodic_entropy=+2.28⚠️
+BASS (z=+2.87): ioi_swing=+2.56⚠️
+ENSEMBLE:       phrase_alignment=+2.76⚠️
+```
+**4 features at ceiling.** High reward from stacking exploits, not quality.
+
+#### RLVR Best Balance (not good, reward=0.409)
+```
+SAX:      melodic_entropy=-1.80 (boring), blue_ratio=+2.03⚠️
+ENSEMBLE: harmonic_consonance=-2.00⚠️ (out of tune)
+Gates:    variety_gate=0.5 on sax and piano (penalized)
+```
+**Low balance didn't help** — still has extremes and poor consonance.
+
+#### RLVR #3 Balanced (4/10, reward=0.681)
+```
+SAX:   dur_cv=+3.00⚠️  rhythm_2grams=+3.00⚠️
+PIANO: velocity_variance=+3.00⚠️
+ENSEMBLE: collision_rate=-1.44, phrase_alignment=-1.13
+```
+**3 features at ceiling.** Instruments stepping on each other.
+
+#### RLVR #6 Balanced (promising, reward=0.699)
+```
+SAX:   arpeggio_runs=+1.12, melodic_entropy=+0.27
+PIANO: avg_chord_spread=+1.70, gap_ratio=+0.86
+DRUMS: velocity_variance=+0.89
+Only 1 feature near ceiling: phrase_alignment=+2.76⚠️
+```
+**Mostly healthy range.** Good arpeggio runs, open voicings.
+
+#### GEPA Winner (best, reward=0.504)
+```
+SAX:      blue_ratio=+1.23, peak_not_late=+0.43
+PIANO:    avg_chord_spread=+1.41
+DRUMS:    duration_variety=+1.33
+ENSEMBLE: phrase_alignment=+0.82, collision_rate=-0.11
+**ZERO features at ceiling. All z-scores in [-1, +1.5] range.**
+```
+**Natural balance.** The z-clamp didn't constrain it — the output was organically balanced.
+
+### Key Insight: Clamp Doesn't Prevent Exploitation
+
+Both runs use z-clamp ±3. But:
+- **RLVR** found ways to exploit WITHIN the clamp by stacking multiple features at +3.00
+- **GEPA** (with acceptance gating) produced outputs that naturally stayed in healthy ranges
+
+The clamp prevents single-feature runaway but doesn't prevent multi-feature stacking. RLVR's gradient signal pushes toward boundaries; GEPA's mutation + selection doesn't.
+
+### Quality Correlates
+
+| Metric | Quality Correlation |
+|--------|---------------------|
+| Spread < 0.3 | Strong positive |
+| Zero features at ceiling | Strong positive |
+| High reward | **Weak or negative** |
+| All z-scores in [-1, +1.5] | Strong positive |
+
+### Conclusion
+
+**GEPA outperforms RLVR on musical quality** despite RLVR having higher rewards. Evolution with acceptance gating finds balanced solutions; gradient descent finds boundary exploits.
+
+The best output (GEPA gen_03/ind_024) has:
+- Lowest spread (0.21)
+- Zero ceiling hits
+- Lower reward (0.504) than RLVR best (0.968)
+- **Best subjective quality by far**
+
+---
+
+## Deep Dive: Why Did the Winner Win? (2024-12-01)
+
+### The Winner is a Statistical Outlier
+
+Analysis of 838 valid GEPA outputs from `gepa_20251130_220038`:
+
+| Metric | Winner | Population Mean | Population Std | Percentile |
+|--------|--------|-----------------|----------------|------------|
+| Reward | 0.504 | 0.488 | 0.130 | 55.6% |
+| Spread | **0.21** | 2.92 | 1.65 | **0.0%** (LOWEST) |
+
+The winner's reward is **average** (55th percentile), but its spread is the **lowest in the entire population**.
+
+### Spread Distribution
+
+- Only **1 output** (0.1%) has spread < 0.3
+- Only **4 outputs** (0.5%) have spread < 0.5
+- Population mean spread: **2.92**
+- Winner spread: **0.21** — literally the minimum
+
+### The Winner is SIMPLE, Not Complex
+
+Feature percentile analysis reveals the winner is unusual for being **boring**:
+
+**6 features at 0th percentile (lowest in population):**
+- `sax_dur_cv = 0.000` — No duration variety (all notes same length)
+- `sax_arpeggio_runs = 0` — No arpeggios
+- `bass_ioi_swing = 0.000` — No swing
+- `drums_velocity_variance = 0.000` — Constant velocity
+- `drums_snare_backbeat = 0.000` — No backbeat variation
+- `piano_velocity_variance = 0.000` — Constant velocity
+
+**Only 1 feature stands out HIGH:**
+- `piano_avg_chord_spread = 11.33` (93rd percentile) — Wide, open voicings
+
+**Interpretation:** The winner sounds good because it's **restrained**. No flashy arpeggios, no velocity dynamics, no swing. Just simple, clear lines with open piano voicings creating space.
+
+### No Prompt Evolution — Pure Sampling Luck
+
+Critical finding from mutation analysis:
+
+| Metric | Value |
+|--------|-------|
+| Total outputs | 838 |
+| Original prompt (0 diff lines) | 836 (99.8%) |
+| Mutated prompt (any diff) | 2 (0.2%) |
+| Winner's diff lines | **0** |
+
+**Acceptance gating rejected almost ALL mutations.** The "evolution" is actually just rejection sampling from the same base prompt.
+
+| | Original (n=756) | Mutated (n=82) |
+|---|---|---|
+| Mean reward | 0.490 | 0.473 |
+| Mean spread | 2.88 | 3.29 |
+| Min spread | **0.21** | 0.54 |
+
+Mutated outputs are **worse** on average. The winner came from the original prompt with zero mutations.
+
+### Code Analysis: What Made This Sample Different?
+
+The winner uses the **exact same prompt** as 755 other outputs. The difference is in what the model generated:
+
+**Winner's sax line:**
+```python
+# Simple 2-note motif repeated 3x then resolved
+D-Bb, D-Bb, D-Bb-F-C  (8 notes total)
+```
+
+**Comparison sample's sax line:**
+```python
+# More complex, longer phrases
+(varies, typically 12-20 notes with more intervals)
+```
+
+**Winner's piano:**
+- 3 sparse chords, different voicings each bar
+- Short stabs (0.375s), not sustained pads
+
+**Winner's drums:**
+- velocity=100 uniform (no dynamics)
+- Simple kick-snare-hihat pattern
+
+### The Real Conclusion
+
+The winner is NOT the result of:
+- ❌ Prompt evolution (0 diff lines)
+- ❌ High reward optimization (55th percentile reward)
+- ❌ Complex musical features (6 features at 0th percentile)
+
+The winner IS the result of:
+- ✅ **Sampling luck** — 1 in 756 samples with original prompt
+- ✅ **Simplicity** — model happened to generate restrained, clear code
+- ✅ **Balance** — all instruments near zero z-score by chance
+- ✅ **Open voicings** — piano chord spread at 93rd percentile
+
+### Implications for Training
+
+1. **GEPA acceptance gating is too strict** — 99.8% rejection rate means no evolution
+2. **Balance correlates with quality** — but it's a proxy for "nothing went crazy"
+3. **Simplicity beats complexity** — the reward function rewards variance, but musicality comes from restraint
+4. **More samples > more generations** — with current setup, just sample more from base prompt
+
+### Recommendation
+
+Instead of GEPA evolution, consider:
+1. **Best-of-N sampling** — generate N samples from base prompt, select by spread < 0.3
+2. **Simplicity penalty** — reduce reward for high variance features
+3. **Fix acceptance gating** — current 99.8% rejection rate means no learning
+
+---
+
+## 30-Track Listening Test (2024-12-01)
+
+### Test Design
+
+Blind listening test with 30 tracks:
+- 9 tracks previously heard (highlights + variants)
+- 10 random GEPA samples
+- 11 random RLVR samples
+- Randomized order
+
+### Results Summary
+
+| Metric | Value |
+|--------|-------|
+| Overall mean score | **3.85/10** |
+| Score range | 1.0 - 6.5 |
+| Reward↔Score correlation | **0.191** (nearly random) |
+
+### By Source
+
+| Source | Tracks | Mean Score |
+|--------|--------|------------|
+| GEPA | 14 | 3.71 |
+| RLVR | 15 | 3.80 |
+| GEPA + bass fix | 1 | **6.50** |
+
+### Top 5 by Human Score
+
+| Score | Track | Reward | Notes |
+|-------|-------|--------|-------|
+| **6.5** | old_winner_bass_octave_down | 0.504 | **WINNER.** Bass pitched to D2 range |
+| 6.0 | GEPA_gen_001_ind_019 | 0.443 | "Provocative, fast, bursty, unique" |
+| 6.0 | GEPA_best_balance | 0.504 | Previously called "best one, cohesive" |
+| 5.5 | RLVR_best_metrics | 0.776 | "Sounds good, complex chords, but not jazz" |
+| 5.0 | RLVR_step_003_rollout_022 | 0.225 | "Sax had depth" |
+
+### Bottom 5 by Human Score
+
+| Score | Track | Reward | Notes |
+|-------|-------|--------|-------|
+| 2.5 | GEPA_gen_023_ind_004 | 0.365 | "Super basic" |
+| 2.5 | RLVR_step_005_rollout_023 | 0.222 | "Out there, terrible, but something" |
+| 2.0 | GEPA_gen_017_ind_016 | 0.493 | "Not jazz, super basic" |
+| 1.5 | GEPA_mutated_best | 0.660 | "Really basic, does not sound good" |
+| 1.0 | RLVR_step_004_rollout_005 | 0.199 | "Sounded random" |
+
+### Key Finding: Reward Does NOT Predict Quality
+
+| Track | Reward | Human Score |
+|-------|--------|-------------|
+| GEPA_best_metrics | **0.955** | 4.0 |
+| GEPA_mutated_best | **0.660** | 1.5 |
+| RLVR_best_metrics | **0.776** | 5.5 |
+| GEPA_best_balance | 0.504 | 6.0 |
+| GEPA + bass fix | 0.504 | **6.5** |
+
+**Correlation = 0.191** — reward is essentially uncorrelated with human preference.
+
+### Full Ratings with Notes
+
+| # | Track | Reward | Score | Notes |
+|---|-------|--------|-------|-------|
+| 1 | GEPA_gen_023_ind_004 | 0.365 | 2.5 | "Super basic. Extra 0.5 for sax having a little difference at the end" |
+| 2 | RLVR_step_016_rollout_014 | 0.303 | 3.0 | "Some complexity, but not jazz" |
+| 3 | RLVR_step_016_rollout_019 | 0.312 | 4.0 | "Not jazz, complexity was there. Wish variation in sax note lengths" |
+| 4 | GEPA_gen_036_ind_016 | 0.276 | 4.0 | "Bass and drums great. Sax and piano muddied it, out of tune, repetitive" |
+| 5 | RLVR_step_009_rollout_012 | 0.235 | 3.5 | "Sax melody good. Bass strong, liked low registers. Piano random like kid smashing keys. Drums basic" |
+| 6 | RLVR_step_004_rollout_005 | 0.199 | 1.0 | "Sounded random" |
+| 7 | GEPA_gen_001_ind_019 | 0.443 | 6.0 | "Really provocative. Fast pace, drums and sax bursts catch attention. Very unique. Could be more cohesive. Wish more piano depth. Bass line good" |
+| 8 | GEPA_gen_017_ind_016 | 0.493 | 2.0 | "Sounds okay. Just not jazz, super basic" |
+| 9 | RLVR_step_015_rollout_015 | 0.213 | 3.0 | "Really liked the bass line. Everything else was shit" |
+| 10 | GEPA_gen_030_ind_020 | 0.592 | 3.5 | "Same motif structure as best GEPA but didn't execute well. Resolved on up note. Other parts underwhelming" |
+| 11 | GEPA_best_metrics | 0.955 | 4.0 | "Liked super low sax notes and burstiness, but didn't sound like music" |
+| 12 | RLVR_step_003_rollout_022 | 0.225 | 5.0 | "Sax had depth. Wish variation in note lengths. Other tracks not good" |
+| 13 | RLVR_best_metrics | 0.776 | 5.5 | "Sounds good. Sounds like music. Complexity in chords. But not jazz and no variation in note lengths" |
+| 14 | GEPA_mutated_best | 0.660 | 1.5 | "Really basic, does not sound good" |
+| 15 | RLVR_best_balance | 0.262 | 3.5 | "Similar to best GEPA motif structure. Missed on execution. Other parts underwhelming except drum start" |
+| 16 | GEPA_gen_039_ind_029 | 0.532 | 4.5 | "Didn't sound like music, but appreciate sax complexity. Sax could have carried it to 6" |
+| 17 | RLVR_step_005_rollout_012 | 0.252 | 4.0 | "Really basic. Sounds good" |
+| 18 | RLVR_balanced_positive | 0.443 | 5.0 | "Sounds like the 5.5 one but slightly worse" |
+| 19 | GEPA_best_balance | 0.504 | 6.0 | Previously "best one, cohesive" |
+| 20 | GEPA_gen_003_ind_006 | 0.623 | 4.0 | "Kinda sounds like just playing scales, but okay" |
+| 21 | GEPA_gen_027_ind_020 | 0.491 | 3.0 | "Liked sax complexity, but didn't sound good and out of tune" |
+| 22 | GEPA_gen_015_ind_030 | 0.632 | 4.0 | "Sounded like music, not jazz, didn't sound great" |
+| 23 | old_winner_bass_octave_down | 0.504 | **6.5** | "Better than Track 19 because bass pitched down. **Preference for bass pitched down — should support sax lead**" |
+| 24 | GEPA_gen_012_ind_026 | 0.322 | 3.5 | "Really basic, sounds okay" |
+| 25 | RLVR_step_002_rollout_005 | 0.182 | 4.0 | "Sounds like half-baked best GEPA run" |
+| 26 | RLVR_step_007_rollout_028 | 0.212 | 4.5 | "Appreciated sax complexity. Riff at end sounded good. Everything else trash, especially ascending piano/bass (hard to tell, bass not pitched down)" |
+| 27 | RLVR_step_012_rollout_027 | 0.241 | 4.0 | "Short staccato galore. No depth in note lengths" |
+| 28 | RLVR_step_005_rollout_023 | 0.222 | 2.5 | "Liked how out there it was. Sax in top register. Sounded terrible but was something" |
+| 29 | RLVR_jazziest | 0.424 | 4.5 | "Liked the burstiness. Wish variation in note length" |
+| 30 | GEPA_gen_044_ind_001 | 0.497 | 3.5 | "Sax melody sounded good, just wasn't jazz" |
+
+### Recurring Feedback Themes
+
+| Theme | Count | Examples |
+|-------|-------|----------|
+| "Not jazz" | 12 | Tracks 2, 3, 8, 13, 22, 30 |
+| "No variation in note length" | 9 | Tracks 3, 5, 12, 16, 26, 27, 29 |
+| "Basic/simple" (negative) | 7 | Tracks 1, 8, 14, 17, 24 |
+| "Sax complexity appreciated" | 6 | Tracks 5, 16, 21, 26 |
+| "Bass should be pitched down" | 3 | Tracks 23, 26 |
+| "Out of tune" | 3 | Tracks 4, 21 |
+
+### Bass Register Finding
+
+**Track 23 (winner) bass range: D2-F#2 (MIDI 38-42)**
+**Track 19 (original) bass range: D3-F#3 (MIDI 50-54)**
+
+Pitching bass down 1 octave to D2 range improved score from 6.0 → 6.5 (+8%).
+
+User quote: "Preference for bass pitched down. Should be supporting the sax lead, not soloing. Exception: bass solos/riffs."
+
+---
+
+## Human Preference Model (2024-12-01)
+
+### What Makes a Good Track
+
+Based on 30-track listening test feedback:
+
+1. **Variation in note length** — adds complexity and depth (mentioned 9 times)
+2. **Variation in motif types** — sub-motifs, not one repeated pattern
+3. **Burstiness** — dynamic contrast, not monotonous
+4. **Sustained chords** — but must sound like jazz (not yet achieved)
+5. **Jazz quality** — the ineffable thing metrics don't capture
+
+### What the Current Reward Function is Missing
+
+| Missing Feature | Current State | Proposed Fix |
+|-----------------|---------------|--------------|
+| Note length variation | `dur_cv` exists but weak weight | Increase weight 2-3x |
+| Motif variety | Only `rhythm_2grams` | Add melodic motif detection |
+| Burst/sustain contrast | Not measured | Add `staccato_vs_legato_ratio` |
+| Jazz detector | Not measured | Harder problem — needs ML classifier |
+| Bass register | No penalty | Add penalty if bass > MIDI 55 (G3) |
+
+### Proposed Reward Function Changes
+
+#### 1. Bass Register Penalty (Low-hanging fruit)
+
+```python
+# In reward_bass.py
+def bass_register_penalty(notes):
+    """Penalize bass notes above G3 (MIDI 55)."""
+    high_notes = sum(1 for n in notes if n.pitch > 55)
+    ratio = high_notes / len(notes) if notes else 0
+    return 1.0 - (0.5 * ratio)  # Up to 50% penalty
+```
+
+**Expected impact:** +0.5 points (based on Track 19 → 23 improvement)
+
+#### 2. Increase dur_cv Weight
+
+```python
+# In reward_sax.py - REFERENCE_STATS
+'dur_cv': {'mean': 0.20, 'std': 0.25, 'direction': 1, 'weight': 2.0},  # was 1.0
+```
+
+**Rationale:** Mentioned in 9/30 reviews. Currently underweighted.
+
+#### 3. Add Staccato/Legato Contrast Feature
+
+```python
+def staccato_legato_ratio(notes):
+    """Ratio of short notes (<0.2s) to long notes (>0.5s)."""
+    short = sum(1 for n in notes if n.duration < 0.2)
+    long = sum(1 for n in notes if n.duration > 0.5)
+    if short + long == 0:
+        return 0
+    return min(short, long) / max(short, long)  # 1.0 = balanced mix
+```
+
+**Target:** Standards have ~0.8-1.0 ratio. Current outputs have ~0.0-0.2.
+
+#### 4. Descending End Feature (Sax)
+
+From earlier analysis: melody ending going DOWN sounds "in tune" even with same consonance score.
+
+```python
+def descending_end(notes):
+    """Does melody end on a descending interval?"""
+    if len(notes) < 2:
+        return 0
+    last_interval = notes[-1].pitch - notes[-2].pitch
+    return 1 if last_interval < 0 else 0
+```
+
+### Priority Order
+
+1. **Bass register penalty** — trivial to implement, proven +0.5 impact
+2. **Increase dur_cv weight** — config change only
+3. **Descending end** — simple feature, strong signal from earlier analysis
+4. **Staccato/legato ratio** — new feature, moderate implementation
+5. **Jazz classifier** — hard problem, defer
+
+### Summary
+
+**Current reward correlation with human preference: 0.191**
+
+The reward function is broken. It optimizes for statistical properties that don't correlate with musicality. The winner (6.5/10) came from a simple post-hoc fix (bass down 1 octave), not from training.
+
+**Immediate fixes:**
+1. Bass register penalty
+2. dur_cv weight increase
+3. descending_end feature
+
+**These should bring correlation to ~0.4-0.5.** Full "sounds like jazz" detection remains unsolved.
+
+---
+
+## Quantitative Feature Analysis (2024-12-01)
+
+### Per-Instrument Human Scores
+
+Imputed per-instrument scores (1-10) for all 30 tracks based on qualitative feedback. Saved to `baselines/human_instrument_scores.json`.
+
+### Per-Instrument Correlation: Reward Z-Score vs Human Score
+
+| Instrument | Correlation | Signal |
+|------------|-------------|--------|
+| Sax | +0.222 | Weak |
+| Bass | **-0.019** | **ZERO** |
+| Piano | +0.238 | Weak |
+| Drums | +0.055 | Near-zero |
+| Ensemble | +0.099 | Very weak |
+
+**Bass reward function has ZERO correlation with human perception of bass quality.**
+
+### Feature-Level Correlation with Overall Human Score
+
+**TOP FEATURES (|corr| > 0.2 — KEEP):**
+
+| Rank | Feature | Corr | Direction |
+|------|---------|------|-----------|
+| 1 | `piano_avg_chord_spread` | +0.388 | higher=better |
+| 2 | `drums_duration_variety` | +0.280 | higher=better |
+| 3 | `sax_rhythm_2grams` | +0.250 | higher=better |
+| 4 | `ensemble_collision_rate` | -0.250 | **INVERT** |
+| 5 | `piano_gap_ratio` | +0.243 | higher=better |
+| 6 | `ensemble_texture_density` | +0.229 | higher=better |
+
+**NOISE FEATURES (|corr| < 0.1 — REMOVE OR REWEIGHT):**
+
+| Feature | Corr | Original r (n=11) | Problem |
+|---------|------|-------------------|---------|
+| `sax_melodic_entropy` | -0.072 | +0.756 | **INVERTED** in real data |
+| `bass_ioi_swing` | +0.026 | +0.697 | No signal |
+| `bass_non_chromatic_ratio` | +0.059 | +0.846 | No signal |
+| `drums_kick_off_beat_ratio` | -0.079 | +0.959 | **Was 'best predictor'** |
+| `drums_velocity_variance` | +0.073 | +0.558 | No signal |
+| `sax_peak_not_late` | +0.036 | +0.650 | No signal |
+| `ensemble_phrase_alignment` | +0.030 | -0.701 | No signal |
+| `sax_sax_arpeggio_runs` | +0.017 | +0.397 | No signal |
+
+**Key finding:** Original analysis (n=11) was overfitted. With n=30 human-rated samples, many "strong" features show zero correlation.
+
+### Top 6 vs Bottom 6 Feature Comparison
+
+| Feature | TOP 6 | BOT 6 | Δ | Signal |
+|---------|-------|-------|---|--------|
+| `sax_rhythm_2grams` | +0.88 | -0.38 | **+1.26** | *** |
+| `piano_avg_chord_spread` | +0.78 | -0.05 | **+0.82** | ** |
+| `ensemble_harmonic_consonance` | +0.14 | -0.65 | **+0.79** | ** |
+| `piano_gap_ratio` | -0.07 | -0.85 | **+0.78** | ** |
+| `ensemble_texture_density` | +0.44 | -0.30 | **+0.73** | ** |
+| `ensemble_collision_rate` | -0.37 | +0.21 | **-0.58** | ** |
+| `drums_duration_variety` | +0.14 | -0.41 | **+0.55** | ** |
+| `sax_dur_cv` | -0.22 | -0.49 | +0.28 | weak |
+| `sax_blue_ratio` | +0.27 | +0.10 | +0.17 | weak |
+
+### Revised Feature Recommendations
+
+**TIER 1 — Keep with current weight:**
+- `sax_rhythm_2grams` (+1.26 separation)
+- `piano_avg_chord_spread` (+0.82)
+- `ensemble_harmonic_consonance` (+0.79)
+- `piano_gap_ratio` (+0.78)
+- `ensemble_texture_density` (+0.73)
+- `ensemble_collision_rate` (-0.58, INVERT)
+- `drums_duration_variety` (+0.55)
+
+**TIER 2 — Keep but may need reweighting:**
+- `sax_dur_cv` (+0.28)
+- `sax_blue_ratio` (+0.17)
+
+**TIER 3 — Remove or drastically reduce weight:**
+- `sax_melodic_entropy` (inverted in practice)
+- `bass_ioi_swing` (no signal)
+- `bass_non_chromatic_ratio` (no signal)
+- `drums_kick_off_beat_ratio` (no signal)
+- `drums_velocity_variance` (no signal)
+- `sax_peak_not_late` (no signal)
+- `ensemble_phrase_alignment` (no signal)
+- `sax_sax_arpeggio_runs` (no signal)
+
+### Spread Finding Revisited
+
+**Spread vs Overall Human Score: +0.031** (essentially zero)
+
+Earlier hypothesis that "spread < 0.3 = quality" does not hold across all 30 samples. Balance may be necessary but not sufficient.
+
+### Implications for Reward Design
+
+1. **Prune noise features:** Remove or zero-weight TIER 3 features. They add noise to the gradient.
+
+2. **Bass reward is broken:** Two features (`ioi_swing`, `non_chromatic_ratio`) have no signal. Need new bass features or bass register penalty.
+
+3. **Drums reward is broken:** `kick_off_beat_ratio` was the "best predictor" (r=0.96) in n=11 analysis but shows -0.079 in n=30. Likely overfit to standards having zero kicks.
+
+4. **Ensemble features work best:** 4/6 top features are ensemble or piano. Per-instrument features have weaker signal.
+
+5. **Gating on TIER 1 features:** Consider hard gates on:
+   - `piano_avg_chord_spread > 0` (open voicings)
+   - `sax_rhythm_2grams > 0` (has rhythm hook)
+   - `ensemble_collision_rate < 0.5` (don't collide)
+   - `ensemble_harmonic_consonance > 0.6` (in tune)
