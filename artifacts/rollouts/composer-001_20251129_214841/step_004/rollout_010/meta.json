@@ -1,0 +1,10 @@
+{
+  "step": 4,
+  "rollout_id": 10,
+  "key": "C",
+  "tempo": 120,
+  "reward": 0.0,
+  "has_midi": false,
+  "error": "TimeSignature.__init__() got an unexpected keyword argument 'tempo'",
+  "timestamp": "2025-11-29T22:35:34.355904"
+}

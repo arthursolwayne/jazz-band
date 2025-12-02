@@ -1,0 +1,53 @@
+{
+  "id": 23,
+  "generation": 18,
+  "reward": 0.039165722796764356,
+  "breakdown": {
+    "sax": 0.0,
+    "sax_sig": 0.5,
+    "bass": -3.0,
+    "bass_sig": 0.11920292202211755,
+    "piano": -3.0,
+    "piano_sig": 0.11920292202211755,
+    "drums": -10.0,
+    "drums_sig": 0.001271016263081358,
+    "ensemble_mult": 1.0,
+    "z_sum": -16.0,
+    "base_reward": 0.039165722796764356,
+    "combined": 0.039165722796764356,
+    "sax_detail": {
+      "total": 0.0,
+      "variety_gate": 0.0,
+      "features": {}
+    },
+    "bass_detail": {
+      "total": -3.0,
+      "chromatic_gate": 0.0,
+      "direction_gate": 0.0,
+      "features": {}
+    },
+    "piano_detail": {
+      "total": -3.0,
+      "tonic_bonus": 1.0,
+      "features": {}
+    },
+    "drums_detail": {
+      "total": -10.0,
+      "features": {}
+    },
+    "ensemble_detail": {
+      "total": 1.0,
+      "dynamic_coherence": 0.5
+    }
+  },
+  "metrics": {
+    "reward": 0.039165722796764356,
+    "note_count": 0,
+    "valid_midi": 1.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-12-01T23:08:54.005319"
+}

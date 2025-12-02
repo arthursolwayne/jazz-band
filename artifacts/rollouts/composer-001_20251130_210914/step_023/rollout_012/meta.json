@@ -1,0 +1,11 @@
+{
+  "step": 23,
+  "rollout_id": 12,
+  "key": "Fm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "unmatched ']' (<string>, line 116)",
+  "timestamp": "2025-11-30T23:34:32.527811"
+}

@@ -1,0 +1,11 @@
+{
+  "step": 4,
+  "rollout_id": 18,
+  "key": "F",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "data byte must be int",
+  "timestamp": "2025-11-30T21:32:20.859798"
+}

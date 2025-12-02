@@ -1,0 +1,16 @@
+{
+  "id": 7,
+  "generation": 8,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "cannot import name 'NoteArray' from 'pretty_midi' (/Users/arthurwayne/Documents/GitHub/jazz-band/.venv/lib/python3.10/site-packages/pretty_midi/__init__.py)",
+  "timestamp": "2025-11-30T21:31:11.627073"
+}

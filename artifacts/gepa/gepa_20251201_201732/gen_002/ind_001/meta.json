@@ -1,0 +1,16 @@
+{
+  "id": 1,
+  "generation": 2,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "list index out of range",
+  "timestamp": "2025-12-01T20:23:44.107368"
+}

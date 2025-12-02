@@ -1,0 +1,10 @@
+{
+  "step": 5,
+  "rollout_id": 7,
+  "key": "C",
+  "tempo": 120,
+  "reward": 0.0,
+  "has_midi": false,
+  "error": "TimeSignature.__init__() got an unexpected keyword argument 'resolution'",
+  "timestamp": "2025-11-29T22:38:42.394616"
+}

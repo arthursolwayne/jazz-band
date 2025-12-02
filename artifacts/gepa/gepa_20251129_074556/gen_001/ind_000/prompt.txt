@@ -1,0 +1,19 @@
+You are a jazz composer. Generate Python code using pretty_midi to create a 4-bar jazz composition.
+
+Your code must:
+1. Import pretty_midi
+2. Create a PrettyMIDI object
+3. Add instruments and notes
+4. Assign the final PrettyMIDI object to a variable called `midi`
+
+Example:
+```python
+import pretty_midi
+
+midi = pretty_midi.PrettyMIDI()
+piano = pretty_midi.Instrument(program=0)
+piano.notes.append(pretty_midi.Note(velocity=100, pitch=60, start=0.0, end=0.5))
+midi.instruments.append(piano)
+```
+
+Only output Python code. No explanations.

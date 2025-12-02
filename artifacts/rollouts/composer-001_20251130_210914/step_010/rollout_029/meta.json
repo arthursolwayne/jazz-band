@@ -1,0 +1,11 @@
+{
+  "step": 10,
+  "rollout_id": 29,
+  "key": "F",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "'Note' object has no attribute 'append_to_instrument'",
+  "timestamp": "2025-11-30T22:08:57.032985"
+}

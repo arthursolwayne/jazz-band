@@ -16,12 +16,8 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
-import weave
 
 load_dotenv()
-
-# Suppress weave info logs (keep errors)
-logging.getLogger("weave").setLevel(logging.ERROR)
 
 # ART imports (optional for dry-run)
 try:
@@ -87,7 +83,6 @@ def open_midi_in_garageband(midi_path: Path):
     subprocess.run(["open", "-a", "GarageBand", str(midi_path)])
 
 
-@weave.op
 async def rollout(model, scenario: JazzScenario, run_id: str) -> "art.Trajectory":
     """
     Single rollout: prompt LLM → execute code → compute reward.
@@ -188,9 +183,6 @@ async def train(
     if not api_key:
         raise ValueError("WANDB_API_KEY or WANDBAPIKEY required")
     os.environ["WANDB_API_KEY"] = api_key
-
-    # Initialize weave for logging
-    weave.init(project)
 
     # Resume existing run or create new one
     if resume:

@@ -57,6 +57,10 @@ def execute_midi_code(code: str):
     elif "```" in code:
         code = code.split("```")[1].split("```")[0]
 
+    # Strip midi.write() calls to prevent LLM code from writing to disk
+    import re
+    code = re.sub(r'^\s*midi\.write\s*\([^)]*\).*$', '# midi.write disabled', code, flags=re.MULTILINE)
+
     # Execute in isolated namespace
     namespace = {"pretty_midi": pretty_midi}
     try:

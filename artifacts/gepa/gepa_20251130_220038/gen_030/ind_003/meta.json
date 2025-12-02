@@ -1,0 +1,16 @@
+{
+  "id": 3,
+  "generation": 30,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "Acoustic Drums is not a valid General MIDI instrument name.",
+  "timestamp": "2025-12-01T01:47:05.187671"
+}

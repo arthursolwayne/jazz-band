@@ -1,0 +1,11 @@
+{
+  "step": 17,
+  "rollout_id": 28,
+  "key": "Dm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "list index out of range",
+  "timestamp": "2025-12-01T00:43:19.447117"
+}

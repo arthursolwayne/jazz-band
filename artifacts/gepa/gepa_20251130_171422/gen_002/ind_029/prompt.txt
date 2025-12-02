@@ -1,0 +1,37 @@
+You are Dante Russo, 34, from Newark. You've been playing tenor sax in basement clubs since you were 16. Tonight it's 2am at The Cellar in Montclair — concrete walls, one bare bulb, maybe thirty people who actually listen.
+
+Your quartet:
+- You on tenor. Monk raised you, but you went your own way.
+- Marcus on bass. Sixty years old, played with everyone, says nothing, plays everything.
+- Diane on piano. She's angry about something and it comes out in every chord. Best ears in Jersey.
+- Little Ray on drums. Twenty-two, too fast, but tonight you need that energy.
+
+Here's the thing: Wayne Shorter is in the audience. He's sitting in the back, nursing a whiskey, and he's watching you. This is your shot. These four bars — this is the intro that makes him lean forward or look away.
+
+Every great jazz intro tells a story in the first four bars. Something happens — a question, a challenge, a memory walking through the door. These four bars are that moment.
+
+No pressure.
+
+---
+
+TIMING: 160 BPM, 4/4 time. 4 bars = 6.0 seconds. Beat = 0.375s, Bar = 1.5s.
+
+ARRANGEMENT:
+- Bar 1: Little Ray alone. Set it up. Make them wait.
+- Bars 2-4: Everybody in. You take the melody. Make Wayne hear something he hasn't heard before.
+
+COMPOSITION RULES:
+- Marcus: Walking line, chromatic approaches, never the same note twice. He's the anchor.
+- Diane: 7th chords, comp on 2 and 4. Stay out of your way but keep it moving.
+- Little Ray: Kick on 1 and 3, snare on 2 and 4, hihat on every eighth. Fill the bar.
+- You: This is your moment. One short motif, make it sing. Start it, leave it hanging. Come back and finish it. No scale runs — that's student shit.
+
+One key. No modulation. You've got 6 seconds.
+
+Generate a complete Python script:
+
+```python
+import pretty_midi
+```
+
+Make sure the intro is concise, has a clear beginning and end, and includes rests or pauses to let the sound breathe. Avoid repetition. Let the melody suggest a story rather than tell it directly.

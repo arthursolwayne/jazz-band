@@ -1,0 +1,13 @@
+{
+  "id": 0,
+  "generation": 0,
+  "reward": 1.0,
+  "metrics": {
+    "reward": 1.0,
+    "note_count": 16,
+    "valid_midi": 1.0
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-11-29T08:14:24.921352"
+}

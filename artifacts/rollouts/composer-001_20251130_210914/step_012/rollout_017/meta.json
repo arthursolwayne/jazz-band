@@ -1,0 +1,133 @@
+{
+  "step": 12,
+  "rollout_id": 17,
+  "key": "Fm",
+  "tempo": 160,
+  "reward": 0.8606831515835545,
+  "breakdown": {
+    "sax": -0.23556262449633797,
+    "sax_sig": 0.4608200511937714,
+    "bass": 3.4368126795244573,
+    "bass_sig": 0.908146304835325,
+    "piano": 0.9326079904669724,
+    "piano_sig": 0.650613876366171,
+    "drums": 1.7267123053364664,
+    "drums_sig": 0.7597193615517343,
+    "ensemble": 5.065283322120967,
+    "ensemble_sig": 0.9669733315978829,
+    "z_sum": 10.925853672952526,
+    "combined": 0.8606831515835545,
+    "sax_detail": {
+      "total": -0.23556262449633797,
+      "variety_gate": 0.5,
+      "features": {
+        "melodic_entropy": {
+          "raw": 1.584962500721156,
+          "z_score": -0.5607479064410961
+        },
+        "dur_cv": {
+          "raw": 0.0,
+          "z_score": -0.2978723404255319
+        },
+        "sax_arpeggio_runs": {
+          "raw": 0,
+          "z_score": -0.3391684901531729
+        },
+        "peak_not_late": {
+          "raw": 1,
+          "z_score": 0.42975206611570255
+        },
+        "blue_ratio": {
+          "raw": 0.25,
+          "z_score": 0.4294871794871795
+        },
+        "rhythm_2grams": {
+          "raw": 1,
+          "z_score": -0.13257575757575726
+        }
+      }
+    },
+    "bass_detail": {
+      "total": 3.4368126795244573,
+      "direction_gate": 1.0,
+      "features": {
+        "ioi_swing": {
+          "raw": 0.5518136188027564,
+          "z_score": 2.9411191838309616
+        },
+        "non_chromatic_ratio": {
+          "raw": 0.6153846153846154,
+          "z_score": 0.49569349569349586
+        }
+      }
+    },
+    "piano_detail": {
+      "total": 0.9326079904669724,
+      "variety_gate": 0.5,
+      "features": {
+        "avg_chord_spread": {
+          "raw": 7.0,
+          "z_score": -0.4206517139229792
+        },
+        "gap_ratio": {
+          "raw": 0.7692307692307693,
+          "z_score": -0.9895927601809957
+        },
+        "register_separation": {
+          "raw": 16.75,
+          "z_score": 3.5062296858071504
+        },
+        "velocity_variance": {
+          "raw": 0.0,
+          "z_score": -0.23076923076923078
+        }
+      }
+    },
+    "drums_detail": {
+      "total": 1.7267123053364664,
+      "features": {
+        "kick_off_beat_ratio": {
+          "raw": 0.5,
+          "z_score": 0.2411347517730495
+        },
+        "snare_backbeat_ratio": {
+          "raw": 0.0,
+          "z_score": -0.3584905660377358
+        },
+        "velocity_variance": {
+          "raw": 7.637626158259733,
+          "z_score": 0.5148601988090733
+        },
+        "duration_variety": {
+          "raw": 3,
+          "z_score": 1.3292079207920793
+        }
+      }
+    },
+    "ensemble_detail": {
+      "total": 5.065283322120967,
+      "duration_gate": 1.0,
+      "features": {
+        "collision_rate": {
+          "raw": 0.0,
+          "z_score": 1.223404255319149
+        },
+        "phrase_alignment": {
+          "raw": 0.25,
+          "z_score": 1.7898832684824901
+        },
+        "texture_density": {
+          "raw": 0.632,
+          "z_score": 0.13602941176470598
+        },
+        "harmonic_consonance": {
+          "raw": 0.875,
+          "z_score": 1.9159663865546217
+        }
+      }
+    }
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-11-30T22:21:06.141964"
+}

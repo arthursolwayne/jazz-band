@@ -16,12 +16,8 @@ from typing import Dict, List
 from datetime import datetime
 
 from dotenv import load_dotenv
-import weave
 
 load_dotenv()
-
-# Suppress weave info logs (keep errors)
-logging.getLogger("weave").setLevel(logging.ERROR)
 
 # ART imports (for inference)
 try:
@@ -89,7 +85,6 @@ def open_midi_in_garageband(midi_path: Path):
     subprocess.run(["open", "-a", "GarageBand", str(midi_path)])
 
 
-@weave.op
 async def evaluate_individual(
     client,
     model_name: str,
@@ -233,9 +228,6 @@ async def evolve(
     if not api_key:
         raise ValueError("WANDB_API_KEY or WANDBAPIKEY required")
     os.environ["WANDB_API_KEY"] = api_key
-
-    # Initialize weave for logging
-    weave.init(project)
 
     # Resume existing run or create new one
     if resume:

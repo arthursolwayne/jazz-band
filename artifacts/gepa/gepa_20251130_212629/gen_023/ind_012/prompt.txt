@@ -1,0 +1,35 @@
+```python
+import pretty_midi
+
+midi = pretty_mIDI.PrettyMIDI(initial_tempo=160)
+
+# The quartet
+sax = pretty_midi.Instrument(program=66)       # Dante
+bass = pretty_midi.Instrument(program=33)      # Marcus
+piano = pretty_midi.Instrument(program=0)      # Diane
+drums = pretty_midi.Instrument(program=0, is_drum=True)  # Little Ray
+
+# Drums: kick=36, snare=38, hihat=42
+
+# Bar 1: Little Ray alone (0.0 - 1.5s)
+# Build tension with rhythmic complexity and subtle syncopation
+# Use a full kit, not just a few hits — let the groove breathe
+# Keep it tight but alive
+
+# Bar 2: Full quartet (1.5 - 3.0s)
+# Sax: Create a short, melodic motif with space between notes
+# Let the silence mean something — don't fill every moment
+# Use the rhythm of the bass and drums as your guide
+
+# Bass: Walk the changes with chromatic motion and avoid repeating pitches
+# Play with the rhythm — syncopate when it feels right, stay in the pocket when it doesn’t
+# Let the bass be the heartbeat of the ensemble
+
+# Piano: Comp with 7th chords, but leave space for the melody
+# Use the off-beats to add color, not to overpower
+# Let the rhythm section drive the groove, not the piano
+
+# Overall: Balance density and space
+# Let the music breathe, but keep the energy moving
+# Every instrument has a role — don’t play against the others, play with them
+```

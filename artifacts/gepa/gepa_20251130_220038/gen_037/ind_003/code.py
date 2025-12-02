@@ -1,0 +1,129 @@
+
+import pretty_midi
+
+midi = pretty_midi.PrettyMIDI(initial_tempo=160)
+
+# The quartet
+sax = pretty_midi.Instrument(program=66)       # Dante
+bass = pretty_midi.Instrument(program=33)      # Marcus
+piano = pretty_midi.Instrument(program=0)      # Diane
+drums = pretty_midi.Instrument(program=0, is_drum=True)  # Little Ray
+
+# Drums: kick=36, snare=38, hihat=42
+
+# Bar 1: Little Ray alone (0.0 - 1.5s)
+drum_kick = pretty_midi.Note(velocity=100, pitch=36, start=0.0, end=0.375)
+drum_snare = pretty_midi.Note(velocity=100, pitch=38, start=0.75, end=1.125)
+drum_hihat = pretty_midi.Note(velocity=100, pitch=42, start=0.0, end=1.5)
+drums.notes.extend([drum_kick, drum_snare, drum_hihat])
+
+# Bar 2: Full quartet (1.5 - 3.0s)
+# Sax: short motif with space
+sax_note1 = pretty_midi.Note(velocity=100, pitch=66, start=1.5, end=1.75)
+sax_note2 = pretty_midi.Note(velocity=100, pitch=69, start=2.0, end=2.25)
+sax_note3 = pretty_midi.Note(velocity=100, pitch=67, start=2.5, end=2.75)
+sax.notes.extend([sax_note1, sax_note2, sax_note3])
+
+# Bass: walking line with chromatic approaches
+bass_note1 = pretty_midi.Note(velocity=80, pitch=44, start=1.5, end=1.75)
+bass_note2 = pretty_midi.Note(velocity=80, pitch=45, start=1.75, end=2.0)
+bass_note3 = pretty_midi.Note(velocity=80, pitch=43, start=2.0, end=2.25)
+bass_note4 = pretty_midi.Note(velocity=80, pitch=42, start=2.25, end=2.5)
+bass_note5 = pretty_midi.Note(velocity=80, pitch=43, start=2.5, end=2.75)
+bass_note6 = pretty_midi.Note(velocity=80, pitch=44, start=2.75, end=3.0)
+bass.notes.extend([bass_note1, bass_note2, bass_note3, bass_note4, bass_note5, bass_note6])
+
+# Piano: 7th chords comp on 2 and 4
+piano_note1 = pretty_midi.Note(velocity=100, pitch=62, start=1.5, end=2.0)  # F7
+piano_note2 = pretty_midi.Note(velocity=100, pitch=66, start=1.5, end=2.0)
+piano_note3 = pretty_midi.Note(velocity=100, pitch=67, start=1.5, end=2.0)
+piano_note4 = pretty_midi.Note(velocity=100, pitch=71, start=1.5, end=2.0)
+piano_note5 = pretty_midi.Note(velocity=100, pitch=62, start=2.5, end=3.0)  # F7
+piano_note6 = pretty_midi.Note(velocity=100, pitch=66, start=2.5, end=3.0)
+piano_note7 = pretty_midi.Note(velocity=100, pitch=67, start=2.5, end=3.0)
+piano_note8 = pretty_midi.Note(velocity=100, pitch=71, start=2.5, end=3.0)
+piano.notes.extend([piano_note1, piano_note2, piano_note3, piano_note4, piano_note5, piano_note6, piano_note7, piano_note8])
+
+# Drums: kick on 1 and 3, snare on 2 and 4, hihat on every eighth
+drum_kick2 = pretty_midi.Note(velocity=100, pitch=36, start=1.5, end=1.875)
+drum_kick3 = pretty_midi.Note(velocity=100, pitch=36, start=2.25, end=2.625)
+drum_kick4 = pretty_midi.Note(velocity=100, pitch=36, start=3.0, end=3.375)
+drum_snare2 = pretty_midi.Note(velocity=100, pitch=38, start=1.875, end=2.25)
+drum_snare3 = pretty_midi.Note(velocity=100, pitch=38, start=2.625, end=3.0)
+drum_hihat2 = pretty_midi.Note(velocity=100, pitch=42, start=1.5, end=3.0)
+drums.notes.extend([drum_kick2, drum_kick3, drum_kick4, drum_snare2, drum_snare3, drum_hihat2])
+
+# Bar 3: Full quartet (3.0 - 4.5s)
+# Sax: continuation of motif with a slight variation
+sax_note4 = pretty_midi.Note(velocity=100, pitch=69, start=3.0, end=3.25)
+sax_note5 = pretty_midi.Note(velocity=100, pitch=67, start=3.5, end=3.75)
+sax_note6 = pretty_midi.Note(velocity=100, pitch=65, start=4.0, end=4.25)
+sax.notes.extend([sax_note4, sax_note5, sax_note6])
+
+# Bass: walking line with chromatic approaches
+bass_note7 = pretty_midi.Note(velocity=80, pitch=44, start=3.0, end=3.25)
+bass_note8 = pretty_midi.Note(velocity=80, pitch=45, start=3.25, end=3.5)
+bass_note9 = pretty_midi.Note(velocity=80, pitch=43, start=3.5, end=3.75)
+bass_note10 = pretty_midi.Note(velocity=80, pitch=42, start=3.75, end=4.0)
+bass_note11 = pretty_midi.Note(velocity=80, pitch=43, start=4.0, end=4.25)
+bass_note12 = pretty_midi.Note(velocity=80, pitch=44, start=4.25, end=4.5)
+bass.notes.extend([bass_note7, bass_note8, bass_note9, bass_note10, bass_note11, bass_note12])
+
+# Piano: 7th chords comp on 2 and 4
+piano_note9 = pretty_midi.Note(velocity=100, pitch=62, start=3.0, end=3.5)  # F7
+piano_note10 = pretty_midi.Note(velocity=100, pitch=66, start=3.0, end=3.5)
+piano_note11 = pretty_midi.Note(velocity=100, pitch=67, start=3.0, end=3.5)
+piano_note12 = pretty_midi.Note(velocity=100, pitch=71, start=3.0, end=3.5)
+piano_note13 = pretty_midi.Note(velocity=100, pitch=62, start=3.75, end=4.25)  # F7
+piano_note14 = pretty_midi.Note(velocity=100, pitch=66, start=3.75, end=4.25)
+piano_note15 = pretty_midi.Note(velocity=100, pitch=67, start=3.75, end=4.25)
+piano_note16 = pretty_midi.Note(velocity=100, pitch=71, start=3.75, end=4.25)
+piano.notes.extend([piano_note9, piano_note10, piano_note11, piano_note12, piano_note13, piano_note14, piano_note15, piano_note16])
+
+# Drums: kick on 1 and 3, snare on 2 and 4, hihat on every eighth
+drum_kick5 = pretty_midi.Note(velocity=100, pitch=36, start=3.0, end=3.375)
+drum_kick6 = pretty_midi.Note(velocity=100, pitch=36, start=3.75, end=4.125)
+drum_kick7 = pretty_midi.Note(velocity=100, pitch=36, start=4.5, end=4.875)
+drum_snare4 = pretty_midi.Note(velocity=100, pitch=38, start=3.375, end=3.75)
+drum_snare5 = pretty_midi.Note(velocity=100, pitch=38, start=4.125, end=4.5)
+drum_hihat3 = pretty_midi.Note(velocity=100, pitch=42, start=3.0, end=4.5)
+drums.notes.extend([drum_kick5, drum_kick6, drum_kick7, drum_snare4, drum_snare5, drum_hihat3])
+
+# Bar 4: Full quartet (4.5 - 6.0s)
+# Sax: return to the motif with resolution
+sax_note7 = pretty_midi.Note(velocity=100, pitch=66, start=4.5, end=4.75)
+sax_note8 = pretty_midi.Note(velocity=100, pitch=69, start=5.0, end=5.25)
+sax_note9 = pretty_midi.Note(velocity=100, pitch=67, start=5.5, end=5.75)
+sax.notes.extend([sax_note7, sax_note8, sax_note9])
+
+# Bass: walking line with chromatic approaches
+bass_note13 = pretty_midi.Note(velocity=80, pitch=44, start=4.5, end=4.75)
+bass_note14 = pretty_midi.Note(velocity=80, pitch=45, start=4.75, end=5.0)
+bass_note15 = pretty_midi.Note(velocity=80, pitch=43, start=5.0, end=5.25)
+bass_note16 = pretty_midi.Note(velocity=80, pitch=42, start=5.25, end=5.5)
+bass_note17 = pretty_midi.Note(velocity=80, pitch=43, start=5.5, end=5.75)
+bass_note18 = pretty_midi.Note(velocity=80, pitch=44, start=5.75, end=6.0)
+bass.notes.extend([bass_note13, bass_note14, bass_note15, bass_note16, bass_note17, bass_note18])
+
+# Piano: 7th chords comp on 2 and 4
+piano_note17 = pretty_midi.Note(velocity=100, pitch=62, start=4.5, end=5.0)  # F7
+piano_note18 = pretty_midi.Note(velocity=100, pitch=66, start=4.5, end=5.0)
+piano_note19 = pretty_midi.Note(velocity=100, pitch=67, start=4.5, end=5.0)
+piano_note20 = pretty_midi.Note(velocity=100, pitch=71, start=4.5, end=5.0)
+piano_note21 = pretty_midi.Note(velocity=100, pitch=62, start=5.25, end=5.75)  # F7
+piano_note22 = pretty_midi.Note(velocity=100, pitch=66, start=5.25, end=5.75)
+piano_note23 = pretty_midi.Note(velocity=100, pitch=67, start=5.25, end=5.75)
+piano_note24 = pretty_midi.Note(velocity=100, pitch=71, start=5.25, end=5.75)
+piano.notes.extend([piano_note17, piano_note18, piano_note19, piano_note20, piano_note21, piano_note22, piano_note23, piano_note24])
+
+# Drums: kick on 1 and 3, snare on 2 and 4, hihat on every eighth
+drum_kick8 = pretty_midi.Note(velocity=100, pitch=36, start=4.5, end=4.875)
+drum_kick9 = pretty_midi.Note(velocity=100, pitch=36, start=5.25, end=5.625)
+drum_kick10 = pretty_midi.Note(velocity=100, pitch=36, start=6.0, end=6.375)
+drum_snare6 = pretty_midi.Note(velocity=100, pitch=38, start=4.875, end=5.25)
+drum_snare7 = pretty_midi.Note(velocity=100, pitch=38, start=5.625, end=6.0)
+drum_hihat4 = pretty_midi.Note(velocity=100, pitch=42, start=4.5, end=6.0)
+drums.notes.extend([drum_kick8, drum_kick9, drum_kick10, drum_snare6, drum_snare7, drum_hihat4])
+
+midi.instruments.extend([sax, bass, piano, drums])
+midi.write("dante_intro.mid")

@@ -1,0 +1,11 @@
+{
+  "step": 9,
+  "rollout_id": 6,
+  "key": "Dm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "Note end time must be greater than start time",
+  "timestamp": "2025-11-30T23:56:35.690880"
+}

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLVR Training Analysis - Feature Gaming Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #58a6ff;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #8b949e;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            background: #161b22;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            color: #f0f6fc;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .insight-box {
+            background: #21262d;
+            border-left: 4px solid #f85149;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .insight-box.good {
+            border-left-color: #3fb950;
+        }
+        .insight-box h3 {
+            margin: 0 0 10px 0;
+            color: #f85149;
+        }
+        .insight-box.good h3 {
+            color: #3fb950;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .metric {
+            display: inline-block;
+            background: #30363d;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .metric.bad { background: #f8514922; color: #f85149; }
+        .metric.good { background: #3fb95022; color: #3fb950; }
+        canvas { max-height: 300px; }
+    </style>
+</head>
+<body>
+    <h1>RLVR Training Analysis</h1>
+    <p class="subtitle">Run: composer-001_20251129_214841 | 20 steps | 256 rollouts</p>
+
+    <div class="chart-container">
+        <div class="chart-title">Average Reward Over Training</div>
+        <canvas id="rewardChart"></canvas>
+    </div>
+
+    <div class="insight-box">
+        <h3>Gaming Detected</h3>
+        <p>The model learned to produce <strong>monotone, rhythmically flat</strong> outputs. Key features are stuck at their floor values throughout training:</p>
+        <span class="metric bad">dur_cv: -0.89 (flat)</span>
+        <span class="metric bad">rhythm_2grams: -0.89 (flat)</span>
+        <span class="metric bad">sax_arpeggio_runs: -0.25 (flat)</span>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">All Features Over Training (Z-scores)</div>
+        <canvas id="allFeatures"></canvas>
+    </div>
+
+    <div class="grid">
+        <div class="chart-container">
+            <div class="chart-title">Rhythm Features (Stuck at Floor)</div>
+            <canvas id="rhythmFeatures"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Melodic Features</div>
+            <canvas id="melodicFeatures"></canvas>
+        </div>
+    </div>
+
+    <div class="insight-box good">
+        <h3>What The Model Did Learn</h3>
+        <p>Valid MIDI rate improved from ~70% to 94%. The model learned to <strong>avoid crashes</strong>, but not to produce <strong>quality jazz</strong>.</p>
+        <span class="metric good">Valid rate: 70% → 94%</span>
+        <span class="metric">Mean reward: 0.41 → 0.49</span>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">The Problem: Flat Features = No Learning Signal</div>
+        <canvas id="flatFeatures"></canvas>
+    </div>
+
+    <script>
+        const data = {"steps": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], "features": {"melodic_entropy": [-1.301, -0.933, -1.061, -0.831, -1.341, -0.88, -1.485, -1.149, -1.262, -0.964, -1.366, -1.332, -1.199, -0.96, -1.447, -0.988, -1.328, -1.04, -1.059, -0.909], "dur_cv": [-0.888, -0.888, -0.873, -0.863, -0.887, -0.813, -0.866, -0.888, -0.86, -0.876, -0.887, -0.888, -0.826, -0.888, -0.888, -0.888, -0.887, -0.888, -0.888, -0.857], "sax_arpeggio_runs": [-0.228, 0.031, -0.31, -0.311, -0.17, -0.276, -0.283, -0.324, -0.225, -0.316, -0.322, -0.203, -0.172, -0.336, -0.225, -0.187, -0.286, -0.324, -0.158, -0.232], "peak_not_late": [-0.19, -0.0, -0.323, 0.408, 0.612, 0.452, 0.612, 0.014, 0.313, 0.163, -0.089, 0.452, 0.163, 0.094, -0.136, 0.014, 0.313, 0.313, 0.332, 0.313], "blue_ratio": [-0.332, -0.493, -0.753, -0.458, -0.533, -0.434, -0.688, -0.006, -0.073, -0.372, -0.1, -0.211, -0.475, -0.079, -0.56, -0.746, -0.27, -0.359, -0.797, -0.625], "rhythm_2grams": [-0.886, -0.886, -0.886, -0.886, -0.886, -0.823, -0.886, -0.886, -0.886, -0.886, -0.886, -0.886, -0.945, -0.886, -0.886, -0.886, -0.886, -0.886, -0.886, -0.886]}};
+
+        const rewards = [0.443, 0.361, 0.384, 0.378, 0.466, 0.469, 0.423, 0.489, 0.499, 0.487, 0.504, 0.471, 0.493, 0.431, 0.457, 0.473, 0.499, 0.488, 0.511, 0.487];
+        const jazzStandardAvg = 0.798; // Average of jazz standards
+
+        const colors = {
+            melodic_entropy: '#58a6ff',
+            dur_cv: '#f85149',
+            sax_arpeggio_runs: '#a371f7',
+            peak_not_late: '#3fb950',
+            blue_ratio: '#f0883e',
+            rhythm_2grams: '#ff7b72'
+        };
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#c9d1d9' }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Training Step', color: '#8b949e' },
+                    ticks: { color: '#8b949e' },
+                    grid: { color: '#21262d' }
+                },
+                y: {
+                    title: { display: true, text: 'Z-score', color: '#8b949e' },
+                    ticks: { color: '#8b949e' },
+                    grid: { color: '#21262d' }
+                }
+            }
+        };
+
+        // Reward chart
+        new Chart(document.getElementById('rewardChart'), {
+            type: 'line',
+            data: {
+                labels: data.steps,
+                datasets: [
+                    {
+                        label: 'Average Reward',
+                        data: rewards,
+                        borderColor: '#58a6ff',
+                        backgroundColor: '#58a6ff33',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Jazz Standards Avg (0.80)',
+                        data: Array(20).fill(jazzStandardAvg),
+                        borderColor: '#3fb950',
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        min: 0.3,
+                        max: 0.9,
+                        title: { display: true, text: 'Reward', color: '#8b949e' }
+                    }
+                }
+            }
+        });
+
+        // All features chart
+        new Chart(document.getElementById('allFeatures'), {
+            type: 'line',
+            data: {
+                labels: data.steps,
+                datasets: Object.keys(data.features).map(f => ({
+                    label: f,
+                    data: data.features[f],
+                    borderColor: colors[f],
+                    backgroundColor: colors[f] + '33',
+                    tension: 0.3,
+                    pointRadius: 2
+                }))
+            },
+            options: chartOptions
+        });
+
+        // Rhythm features
+        new Chart(document.getElementById('rhythmFeatures'), {
+            type: 'line',
+            data: {
+                labels: data.steps,
+                datasets: ['dur_cv', 'rhythm_2grams'].map(f => ({
+                    label: f,
+                    data: data.features[f],
+                    borderColor: colors[f],
+                    backgroundColor: colors[f] + '33',
+                    tension: 0.3,
+                    fill: true
+                }))
+            },
+            options: {...chartOptions, plugins: {...chartOptions.plugins, title: {display: false}}}
+        });
+
+        // Melodic features
+        new Chart(document.getElementById('melodicFeatures'), {
+            type: 'line',
+            data: {
+                labels: data.steps,
+                datasets: ['melodic_entropy', 'blue_ratio', 'peak_not_late'].map(f => ({
+                    label: f,
+                    data: data.features[f],
+                    borderColor: colors[f],
+                    backgroundColor: colors[f] + '33',
+                    tension: 0.3
+                }))
+            },
+            options: chartOptions
+        });
+
+        // Flat features comparison
+        new Chart(document.getElementById('flatFeatures'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.features),
+                datasets: [{
+                    label: 'Variance over training',
+                    data: Object.values(data.features).map(arr => {
+                        const mean = arr.reduce((a,b) => a+b, 0) / arr.length;
+                        return Math.sqrt(arr.reduce((a,b) => a + (b-mean)**2, 0) / arr.length);
+                    }),
+                    backgroundColor: Object.keys(data.features).map(f => colors[f] + '99'),
+                    borderColor: Object.keys(data.features).map(f => colors[f]),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: {
+                    ...chartOptions.plugins,
+                    subtitle: {
+                        display: true,
+                        text: 'Low variance = model not learning to vary this feature',
+                        color: '#8b949e'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

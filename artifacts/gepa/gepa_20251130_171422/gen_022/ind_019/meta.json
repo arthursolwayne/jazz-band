@@ -1,0 +1,16 @@
+{
+  "id": 19,
+  "generation": 22,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "'PrettyMIDI' object has no attribute 'save'",
+  "timestamp": "2025-11-30T17:27:42.492256"
+}
