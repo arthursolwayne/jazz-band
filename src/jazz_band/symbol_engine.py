@@ -8,9 +8,20 @@ Symbol Engine: Shared MIDI generation logic for RLVR and GEPA.
 
 import json
 import math
+import os
 from pathlib import Path
 from collections import Counter
 from typing import TYPE_CHECKING, List, Dict, Tuple
+
+# Global z-score clamp control
+# Set ZSCORE_CLAMP=0 to disable clamping (for continuing pre-clamp runs)
+ZSCORE_CLAMP = float(os.environ.get("ZSCORE_CLAMP", "3.0"))
+
+def clamp_z(z: float) -> float:
+    """Clamp z-score to ±ZSCORE_CLAMP (or return unchanged if ZSCORE_CLAMP=0)."""
+    if ZSCORE_CLAMP <= 0:
+        return z
+    return max(-ZSCORE_CLAMP, min(ZSCORE_CLAMP, z))
 
 if TYPE_CHECKING:
     import pretty_midi
@@ -389,7 +400,7 @@ def compute_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
         raw = feature_funcs[fname]()
         mean, std = stats[fname]
         z = (raw - mean) / std if std > 0 else 0.0
-        z = max(-3.0, min(3.0, z))  # Clamp to ±3 to prevent exploits
+        z = clamp_z(z)
         z_sum += z
         features[fname] = {"raw": raw, "z_score": z}
 
@@ -406,41 +417,41 @@ def compute_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
 
 def compute_combined_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     """
-    Compute combined reward from all 5 instrument rewards.
+    Compute combined reward from instrument rewards with ensemble multiplier.
 
     Sums raw z-scores from:
         - Sax (6 features)
         - Bass (2 features)
         - Piano (4 features)
         - Drums (4 features)
-        - Ensemble (4 features)
 
-    Then applies ONE final sigmoid to map to [0, 1] range.
-    This ensures non-negative rewards for GRPO training.
+    Then applies sigmoid to get base reward [0, 1].
+    Finally multiplies by ensemble bonus (1.0-1.1).
 
     Returns:
-        float: Combined reward in [0, 1] range.
-               0.5 = all instruments at mean (z-sum = 0)
-               ~1.0 = significantly above mean
-               ~0.0 = significantly below mean
+        float: Combined reward in [0, ~1.1] range.
+               Higher ensemble coherence = bonus multiplier.
     """
     from jazz_band.reward_bass import compute_bass_reward
     from jazz_band.reward_piano import compute_piano_reward
     from jazz_band.reward_drums import compute_drum_reward
     from jazz_band.reward_ensemble import compute_ensemble_reward
 
-    # Sum all raw z-scores
+    # Sum instrument z-scores (not ensemble)
     z_sum = 0.0
     z_sum += compute_reward(midi)          # Sax
     z_sum += compute_bass_reward(midi)     # Bass
     z_sum += compute_piano_reward(midi)    # Piano
     z_sum += compute_drum_reward(midi)     # Drums
-    z_sum += compute_ensemble_reward(midi) # Ensemble
 
     # Map to [0, 1] using sigmoid
-    # Scale factor 6 chosen because we have ~20 features total
-    # GRPO normalizes within groups anyway, so absolute range doesn't matter
-    return 1 / (1 + math.exp(-z_sum / 6))
+    # Scale factor 5 (was 6, reduced since ensemble is now multiplicative)
+    base_reward = 1 / (1 + math.exp(-z_sum / 5))
+
+    # Ensemble as multiplier (1.0-1.1)
+    ensemble_mult = compute_ensemble_reward(midi)
+
+    return base_reward * ensemble_mult
 
 
 def _sigmoid(z: float) -> float:
@@ -455,8 +466,9 @@ def compute_reward_breakdown(midi: "pretty_midi.PrettyMIDI") -> dict:
     Returns:
         dict with:
         - Per instrument: z-score, sigmoid, and detailed features
-        - z_sum: total z-score across all instruments
-        - combined: final sigmoid reward [0,1]
+        - z_sum: total z-score across instruments (not ensemble)
+        - ensemble_mult: ensemble multiplier (1.0-1.1)
+        - combined: final reward (base * ensemble_mult)
     """
     from jazz_band.reward_bass import compute_bass_reward_detailed
     from jazz_band.reward_piano import compute_piano_reward_detailed
@@ -474,10 +486,11 @@ def compute_reward_breakdown(midi: "pretty_midi.PrettyMIDI") -> dict:
     bass = bass_detail["total"]
     piano = piano_detail["total"]
     drums = drums_detail["total"]
-    ensemble = ensemble_detail["total"]
+    ensemble_mult = ensemble_detail["total"]  # multiplier 1.0-1.1
 
-    z_sum = sax + bass + piano + drums + ensemble
-    combined = 1 / (1 + math.exp(-z_sum / 6))
+    z_sum = sax + bass + piano + drums
+    base_reward = 1 / (1 + math.exp(-z_sum / 5))
+    combined = base_reward * ensemble_mult
 
     return {
         # Summary scores
@@ -489,9 +502,9 @@ def compute_reward_breakdown(midi: "pretty_midi.PrettyMIDI") -> dict:
         "piano_sig": _sigmoid(piano),
         "drums": drums,
         "drums_sig": _sigmoid(drums),
-        "ensemble": ensemble,
-        "ensemble_sig": _sigmoid(ensemble),
+        "ensemble_mult": ensemble_mult,
         "z_sum": z_sum,
+        "base_reward": base_reward,
         "combined": combined,
         # Detailed per-feature breakdowns
         "sax_detail": sax_detail,
