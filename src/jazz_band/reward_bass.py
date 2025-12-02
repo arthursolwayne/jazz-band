@@ -15,6 +15,8 @@ import math
 from collections import Counter
 from typing import TYPE_CHECKING, List, Dict, Tuple
 
+from .symbol_engine import clamp_z
+
 if TYPE_CHECKING:
     import pretty_midi
 
@@ -28,9 +30,9 @@ QUARTER_NOTE = 0.375
 EIGHTH_NOTE = 0.1875
 TOLERANCE = 0.05  # Timing tolerance for beat detection
 
-# Bass register (MIDI notes)
-BASS_REGISTER_LOW = 28   # E1
-BASS_REGISTER_HIGH = 55  # G3
+# Bass register (MIDI notes) — D2 to G2, supporting not soloing
+BASS_REGISTER_LOW = 38   # D2
+BASS_REGISTER_HIGH = 43  # G2
 
 
 # =============================================================================
@@ -158,12 +160,13 @@ def beat_density(notes: List) -> float:
 
 def bass_register_ratio(notes: List) -> float:
     """
-    Ratio of notes in proper bass register (E1-G3, MIDI 28-55).
+    Ratio of notes in proper bass register (D2-G2, MIDI 38-43).
 
-    Walking bass should stay low. Higher = better.
+    Walking bass should stay in the basement — supporting the lead, not soloing.
+    Higher = better.
 
-    Reference: pitches 24-50
-    Bad samples: pitches 48-77 (too high)
+    Winner (6.5/10): D2-F#2 (MIDI 38-42)
+    Bad samples: D3-F#3 (MIDI 50-54) — too high, competing with sax
     """
     if not notes:
         return 0.0
@@ -552,19 +555,76 @@ instruction and actual jazz practice.
 
 
 # =============================================================================
-# FINAL REWARD FUNCTION (from regression analysis)
+# FINAL REWARD FUNCTION
 # =============================================================================
 
+# Features: duration_variety, velocity_variance, non_chromatic_ratio
+# Gate: chromatic_gate (50% penalty if <60% non-chromatic)
+#
+# Design rationale:
+# - duration_variety: Mix of note lengths (quarters, eighths, holds)
+# - velocity_variance: Dynamic expression (not robotic)
+# - non_chromatic_ratio: Roots/fifths, not scales (enforced via gate)
+
+BASS_REWARD_FEATURES = [
+    "duration_variety",
+    "velocity_variance",
+    "non_chromatic_ratio",
+]
+
 # Model-derived stats (n=568 RLVR outputs, 2024-11-30)
+# TODO: Recompute after adding DV/VV
 BASS_REWARD_STATS = {
-    "ioi_swing": {"mean": 0.043, "std": 0.173},
+    "duration_variety": {"mean": 2.0, "std": 1.0},      # Placeholder
+    "velocity_variance": {"mean": 5.0, "std": 4.0},     # Placeholder
     "non_chromatic_ratio": {"mean": 0.487, "std": 0.259},
 }
 
-# Features selected via exhaustive search
-# R^2 = 0.7558 (75.6% variance explained)
-# MAE = 0.91 (on 1-9 scale)
-BASS_REWARD_FEATURES = ["ioi_swing", "non_chromatic_ratio"]
+# Chromatic gate threshold
+CHROMATIC_GATE_THRESHOLD = 0.6  # Must be >60% non-chromatic or 50% penalty
+
+
+def duration_variety(notes: List) -> int:
+    """
+    Count of distinct note durations (quantized to 32nd notes).
+
+    Varied note lengths = more expressive bass. Short stabs, longer walks.
+    Returns: 1 to ~10+
+    Direction: Higher = Better
+    """
+    if not notes:
+        return 0
+    durations = [round((n.end - n.start) * 16) / 16 for n in notes]
+    return len(set(durations))
+
+
+def velocity_variance(notes: List) -> float:
+    """
+    Standard deviation of note velocities.
+
+    Human players vary attack strength. Machines often have uniform velocity.
+    Returns: 0.0 to ~40
+    Direction: Higher = Better
+    """
+    if len(notes) < 2:
+        return 0.0
+    velocities = [n.velocity for n in notes]
+    mean = sum(velocities) / len(velocities)
+    variance = sum((v - mean) ** 2 for v in velocities) / len(velocities)
+    return math.sqrt(variance)
+
+
+def chromatic_gate(notes: List) -> float:
+    """
+    Gate: Penalize if bass is too chromatic (>40% half-steps).
+
+    If non_chromatic_ratio < 0.6, apply 50% penalty.
+    This enforces "roots and fifths, not scales" from the prompt.
+    """
+    ratio = non_chromatic_ratio(notes)
+    if ratio < CHROMATIC_GATE_THRESHOLD:
+        return 0.5  # 50% penalty
+    return 1.0
 
 
 def has_direction_variety(notes: List) -> bool:
@@ -593,38 +653,43 @@ def compute_bass_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     """
     Compute bass reward using equal-weighted z-sum model.
 
-    Features (selected via exhaustive search, R^2=0.7558):
-    1. ioi_swing (r=+0.697): Timing variation/swing
-    2. non_chromatic_ratio (r=+0.846): Interval variety (not all half-steps)
+    Features:
+    1. duration_variety: Mix of note lengths
+    2. velocity_variance: Dynamic expression
+    3. non_chromatic_ratio: Roots/fifths, not scales
 
-    Gate:
+    Gates:
+    - chromatic_gate: 50% penalty if <60% non-chromatic
     - has_direction_variety: 50% penalty for monotonic bassline
 
     Returns:
         Z-sum reward (higher = better). Typical range: -3 to +3.
-        Standards average +1.5, model outputs average -0.5.
     """
     notes = get_bass_notes(midi)
     if len(notes) < 2:
         return -3.0  # Penalize empty/sparse bass
 
-    # Bass-specific gate
+    # Gates
     gate_multiplier = 1.0
+    gate_multiplier *= chromatic_gate(notes)  # Enforce non-chromatic
     if not has_direction_variety(notes):
-        gate_multiplier *= 0.5  # 50% penalty for monotonic bassline
+        gate_multiplier *= 0.5  # Penalty for monotonic bassline
 
     # Compute feature values
-    swing = ioi_swing(notes)
-    non_chrom = non_chromatic_ratio(notes)
+    dv = duration_variety(notes)
+    vv = velocity_variance(notes)
+    nc = non_chromatic_ratio(notes)
 
-    # Z-score normalization with ±3 clamp
-    z_swing = (swing - BASS_REWARD_STATS["ioi_swing"]["mean"]) / BASS_REWARD_STATS["ioi_swing"]["std"]
-    z_swing = max(-3.0, min(3.0, z_swing))
-    z_non_chrom = (non_chrom - BASS_REWARD_STATS["non_chromatic_ratio"]["mean"]) / BASS_REWARD_STATS["non_chromatic_ratio"]["std"]
-    z_non_chrom = max(-3.0, min(3.0, z_non_chrom))
+    # Z-score normalization
+    z_dv = (dv - BASS_REWARD_STATS["duration_variety"]["mean"]) / BASS_REWARD_STATS["duration_variety"]["std"]
+    z_dv = clamp_z(z_dv)
+    z_vv = (vv - BASS_REWARD_STATS["velocity_variance"]["mean"]) / BASS_REWARD_STATS["velocity_variance"]["std"]
+    z_vv = clamp_z(z_vv)
+    z_nc = (nc - BASS_REWARD_STATS["non_chromatic_ratio"]["mean"]) / BASS_REWARD_STATS["non_chromatic_ratio"]["std"]
+    z_nc = clamp_z(z_nc)
 
     # Equal-weighted z-sum with gate
-    raw_reward = z_swing + z_non_chrom
+    raw_reward = z_dv + z_vv + z_nc
     return raw_reward * gate_multiplier
 
 
@@ -633,37 +698,46 @@ def compute_bass_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
     Compute bass reward with per-feature breakdown.
 
     Returns dict with:
-        - total: final reward (z-sum * gate)
-        - direction_gate: gate multiplier applied
+        - total: final reward (z-sum * gates)
+        - chromatic_gate: gate value for chromatic penalty
+        - direction_gate: gate value for monotonic penalty
         - features: {name: {raw, z_score}} for each feature
     """
     notes = get_bass_notes(midi)
     if len(notes) < 2:
         return {
             "total": -3.0,
+            "chromatic_gate": 0.0,
             "direction_gate": 0.0,
             "features": {},
         }
 
-    # Gate
-    gate = 1.0 if has_direction_variety(notes) else 0.5
+    # Gates
+    chrom_gate = chromatic_gate(notes)
+    dir_gate = 1.0 if has_direction_variety(notes) else 0.5
+    total_gate = chrom_gate * dir_gate
 
     # Features
-    swing = ioi_swing(notes)
-    non_chrom = non_chromatic_ratio(notes)
+    dv = duration_variety(notes)
+    vv = velocity_variance(notes)
+    nc = non_chromatic_ratio(notes)
 
-    z_swing = (swing - BASS_REWARD_STATS["ioi_swing"]["mean"]) / BASS_REWARD_STATS["ioi_swing"]["std"]
-    z_swing = max(-3.0, min(3.0, z_swing))
-    z_non_chrom = (non_chrom - BASS_REWARD_STATS["non_chromatic_ratio"]["mean"]) / BASS_REWARD_STATS["non_chromatic_ratio"]["std"]
-    z_non_chrom = max(-3.0, min(3.0, z_non_chrom))
+    z_dv = (dv - BASS_REWARD_STATS["duration_variety"]["mean"]) / BASS_REWARD_STATS["duration_variety"]["std"]
+    z_dv = clamp_z(z_dv)
+    z_vv = (vv - BASS_REWARD_STATS["velocity_variance"]["mean"]) / BASS_REWARD_STATS["velocity_variance"]["std"]
+    z_vv = clamp_z(z_vv)
+    z_nc = (nc - BASS_REWARD_STATS["non_chromatic_ratio"]["mean"]) / BASS_REWARD_STATS["non_chromatic_ratio"]["std"]
+    z_nc = clamp_z(z_nc)
 
-    z_sum = z_swing + z_non_chrom
+    z_sum = z_dv + z_vv + z_nc
 
     return {
-        "total": z_sum * gate,
-        "direction_gate": gate,
+        "total": z_sum * total_gate,
+        "chromatic_gate": chrom_gate,
+        "direction_gate": dir_gate,
         "features": {
-            "ioi_swing": {"raw": swing, "z_score": z_swing},
-            "non_chromatic_ratio": {"raw": non_chrom, "z_score": z_non_chrom},
+            "duration_variety": {"raw": dv, "z_score": z_dv},
+            "velocity_variance": {"raw": vv, "z_score": z_vv},
+            "non_chromatic_ratio": {"raw": nc, "z_score": z_nc},
         },
     }

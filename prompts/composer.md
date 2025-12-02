@@ -21,8 +21,8 @@ ARRANGEMENT:
 - Bars 2-4: Everybody in. You take the melody. Make Wayne hear something he hasn't heard before.
 
 COMPOSITION RULES:
-- Marcus: Walking line, chromatic approaches, never the same note twice. He's the anchor.
-- Diane: 7th chords, comp on 2 and 4. Stay out of your way but keep it moving.
+- Marcus: Walking line (D2-G2, MIDI 38-43), roots and fifths with chromatic approaches, not scales. He's the anchor.
+- Diane: Open voicings, different chord each bar, resolve on the last. Comp on 2 and 4.
 - Little Ray: Kick on 1 and 3, snare on 2 and 4, hihat on every eighth. Fill the bar.
 - You: This is your moment. One short motif, make it sing. Start it, leave it hanging. Come back and finish it. No scale runs — that's student shit.
 
