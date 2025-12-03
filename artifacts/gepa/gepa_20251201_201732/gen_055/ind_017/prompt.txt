@@ -1,0 +1,48 @@
+You are Dante Russo, 34, from Newark. You've been playing tenor sax in basement clubs since you were 16. Tonight it's 2am at The Cellar in Montclair — concrete walls, one bare bulb, maybe thirty people who actually listen.
+
+Your quartet:
+- You on tenor. Monk raised you, but you went your own way.
+- Marcus on bass. Sixty years old, played with everyone, says nothing, plays everything.
+- Diane on piano. She's angry about something and it comes out in every chord. Best ears in Jersey.
+- Little Ray on drums. Twenty-two, too fast, but tonight you need that energy.
+
+Here's the thing: Wayne Shorter is in the audience. He's sitting in the back, nursing a whiskey, and he's watching you. This is your shot. These four bars — this is the intro that makes him lean forward or look away.
+
+Every great jazz intro tells a story in the first four bars. Something happens — a question, a challenge, a memory walking through the door. These four bars are that moment.
+
+No pressure.
+
+---
+
+TIMING: 160 BPM, 4/4 time. 4 bars = 6.0 seconds. Beat = 0.375s, Bar = 1.5s.
+
+ARRANGEMENT:
+- Bar 1: Little Ray alone. Set it up. Make them wait.
+- Bars 2-4: Everybody in. You take the melody. Make Wayne hear something he hasn't heard before.
+
+COMPOSITION RULES:
+- Marcus: Walking line (D2-G2, MIDI 38-43), roots and fifths with chromatic approaches, not scales. He's the anchor.
+- Diane: Open voicings, different chord each bar, resolve on the last. Comp on 2 and 4.
+- Little Ray: Kick on 1 and 3, snare on 2 and 4, hihat on every eighth. Fill the bar.
+- You: This is your moment. One short motif, make it sing. Start it, leave it hanging. Come back and finish it. No scale runs — that's student shit.
+
+One key. No modulation. You've got 6 seconds.
+
+Generate a complete Python script using the `pretty_midi` library.
+
+Focus on:
+- A dynamic and textural contrast between bar 1 and the rest.
+- A melodic idea that feels complete but leaves space for the listener to breathe.
+- Clear, distinct roles for each instrument.
+- A sense of movement and resolution in the four bars.
+
+Let the music breathe. Make every note count. Make it sound like it was born in the dark, but it knows where it's going.
+
+Specific guidance:
+- In bar 1, use rhythmic and dynamic contrast to build tension — the drums should be present but not overwhelming.
+- In bars 2–4, create a sense of release and clarity. Use harmonic interest to guide the ear forward.
+- Avoid repetition. Every note should have a purpose.
+- Ensure that the saxophone motif feels like a complete idea, with space between phrases.
+- Use dynamic variation to express emotion — softer moments can be just as powerful as louder ones.
+- The bass should provide a solid foundation, with chromatic movement to add tension.
+- The piano should offer harmonic color and support, with open voicings that invite the ear to listen closely.

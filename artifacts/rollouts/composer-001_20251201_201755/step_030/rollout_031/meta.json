@@ -1,0 +1,11 @@
+{
+  "step": 30,
+  "rollout_id": 31,
+  "key": "Dm",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "'[' was never closed (<string>, line 105)",
+  "timestamp": "2025-12-02T14:10:58.207029"
+}

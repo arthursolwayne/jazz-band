@@ -1,0 +1,11 @@
+{
+  "step": 62,
+  "rollout_id": 22,
+  "key": "D",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "name 'Note' is not defined",
+  "timestamp": "2025-12-02T15:24:14.808634"
+}

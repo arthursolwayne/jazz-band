@@ -20,7 +20,7 @@ drum_notes = [
     # Snare on 2 and 4
     pretty_midi.Note(velocity=110, pitch=38, start=0.75, end=0.875),
     pretty_midi.Note(velocity=110, pitch=38, start=1.875, end=2.0),
-    # Hi-hat on every eighth
+    # Hihat on every eighth
     pretty_midi.Note(velocity=80, pitch=42, start=0.0, end=0.1875),
     pretty_midi.Note(velocity=80, pitch=42, start=0.1875, end=0.375),
     pretty_midi.Note(velocity=80, pitch=42, start=0.375, end=0.5625),
@@ -30,71 +30,68 @@ drum_notes = [
     pretty_midi.Note(velocity=80, pitch=42, start=1.125, end=1.3125),
     pretty_midi.Note(velocity=80, pitch=42, start=1.3125, end=1.5),
 ]
-for note in drum_notes:
-    drums.notes.append(note)
+drums.notes.extend(drum_notes)
 
-# Bars 2-4: Full quartet (1.5 - 6.0s)
+# Bar 2: Full quartet (1.5 - 3.0s)
 
-# Bass: Walking line with chromatic approaches
-# Bar 2: D2 (root), Bb2 (chromatic approach), G2 (fifth), C2 (chromatic)
+# Marcus - Walking bass line in Fm (F2, Bb2, Eb2, Ab2, D2, G2, C2, F2)
 bass_notes = [
-    pretty_midi.Note(velocity=90, pitch=38, start=1.5, end=1.875),  # D2
-    pretty_midi.Note(velocity=90, pitch=37, start=1.875, end=2.25),  # Bb2
-    pretty_midi.Note(velocity=90, pitch=43, start=2.25, end=2.625),  # G2
-    pretty_midi.Note(velocity=90, pitch=36, start=2.625, end=3.0),  # C2
-    # Bar 3: G2 (root), E2 (chromatic), B2 (fifth), D2 (chromatic)
-    pretty_midi.Note(velocity=90, pitch=43, start=3.0, end=3.375),  # G2
-    pretty_midi.Note(velocity=90, pitch=41, start=3.375, end=3.75),  # E2
-    pretty_midi.Note(velocity=90, pitch=47, start=3.75, end=4.125),  # B2
-    pretty_midi.Note(velocity=90, pitch=43, start=4.125, end=4.5),  # D2
-    # Bar 4: B2 (root), G2 (chromatic), D2 (fifth), F2 (chromatic)
-    pretty_midi.Note(velocity=90, pitch=47, start=4.5, end=4.875),  # B2
-    pretty_midi.Note(velocity=90, pitch=43, start=4.875, end=5.25),  # G2
-    pretty_midi.Note(velocity=90, pitch=50, start=5.25, end=5.625),  # D2
-    pretty_midi.Note(velocity=90, pitch=46, start=5.625, end=6.0),  # F2
+    pretty_midi.Note(velocity=80, pitch=53, start=1.5, end=1.875),   # F2
+    pretty_midi.Note(velocity=80, pitch=50, start=1.875, end=2.25),  # Bb2
+    pretty_midi.Note(velocity=80, pitch=48, start=2.25, end=2.625),  # Eb2
+    pretty_midi.Note(velocity=80, pitch=45, start=2.625, end=3.0),   # Ab2
 ]
-for note in bass_notes:
-    bass.notes.append(note)
+bass.notes.extend(bass_notes)
 
-# Piano: Open voicings, different chord each bar
-# Bar 2: Dmaj7 (D-F#-A-C#)
+# Diane - Open voicings, resolve on last bar
+# Bar 2: Fm7 (F, Ab, C, Eb)
 piano_notes = [
-    pretty_midi.Note(velocity=100, pitch=62, start=1.5, end=1.875),  # D4
-    pretty_midi.Note(velocity=100, pitch=67, start=1.5, end=1.875),  # F#4
-    pretty_midi.Note(velocity=100, pitch=71, start=1.5, end=1.875),  # A4
-    pretty_midi.Note(velocity=100, pitch=76, start=1.5, end=1.875),  # C#5
-    # Bar 3: G7 (G-B-D-F)
-    pretty_midi.Note(velocity=100, pitch=67, start=3.0, end=3.375),  # G4
-    pretty_midi.Note(velocity=100, pitch=71, start=3.0, end=3.375),  # B4
-    pretty_midi.Note(velocity=100, pitch=69, start=3.0, end=3.375),  # D5
-    pretty_midi.Note(velocity=100, pitch=64, start=3.0, end=3.375),  # F4
-    # Bar 4: Bm7 (B-D-F#-A)
-    pretty_midi.Note(velocity=100, pitch=71, start=4.5, end=4.875),  # B4
-    pretty_midi.Note(velocity=100, pitch=67, start=4.5, end=4.875),  # D5
-    pretty_midi.Note(velocity=100, pitch=76, start=4.5, end=4.875),  # F#5
-    pretty_midi.Note(velocity=100, pitch=74, start=4.5, end=4.875),  # A5
+    pretty_midi.Note(velocity=90, pitch=71, start=1.5, end=1.875),  # F
+    pretty_midi.Note(velocity=90, pitch=66, start=1.5, end=1.875),  # Ab
+    pretty_midi.Note(velocity=90, pitch=72, start=1.5, end=1.875),  # C
+    pretty_midi.Note(velocity=90, pitch=69, start=1.5, end=1.875),  # Eb
 ]
-for note in piano_notes:
-    piano.notes.append(note)
+# Bar 3: Bb7 (Bb, D, F, Ab)
+piano_notes.extend([
+    pretty_midi.Note(velocity=90, pitch=67, start=2.25, end=2.625),  # Bb
+    pretty_midi.Note(velocity=90, pitch=62, start=2.25, end=2.625),  # D
+    pretty_midi.Note(velocity=90, pitch=71, start=2.25, end=2.625),  # F
+    pretty_midi.Note(velocity=90, pitch=66, start=2.25, end=2.625),  # Ab
+])
+# Bar 4: Cm7 (C, Eb, G, Bb)
+piano_notes.extend([
+    pretty_midi.Note(velocity=90, pitch=72, start=2.875, end=3.0),   # C
+    pretty_midi.Note(velocity=90, pitch=69, start=2.875, end=3.0),   # Eb
+    pretty_midi.Note(velocity=90, pitch=74, start=2.875, end=3.0),   # G
+    pretty_midi.Note(velocity=90, pitch=67, start=2.875, end=3.0),   # Bb
+])
+piano.notes.extend(piano_notes)
 
-# Sax: One short motif, make it sing
-# Melody: D4 (start), F#4, A4, D4 (resolve)
+# Little Ray - Kick on 1 and 3, snare on 2 and 4, hihat on every eighth
+drum_notes = [
+    pretty_midi.Note(velocity=100, pitch=36, start=1.5, end=1.875),  # Kick
+    pretty_midi.Note(velocity=110, pitch=38, start=1.875, end=2.0),  # Snare
+    pretty_midi.Note(velocity=80, pitch=42, start=1.5, end=1.6875),
+    pretty_midi.Note(velocity=80, pitch=42, start=1.6875, end=1.875),
+    pretty_midi.Note(velocity=80, pitch=42, start=1.875, end=2.0625),
+    pretty_midi.Note(velocity=80, pitch=42, start=2.0625, end=2.25),
+    pretty_midi.Note(velocity=80, pitch=42, start=2.25, end=2.4375),
+    pretty_midi.Note(velocity=80, pitch=42, start=2.4375, end=2.625),
+    pretty_midi.Note(velocity=80, pitch=42, start=2.625, end=2.8125),
+    pretty_midi.Note(velocity=80, pitch=42, start=2.8125, end=3.0),
+]
+drums.notes.extend(drum_notes)
+
+# Dante - Tenor sax: One short motif, make it sing. Start it, leave it hanging. Come back and finish it.
+# Motif: F (65), Ab (66), G (67), C (69)
 sax_notes = [
-    pretty_midi.Note(velocity=110, pitch=62, start=1.5, end=1.875),  # D4
-    pretty_midi.Note(velocity=110, pitch=67, start=1.875, end=2.25),  # F#4
-    pretty_midi.Note(velocity=110, pitch=71, start=2.25, end=2.625),  # A4
-    pretty_midi.Note(velocity=110, pitch=62, start=3.0, end=3.375),  # D4
+    pretty_midi.Note(velocity=105, pitch=65, start=1.5, end=1.75),   # F
+    pretty_midi.Note(velocity=105, pitch=66, start=1.75, end=2.0),   # Ab
+    pretty_midi.Note(velocity=105, pitch=67, start=2.0, end=2.25),   # G
+    pretty_midi.Note(velocity=105, pitch=69, start=2.25, end=2.5),   # C
+    pretty_midi.Note(velocity=105, pitch=65, start=2.875, end=3.0),  # F (reprise)
 ]
-for note in sax_notes:
-    sax.notes.append(note)
-
-# Drums for Bars 2-4
-# Same pattern as Bar 1
-for i in range(3):
-    for note in drum_notes:
-        new_note = pretty_midi.Note(note.velocity, note.pitch, note.start + 1.5 + i * 1.5, note.end + 1.5 + i * 1.5)
-        drums.notes.append(new_note)
+sax.notes.extend(sax_notes)
 
 midi.instruments.extend([sax, bass, piano, drums])
-
-midi.write("dante_intro.mid")
+# midi.write disabled

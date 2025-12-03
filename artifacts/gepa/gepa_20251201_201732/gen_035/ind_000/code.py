@@ -1,0 +1,74 @@
+
+import pretty_midi
+
+midi = pretty_midi.PrettyMIDI(initial_tempo=160)
+
+# The quartet
+sax = pretty_midi.Instrument(program=66)       # Dante
+bass = pretty_midi.Instrument(program=33)      # Marcus
+piano = pretty_midi.Instrument(program=0)      # Diane
+drums = pretty_midi.Instrument(program=0, is_drum=True)  # Little Ray
+
+# Drums: kick=36, snare=38, hihat=42
+
+# Bar 1: Little Ray alone (0.0 - 1.5s)
+# Kick on 1 and 3, snare on 2 and 4, hihat on every eighth
+drum_notes = [
+    (36, 0.0), (38, 0.375), (42, 0.375),
+    (36, 0.75), (38, 1.125), (42, 1.125),
+    (36, 1.5), (38, 1.875), (42, 1.875),
+    (36, 2.25), (38, 2.625), (42, 2.625)
+]
+for note, time in drum_notes:
+    drums.notes.append(pretty_midi.Note(velocity=100, pitch=note, start=time, end=time + 0.125))
+
+# Bars 2-4: Full quartet (1.5 - 6.0s)
+
+# Marcus: Walking bass line in Fm (F, Ab, D, C)
+# Roots and fifths with chromatic approaches
+bass_notes = [
+    # Bar 2
+    (45, 1.5), (42, 1.75), (44, 2.0), (43, 2.25),
+    # Bar 3
+    (45, 2.5), (42, 2.75), (44, 3.0), (43, 3.25),
+    # Bar 4
+    (45, 3.5), (42, 3.75), (44, 4.0), (43, 4.25)
+]
+for note, time in bass_notes:
+    bass.notes.append(pretty_midi.Note(velocity=100, pitch=note, start=time, end=time + 0.25))
+
+# Diane: Open voicings, different chord each bar, resolve on the last
+# Bar 2: Fm7 (F, Ab, C, D)
+piano_notes = [
+    (53, 1.5), (60, 1.5), (64, 1.5), (65, 1.5),
+    # Bar 3: Bb7 (Bb, D, F, Ab)
+    (58, 2.5), (62, 2.5), (53, 2.5), (60, 2.5),
+    # Bar 4: Cm7 (C, Eb, G, Bb)
+    (60, 3.5), (63, 3.5), (67, 3.5), (58, 3.5)
+]
+for note, time in piano_notes:
+    piano.notes.append(pretty_midi.Note(velocity=100, pitch=note, start=time, end=time + 0.75))
+
+# Little Ray: Kick on 1 and 3, snare on 2 and 4, hihat on every eighth
+drum_notes = [
+    (36, 1.5), (38, 1.875), (42, 1.875),
+    (36, 2.25), (38, 2.625), (42, 2.625),
+    (36, 3.0), (38, 3.375), (42, 3.375),
+    (36, 3.75), (38, 4.125), (42, 4.125),
+    (36, 4.5), (38, 4.875), (42, 4.875),
+    (36, 5.25), (38, 5.625), (42, 5.625)
+]
+for note, time in drum_notes:
+    drums.notes.append(pretty_midi.Note(velocity=100, pitch=note, start=time, end=time + 0.125))
+
+# Dante: Saxophone motif (F, Ab, Bb, D) - one short motif, make it sing
+sax_notes = [
+    (53, 1.5), (55, 1.75), (52, 2.0), (56, 2.25),
+    (53, 3.0), (55, 3.25), (52, 3.5), (56, 3.75),
+    (53, 4.5), (55, 4.75), (52, 5.0), (56, 5.25)
+]
+for note, time in sax_notes:
+    sax.notes.append(pretty_midi.Note(velocity=100, pitch=note, start=time, end=time + 0.25))
+
+midi.instruments.extend([sax, bass, piano, drums])
+# midi.write disabled
