@@ -1,29 +1,29 @@
 {
   "step": 13,
   "rollout_id": 1,
-  "key": "Dm",
+  "key": "Fm",
   "tempo": 160,
-  "reward": 0.5006455453058641,
+  "reward": 0.5067683105194544,
   "breakdown": {
-    "sax": -1.4118146466777317,
-    "sax_sig": 0.28065604058593824,
-    "bass": -0.26930501930501927,
-    "bass_sig": 0.45523600694864574,
-    "piano": 3.4983759913583214,
-    "piano_sig": 0.9115130365579718,
-    "drums": -2.3716813404908432,
-    "drums_sig": 0.17063679471940865,
-    "ensemble_mult": 1.06,
-    "z_sum": -0.5544250151152728,
-    "base_reward": 0.4723071182130793,
-    "combined": 0.5006455453058641,
+    "sax": -0.8256712679896345,
+    "sax_sig": 0.3657605890201316,
+    "bass": -1.3223060723060722,
+    "bass_sig": 0.29285929700889063,
+    "piano": 0.5898117536395859,
+    "piano_sig": 0.5970546813545705,
+    "drums": 1.2595787417854336,
+    "drums_sig": 0.6984060648067626,
+    "ensemble_mult": 1.0447213595499958,
+    "z_sum": -0.2985868448706872,
+    "base_reward": 0.4850750928819338,
+    "combined": 0.5067683105194544,
     "sax_detail": {
-      "total": -1.4118146466777317,
-      "variety_gate": 0.5,
+      "total": -0.8256712679896345,
+      "variety_gate": 0.25,
       "features": {
         "melodic_entropy": {
-          "raw": 1.5219280948873621,
-          "z_score": -0.6926190483527989
+          "raw": 0.9975025463691152,
+          "z_score": -1.7897436268428553
         },
         "dur_cv": {
           "raw": 0.0,
@@ -34,12 +34,12 @@
           "z_score": -0.3391684901531729
         },
         "peak_not_late": {
-          "raw": 0,
-          "z_score": -2.325068870523416
+          "raw": 1,
+          "z_score": 0.42975206611570255
         },
         "blue_ratio": {
-          "raw": 0.3333333333333333,
-          "z_score": 0.9636752136752136
+          "raw": 0.0,
+          "z_score": -1.1730769230769231
         },
         "rhythm_2grams": {
           "raw": 1,
@@ -48,7 +48,7 @@
       }
     },
     "bass_detail": {
-      "total": -0.26930501930501927,
+      "total": -1.3223060723060722,
       "chromatic_gate": 1.0,
       "direction_gate": 1.0,
       "features": {
@@ -61,16 +61,16 @@
           "z_score": -1.25
         },
         "non_chromatic_ratio": {
-          "raw": 1.0,
-          "z_score": 1.9806949806949807
+          "raw": 0.7272727272727273,
+          "z_score": 0.9276939276939278
         }
       }
     },
     "piano_detail": {
-      "total": 3.4983759913583214,
+      "total": 0.5898117536395859,
       "tonic_bonus": 1.2,
       "register_failed": false,
-      "avg_pitch": 59.5,
+      "avg_pitch": 53.666666666666664,
       "features": {
         "unique_chords": {
           "raw": 3,
@@ -84,13 +84,13 @@
           "weight": 1.5
         },
         "cluster_ratio": {
-          "raw": 0.0,
-          "z_score": 0.6666666666666667,
+          "raw": 0.6666666666666666,
+          "z_score": -0.9320543565147881,
           "weight": 1.0
         },
         "out_of_key_ratio": {
-          "raw": 0.0,
-          "z_score": 0.6039603960396039,
+          "raw": 0.08333333333333333,
+          "z_score": -0.22112211221122108,
           "weight": 1.0
         },
         "chord_duration_variety": {
@@ -101,28 +101,28 @@
       }
     },
     "drums_detail": {
-      "total": -2.3716813404908432,
+      "total": 1.2595787417854336,
       "features": {
         "duration_variety": {
           "raw": 2,
           "z_score": 0.06567534076827748
         },
         "kick_off_beat_ratio": {
-          "raw": 0.0,
-          "z_score": -3.0
+          "raw": 0.5,
+          "z_score": 0.23571428571428552
         },
         "velocity_variance": {
-          "raw": 8.0,
-          "z_score": 0.5626433187408797
+          "raw": 9.89743318610787,
+          "z_score": 0.9581891153028705
         }
       }
     },
     "ensemble_detail": {
-      "total": 1.06,
-      "dynamic_coherence": 0.7999999999999999
+      "total": 1.0447213595499958,
+      "dynamic_coherence": 0.7236067977499789
     }
   },
   "has_midi": true,
   "error": null,
-  "timestamp": "2025-12-02T05:07:54.803673"
+  "timestamp": "2025-12-02T13:28:20.814730"
 }

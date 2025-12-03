@@ -3,35 +3,35 @@
   "rollout_id": 19,
   "key": "D",
   "tempo": 160,
-  "reward": 0.7797957789655545,
+  "reward": 0.8771531326321567,
   "breakdown": {
-    "sax": -1.9396003304162492,
-    "sax_sig": 0.21533416077133813,
-    "bass": -0.5999034749034748,
-    "bass_sig": 0.40132780078017727,
-    "piano": 5.342638286440289,
-    "piano_sig": 0.9723948301600603,
-    "drums": 2.964878140209853,
-    "drums_sig": 0.8783166957205382,
-    "ensemble_mult": 1.025819888974716,
-    "z_sum": 5.768012621330419,
-    "base_reward": 0.7601683174079836,
-    "combined": 0.7797957789655545,
+    "sax": 1.7609511321466271,
+    "sax_sig": 0.7638613969533551,
+    "bass": -1.3223060723060722,
+    "bass_sig": 0.29285929700889063,
+    "piano": 6.904998292932742,
+    "piano_sig": 0.9900809759108786,
+    "drums": 0.9328116148816519,
+    "drums_sig": 0.6506447337202478,
+    "ensemble_mult": 1.0447213595499958,
+    "z_sum": 8.27645496765495,
+    "base_reward": 0.8396048617307704,
+    "combined": 0.8771531326321567,
     "sax_detail": {
-      "total": -1.9396003304162492,
+      "total": 1.7609511321466271,
       "variety_gate": 0.5,
       "features": {
         "melodic_entropy": {
-          "raw": 0.7219280948873623,
-          "z_score": -2.3662592157168154
+          "raw": 2.663532754804255,
+          "z_score": 1.695675219255764
         },
         "dur_cv": {
           "raw": 0.0,
           "z_score": -0.2978723404255319
         },
         "sax_arpeggio_runs": {
-          "raw": 0,
-          "z_score": -0.3391684901531729
+          "raw": 6,
+          "z_score": 3.0
         },
         "peak_not_late": {
           "raw": 1,
@@ -48,29 +48,29 @@
       }
     },
     "bass_detail": {
-      "total": -0.5999034749034748,
-      "chromatic_gate": 0.5,
+      "total": -1.3223060723060722,
+      "chromatic_gate": 1.0,
       "direction_gate": 1.0,
       "features": {
         "duration_variety": {
-          "raw": 2,
-          "z_score": 0.0
+          "raw": 1,
+          "z_score": -1.0
         },
         "velocity_variance": {
           "raw": 0.0,
           "z_score": -1.25
         },
         "non_chromatic_ratio": {
-          "raw": 0.5,
-          "z_score": 0.05019305019305024
+          "raw": 0.7272727272727273,
+          "z_score": 0.9276939276939278
         }
       }
     },
     "piano_detail": {
-      "total": 5.342638286440289,
+      "total": 6.904998292932742,
       "tonic_bonus": 1.2,
       "register_failed": false,
-      "avg_pitch": 66.41666666666667,
+      "avg_pitch": 68.58333333333333,
       "features": {
         "unique_chords": {
           "raw": 3,
@@ -79,8 +79,8 @@
           "weight": 1.0
         },
         "avg_chord_duration": {
-          "raw": 0.5,
-          "z_score": 1.5819672131147542,
+          "raw": 1.5,
+          "z_score": 3.0,
           "weight": 1.5
         },
         "cluster_ratio": {
@@ -89,8 +89,8 @@
           "weight": 1.0
         },
         "out_of_key_ratio": {
-          "raw": 0.0,
-          "z_score": 0.6039603960396039,
+          "raw": 0.08333333333333333,
+          "z_score": -0.22112211221122108,
           "weight": 1.0
         },
         "chord_duration_variety": {
@@ -101,28 +101,28 @@
       }
     },
     "drums_detail": {
-      "total": 2.964878140209853,
+      "total": 0.9328116148816519,
       "features": {
         "duration_variety": {
-          "raw": 3,
-          "z_score": 1.3048327137546467
+          "raw": 2,
+          "z_score": 0.06567534076827748
         },
         "kick_off_beat_ratio": {
           "raw": 0.5,
           "z_score": 0.23571428571428552
         },
         "velocity_variance": {
-          "raw": 12.133516482134198,
-          "z_score": 1.424331140740921
+          "raw": 8.32993127835043,
+          "z_score": 0.6314219883990888
         }
       }
     },
     "ensemble_detail": {
-      "total": 1.025819888974716,
-      "dynamic_coherence": 0.6290994448735806
+      "total": 1.0447213595499958,
+      "dynamic_coherence": 0.7236067977499789
     }
   },
   "has_midi": true,
   "error": null,
-  "timestamp": "2025-12-01T23:36:49.524676"
+  "timestamp": "2025-12-02T13:29:42.546225"
 }

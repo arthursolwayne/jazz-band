@@ -1,0 +1,16 @@
+{
+  "id": 25,
+  "generation": 32,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'NoneType'",
+  "timestamp": "2025-12-02T14:24:21.383515"
+}

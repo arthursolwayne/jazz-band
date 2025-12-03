@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Dict, List
 from datetime import datetime
 
+from tqdm.asyncio import tqdm_asyncio
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -48,6 +50,17 @@ JAZZ_KEYS = ["Dm", "Fm", "F", "D"]
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "gepa"
 
 
+def sanitize_midi(midi):
+    """Ensure all MIDI note pitches and velocities are integers."""
+    if midi is None:
+        return None
+    for inst in midi.instruments:
+        for note in inst.notes:
+            note.pitch = int(note.pitch)
+            note.velocity = int(note.velocity)
+    return midi
+
+
 def save_individual(individual: Individual, gen: int, midi, code: str, run_id: str, breakdown: dict = None, error: str = None):
     """Save individual artifacts: code, MIDI, metadata."""
     ind_dir = ARTIFACTS_DIR / run_id / f"gen_{gen:03d}" / f"ind_{individual.id:03d}"
@@ -59,9 +72,10 @@ def save_individual(individual: Individual, gen: int, midi, code: str, run_id: s
     # Save prompt
     (ind_dir / "prompt.txt").write_text(individual.prompt)
 
-    # Save MIDI if valid
+    # Save MIDI if valid (sanitize to ensure int values)
     if midi is not None:
         midi_path = ind_dir / "output.mid"
+        sanitize_midi(midi)
         midi.write(str(midi_path))
 
     # Save metadata with per-instrument breakdown
@@ -283,7 +297,7 @@ async def evolve(
             evaluate_individual(client, model_name, ind, gen, run_id, key=random.choice(JAZZ_KEYS))
             for ind in population
         ]
-        population = await asyncio.gather(*tasks)
+        population = await tqdm_asyncio.gather(*tasks, desc=f"Gen {gen}/{generations}")
 
         # Stats
         gen_rewards = [ind.reward for ind in population]

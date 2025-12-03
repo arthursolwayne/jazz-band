@@ -1,0 +1,11 @@
+{
+  "step": 13,
+  "rollout_id": 7,
+  "key": "D",
+  "tempo": 160,
+  "reward": 0.0,
+  "breakdown": null,
+  "has_midi": false,
+  "error": "name 'D2' is not defined",
+  "timestamp": "2025-12-02T13:28:16.941573"
+}

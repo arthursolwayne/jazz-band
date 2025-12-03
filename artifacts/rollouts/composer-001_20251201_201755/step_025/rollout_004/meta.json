@@ -1,0 +1,99 @@
+{
+  "step": 25,
+  "rollout_id": 4,
+  "key": "Dm",
+  "tempo": 160,
+  "reward": 0.5084248351473091,
+  "breakdown": {
+    "sax": 0.6284734025437148,
+    "sax_sig": 0.6032396899923474,
+    "bass": -0.7729142185663926,
+    "bass_sig": 0.37395749060378414,
+    "piano": -2.0,
+    "piano_sig": 0.20860852732604496,
+    "drums": 1.8775916283796343,
+    "drums_sig": 0.7775988000628203,
+    "ensemble_mult": 1.0447213595499958,
+    "z_sum": -0.26684918764304344,
+    "base_reward": 0.4866607067039468,
+    "combined": 0.5084248351473091,
+    "sax_detail": {
+      "total": 0.6284734025437148,
+      "variety_gate": 0.5,
+      "features": {
+        "melodic_entropy": {
+          "raw": 2.1556390622295662,
+          "z_score": 0.6331361134509755
+        },
+        "dur_cv": {
+          "raw": 0.0,
+          "z_score": -0.2978723404255319
+        },
+        "sax_arpeggio_runs": {
+          "raw": 0,
+          "z_score": -0.3391684901531729
+        },
+        "peak_not_late": {
+          "raw": 1,
+          "z_score": 0.42975206611570255
+        },
+        "blue_ratio": {
+          "raw": 0.3333333333333333,
+          "z_score": 0.9636752136752136
+        },
+        "rhythm_2grams": {
+          "raw": 1,
+          "z_score": -0.13257575757575726
+        }
+      }
+    },
+    "bass_detail": {
+      "total": -0.7729142185663926,
+      "chromatic_gate": 1.0,
+      "direction_gate": 1.0,
+      "features": {
+        "duration_variety": {
+          "raw": 1,
+          "z_score": -1.0
+        },
+        "velocity_variance": {
+          "raw": 0.0,
+          "z_score": -1.25
+        },
+        "non_chromatic_ratio": {
+          "raw": 0.8695652173913043,
+          "z_score": 1.4770857814336074
+        }
+      }
+    },
+    "piano_detail": {
+      "total": -2.0,
+      "tonic_bonus": 1.0,
+      "features": {}
+    },
+    "drums_detail": {
+      "total": 1.8775916283796343,
+      "features": {
+        "duration_variety": {
+          "raw": 2,
+          "z_score": 0.06567534076827748
+        },
+        "kick_off_beat_ratio": {
+          "raw": 0.5,
+          "z_score": 0.23571428571428552
+        },
+        "velocity_variance": {
+          "raw": 12.86204100310025,
+          "z_score": 1.5762020018970713
+        }
+      }
+    },
+    "ensemble_detail": {
+      "total": 1.0447213595499958,
+      "dynamic_coherence": 0.7236067977499789
+    }
+  },
+  "has_midi": true,
+  "error": null,
+  "timestamp": "2025-12-02T14:00:08.925171"
+}

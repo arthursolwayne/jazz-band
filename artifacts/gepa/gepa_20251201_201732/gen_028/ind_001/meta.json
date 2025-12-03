@@ -1,0 +1,16 @@
+{
+  "id": 1,
+  "generation": 28,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "reward": 0.0,
+    "note_count": 0,
+    "valid_midi": 0.0,
+    "unique_durs": 0,
+    "has_rests": false
+  },
+  "has_midi": false,
+  "error": "invalid character '\u2013' (U+2013) (<string>, line 8)",
+  "timestamp": "2025-12-02T13:49:08.143926"
+}
