@@ -137,17 +137,22 @@ async def evaluate_individual(
         ud = unique_durations(sax_notes)
         hr = has_rests(sax_notes)
 
+        # Per-instrument scores for Pareto selection
         individual.metrics = {
-            "reward": reward,
-            "note_count": sum(len(inst.notes) for inst in midi.instruments) if midi else 0,
+            "sax": breakdown.get("sax_sig", 0) if breakdown else 0,
+            "bass": breakdown.get("bass_sig", 0) if breakdown else 0,
+            "piano": breakdown.get("piano_sig", 0) if breakdown else 0,
+            "drums": breakdown.get("drums_sig", 0) if breakdown else 0,
             "valid_midi": 1.0 if midi else 0.0,
-            "unique_durs": ud,
-            "has_rests": hr,
         }
 
-        # Collect trace for reflective mutation
+        # Rich trace for reflective mutation - include per-instrument breakdown
         individual.traces.append({
             "reward": reward,
+            "sax": breakdown.get("sax_sig", 0) if breakdown else 0,
+            "bass": breakdown.get("bass_sig", 0) if breakdown else 0,
+            "piano": breakdown.get("piano_sig", 0) if breakdown else 0,
+            "drums": breakdown.get("drums_sig", 0) if breakdown else 0,
             "unique_durs": ud,
             "has_rests": hr,
             "error": error,
@@ -336,24 +341,37 @@ async def evolve(
                     key=random.choice(JAZZ_KEYS)
                 )
 
-                # Acceptance gating with exploration
+                # Relaxed acceptance: Pareto-based, not scalar reward
+                # Accept if mutant is valid, OR with 30% exploration chance
                 mutant_valid = mutant.metrics.get("valid_midi", 0) > 0
-                mutant_reward = mutant.reward
-                parent_reward = survivor.reward
 
-                # Accept if: valid AND not regressed, OR 20% chance for exploration
-                explore_accept = random.random() < 0.2
+                # Check Pareto improvement (better on any objective without being worse on all)
+                def pareto_dominated(a_metrics, b_metrics):
+                    dominated = False
+                    for key in ["sax", "bass", "piano", "drums"]:
+                        if a_metrics.get(key, 0) < b_metrics.get(key, 0):
+                            return False
+                        if a_metrics.get(key, 0) > b_metrics.get(key, 0):
+                            dominated = True
+                    return dominated
 
-                if mutant_valid and mutant_reward >= parent_reward:
-                    # Accept mutation (passed gate)
+                mutant_dominates = pareto_dominated(mutant.metrics, survivor.metrics)
+                explore_accept = random.random() < 0.3  # 30% exploration
+
+                if mutant_valid and mutant_dominates:
+                    # Pareto improvement - accept
+                    child2 = mutant
+                    accepted_mutations += 1
+                elif mutant_valid and explore_accept:
+                    # Valid but not dominant - accept for diversity
                     child2 = mutant
                     accepted_mutations += 1
                 elif explore_accept:
-                    # Accept anyway for exploration (even if invalid or worse)
+                    # Even invalid - accept for exploration (30% chance)
                     child2 = mutant
                     accepted_mutations += 1
                 else:
-                    # Reject mutation - keep parent prompt (with new ID)
+                    # Reject - keep parent
                     child2 = Individual(id=i * 2 + 1, prompt=survivor.prompt, traces=survivor.traces.copy())
                     rejected_mutations += 1
 
