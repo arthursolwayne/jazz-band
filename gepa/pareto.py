@@ -110,10 +110,33 @@ async def mutate_prompt(
         return code[:1200] + "..." if len(code) > 1200 else code
 
     def format_trace(t, label):
-        """Format a trace for display."""
-        error_str = f", error={t['error']}" if t.get('error') else ""
+        """Format a trace for display with per-instrument breakdown."""
+        error_str = f"\nError: {t['error']}" if t.get('error') else ""
+
+        # Per-instrument scores (0-1 scale, higher is better)
+        sax = t.get('sax', 0)
+        bass = t.get('bass', 0)
+        piano = t.get('piano', 0)
+        drums = t.get('drums', 0)
+
+        # Interpret scores
+        def interpret(score, name):
+            if score >= 0.9:
+                return f"{name}: {score:.2f} ★ (excellent)"
+            elif score >= 0.7:
+                return f"{name}: {score:.2f} ✓ (good)"
+            elif score >= 0.5:
+                return f"{name}: {score:.2f} ~ (mediocre)"
+            else:
+                return f"{name}: {score:.2f} ✗ (weak)"
+
         return f"""{label}:
-reward={t.get('reward', 0):.2f}, unique_durs={t.get('unique_durs', '?')}, has_rests={t.get('has_rests', '?')}{error_str}
+Overall: {t.get('reward', 0):.2f}
+{interpret(sax, 'Sax')}
+{interpret(bass, 'Bass')}
+{interpret(piano, 'Piano')}
+{interpret(drums, 'Drums')}
+unique_durations={t.get('unique_durs', '?')}, has_rests={t.get('has_rests', '?')}{error_str}
 
 ```python
 {extract_code_snippet(t)}
