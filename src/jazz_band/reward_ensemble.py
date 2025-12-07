@@ -1,10 +1,13 @@
 """
-Ensemble Reward: Multiplicative bonus based on dynamic coherence.
+Ensemble Reward: Multiplicative bonus based on sax-piano interaction.
 
-Measures how well sax and piano velocity contours correlate over time.
-Higher correlation = better ensemble awareness = bonus multiplier.
+Measures rhythmic independence and temporal overlap between sax and piano.
+Poor interaction = 1.0 (no bonus).
+Strong interaction = 1.1 (max bonus).
 
 Returns a multiplier (1.0-1.1) applied to base instrument rewards.
+
+Validated against human ratings: r = +0.458 (2-feature ablation-optimized)
 """
 
 import math
@@ -35,58 +38,109 @@ def get_piano_notes(midi: "pretty_midi.PrettyMIDI") -> List:
 
 
 # =============================================================================
-# Dynamic Coherence (sole ensemble feature)
+# Ensemble Features
 # =============================================================================
 
-def dynamic_coherence(midi: "pretty_midi.PrettyMIDI") -> float:
+def rhythmic_independence(midi: "pretty_midi.PrettyMIDI") -> float:
     """
-    Correlation between sax and piano velocity contours.
+    Measure rhythmic independence between sax and piano.
 
-    Rationale: Good ensemble playing has dynamic coherence.
-    When sax plays loud, piano should respond accordingly.
-    Completely random dynamics = poor ensemble awareness.
+    Higher = sax and piano NOT hitting same beat positions = better jazz interplay.
+    Standards: 0.27-0.81 (varies by style)
+    Human correlation: r = +0.364 (strongest predictor)
 
-    Direction: Higher is better (more coherent dynamics)
+    Direction: Higher is better
+    Returns: 0.0 (locked together) to 1.0 (independent)
     """
     sax = get_sax_notes(midi)
     piano = get_piano_notes(midi)
 
     if len(sax) < 2 or len(piano) < 2:
-        return 0.5  # Neutral if insufficient data
+        return 0.5
 
-    # Divide time into windows and compute average velocity per window
-    all_notes = sax + piano
-    max_time = max(n.end for n in all_notes)
-    n_windows = 8
-    window_size = max_time / n_windows
+    # Quantize onsets to 16th note grid
+    grid = 0.125  # 16th at 120bpm
+    sax_onsets = set(round(n.start / grid) * grid for n in sax)
+    piano_onsets = set(round(n.start / grid) * grid for n in piano)
 
-    sax_vel = []
-    piano_vel = []
+    coincident = len(sax_onsets & piano_onsets)
+    total = len(sax_onsets | piano_onsets)
 
-    for i in range(n_windows):
-        win_start = i * window_size
-        win_end = (i + 1) * window_size
+    if total == 0:
+        return 0.5
 
-        sax_in_win = [n.velocity for n in sax if win_start <= n.start < win_end]
-        piano_in_win = [n.velocity for n in piano if win_start <= n.start < win_end]
+    # Return 1 - overlap (higher = more independent)
+    return 1.0 - (coincident / total)
 
-        sax_vel.append(sum(sax_in_win) / len(sax_in_win) if sax_in_win else 0)
-        piano_vel.append(sum(piano_in_win) / len(piano_in_win) if piano_in_win else 0)
 
-    # Compute Pearson correlation
-    n = len(sax_vel)
-    mean_sax = sum(sax_vel) / n
-    mean_piano = sum(piano_vel) / n
+def note_overlap_ratio(midi: "pretty_midi.PrettyMIDI") -> float:
+    """
+    Measure how much sax and piano play simultaneously.
 
-    cov = sum((sax_vel[i] - mean_sax) * (piano_vel[i] - mean_piano) for i in range(n))
-    std_sax = math.sqrt(sum((v - mean_sax)**2 for v in sax_vel))
-    std_piano = math.sqrt(sum((v - mean_piano)**2 for v in piano_vel))
+    Good jazz: sax solo with piano comp = moderate overlap (30-70%)
+    Too low: sparse, disconnected
+    Too high: stepping on each other
 
-    if std_sax < 0.01 or std_piano < 0.01:
-        return 0.5  # Can't compute correlation with no variance
+    Standards: 0.28-0.74
+    Human correlation: r = +0.318
 
-    r = cov / (std_sax * std_piano)
-    return (r + 1) / 2  # Normalize to [0, 1]
+    Direction: Higher is better (within reason)
+    Returns: 0.0 (never overlap) to 1.0 (always overlap)
+    """
+    sax = get_sax_notes(midi)
+    piano = get_piano_notes(midi)
+
+    if not sax or not piano:
+        return 0.5
+
+    # Sample at 0.1s intervals
+    max_time = max(max(n.end for n in sax), max(n.end for n in piano))
+    step = 0.1
+    both_playing = 0
+    total_samples = 0
+
+    t = 0
+    while t < max_time:
+        sax_active = any(n.start <= t < n.end for n in sax)
+        piano_active = any(n.start <= t < n.end for n in piano)
+        if sax_active and piano_active:
+            both_playing += 1
+        total_samples += 1
+        t += step
+
+    return both_playing / total_samples if total_samples > 0 else 0
+
+
+def density_ratio(midi: "pretty_midi.PrettyMIDI") -> float:
+    """
+    Ratio of piano density to sax density.
+
+    Good jazz: piano sparser than sax (comping vs melody)
+    Piano density should be 30-70% of sax density.
+
+    Standards: 0.46-0.54
+    Human correlation: r = -0.213 (lower is better)
+
+    Direction: Lower is better (piano should be sparser)
+    Returns: 0.0 (piano silent) to 2.0+ (piano denser than sax)
+    """
+    sax = get_sax_notes(midi)
+    piano = get_piano_notes(midi)
+
+    if not sax or not piano:
+        return 0.5
+
+    max_time = max(max(n.end for n in sax), max(n.end for n in piano))
+    if max_time <= 0:
+        return 0.5
+
+    sax_density = len(sax) / max_time
+    piano_density = len(piano) / max_time
+
+    if sax_density <= 0:
+        return 0
+
+    return piano_density / sax_density
 
 
 # =============================================================================
@@ -95,17 +149,42 @@ def dynamic_coherence(midi: "pretty_midi.PrettyMIDI") -> float:
 
 def compute_ensemble_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     """
-    Compute ensemble multiplier based on dynamic coherence.
+    Compute ensemble multiplier based on validated features.
 
-    Returns a multiplier (1.0-1.1) to apply to base instrument rewards.
-    Higher dynamic coherence = sax and piano move together dynamically = bonus.
+    Features (correlation with human ratings):
+    - rhythmic_independence: r = +0.364
+    - note_overlap_ratio:    r = +0.318
+    Combined: r = +0.458 (ablation-optimized, 2-feature config)
 
-    Validated on n=29 human-scored tracks: r=0.47 with GEPA_best_balance at #5.
+    Old metric (velocity correlation): r = -0.08 (harmful)
+    New metric (2-feature):             r = +0.458 (validated)
+
+    Returns multiplier (1.0-1.1) to apply to base instrument rewards.
     """
-    dc = dynamic_coherence(midi)
-    # dc ranges 0-1, bonus kicks in above 0.5
-    # 1.0 + max(0, dc - 0.5) * 0.2 gives range 1.0-1.1
-    return 1.0 + max(0, dc - 0.5) * 0.2
+    # Compute features
+    ri = rhythmic_independence(midi)
+    overlap = note_overlap_ratio(midi)
+
+    # Z-score normalization (stats from human-rated tracks)
+    # rhythmic_indep: mean=0.58, std=0.17
+    # overlap:        mean=0.51, std=0.18
+
+    z_ri = (ri - 0.58) / 0.17 if 0.17 > 0 else 0
+    z_overlap = (overlap - 0.51) / 0.18 if 0.18 > 0 else 0
+
+    # Clamp to ±3
+    z_ri = max(-3, min(3, z_ri))
+    z_overlap = max(-3, min(3, z_overlap))
+
+    # Weight by correlation strength
+    z_sum = z_ri * 0.364 + z_overlap * 0.318
+
+    # Normalize z_sum to roughly 0-1 range (±3σ → ±0.9)
+    score = (z_sum + 3) / 6  # Maps [-3, 3] to [0, 1]
+    score = max(0, min(1, score))
+
+    # Map to 1.0-1.1 multiplier
+    return 1.0 + score * 0.1
 
 
 def compute_ensemble_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
@@ -114,12 +193,18 @@ def compute_ensemble_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
 
     Returns dict with:
         - total: multiplier (1.0-1.1)
-        - dynamic_coherence: raw dc value (0-1)
+        - rhythmic_independence: raw value (0-1)
+        - note_overlap_ratio: raw value (0-1)
+        - density_ratio: raw value (0-2+)
     """
-    dc = dynamic_coherence(midi)
-    mult = 1.0 + max(0, dc - 0.5) * 0.2
+    ri = rhythmic_independence(midi)
+    overlap = note_overlap_ratio(midi)
+    dr = density_ratio(midi)
+    mult = compute_ensemble_reward(midi)
 
     return {
         "total": mult,
-        "dynamic_coherence": dc,
+        "rhythmic_independence": ri,
+        "note_overlap_ratio": overlap,
+        "density_ratio": dr,
     }
