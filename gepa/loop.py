@@ -326,64 +326,65 @@ async def evolve(
         if gen < generations - 1:
             survivors = select_survivors(population, population_size // 2)
 
-            # Create next generation with acceptance-gated mutation
-            # Like GEPA-Lite: mutant must produce valid MIDI and not regress to be accepted
-            next_pop = []
-            accepted_mutations = 0
-            rejected_mutations = 0
-
-            for i, survivor in enumerate(survivors):
-                # Keep survivor as child1 (inherits traces)
-                child1 = Individual(id=i * 2, prompt=survivor.prompt, traces=survivor.traces.copy())
-                next_pop.append(child1)
-
-                # Create mutant candidate for child2 (with crossover)
+            # Parallel mutation and evaluation
+            async def mutate_and_evaluate(i, survivor):
+                """Mutate and evaluate one survivor in parallel."""
+                # Create mutant candidate
                 mutated_prompt = await mutate_prompt(
                     client, model_name,
                     survivor.prompt,
                     survivor.traces,
-                    population=survivors,  # Enable crossover
-                    num_parents=2          # Show 2 other parents
+                    population=survivors,
+                    num_parents=2
                 )
                 mutant = Individual(id=i * 2 + 1, prompt=mutated_prompt, traces=survivor.traces.copy())
 
-                # Evaluate mutant to check acceptance (save to gen+1 since it's for next gen)
+                # Evaluate mutant (save to gen+1)
                 mutant = await evaluate_individual(
                     client, model_name, mutant, gen + 1, run_id,
                     key=random.choice(JAZZ_KEYS)
                 )
+                return (i, survivor, mutant)
 
-                # Relaxed acceptance: Pareto-based, not scalar reward
-                # Accept if mutant is valid, OR with 30% exploration chance
+            # Run mutations in parallel with progress bar
+            tasks = [mutate_and_evaluate(i, s) for i, s in enumerate(survivors)]
+            results = await tqdm_asyncio.gather(*tasks, desc=f"  Mutating for Gen {gen+1}")
+
+            # Process results with acceptance gating
+            next_pop = []
+            accepted_mutations = 0
+            rejected_mutations = 0
+
+            def pareto_dominated(a_metrics, b_metrics):
+                """Check if a Pareto-dominates b."""
+                dominated = False
+                for key in ["sax", "bass", "piano", "drums"]:
+                    if a_metrics.get(key, 0) < b_metrics.get(key, 0):
+                        return False
+                    if a_metrics.get(key, 0) > b_metrics.get(key, 0):
+                        dominated = True
+                return dominated
+
+            for i, survivor, mutant in results:
+                # Keep survivor as child1
+                child1 = Individual(id=i * 2, prompt=survivor.prompt, traces=survivor.traces.copy())
+                next_pop.append(child1)
+
+                # Check acceptance for mutant
                 mutant_valid = mutant.metrics.get("valid_midi", 0) > 0
-
-                # Check Pareto improvement (better on any objective without being worse on all)
-                def pareto_dominated(a_metrics, b_metrics):
-                    dominated = False
-                    for key in ["sax", "bass", "piano", "drums"]:
-                        if a_metrics.get(key, 0) < b_metrics.get(key, 0):
-                            return False
-                        if a_metrics.get(key, 0) > b_metrics.get(key, 0):
-                            dominated = True
-                    return dominated
-
                 mutant_dominates = pareto_dominated(mutant.metrics, survivor.metrics)
-                explore_accept = random.random() < 0.3  # 30% exploration
+                explore_accept = random.random() < 0.3
 
                 if mutant_valid and mutant_dominates:
-                    # Pareto improvement - accept
                     child2 = mutant
                     accepted_mutations += 1
                 elif mutant_valid and explore_accept:
-                    # Valid but not dominant - accept for diversity
                     child2 = mutant
                     accepted_mutations += 1
                 elif explore_accept:
-                    # Even invalid - accept for exploration (30% chance)
                     child2 = mutant
                     accepted_mutations += 1
                 else:
-                    # Reject - keep parent
                     child2 = Individual(id=i * 2 + 1, prompt=survivor.prompt, traces=survivor.traces.copy())
                     rejected_mutations += 1
 
