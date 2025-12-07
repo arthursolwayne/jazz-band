@@ -23,8 +23,8 @@ ARRANGEMENT:
 COMPOSITION RULES:
 - Marcus: Walking line (D2-G2, MIDI 38-43), roots and fifths with chromatic approaches, not scales. He's the anchor.
 - Diane: Open voicings, different chord each bar, resolve on the last. Comp on 2 and 4.
-- Little Ray: Kick on 1 and 3, snare on 2 and 4, hihat on every eighth. Fill the bar.
-- You: This is your moment. One short motif, make it sing. Start it, leave it hanging. Come back and finish it. No scale runs — that's student shit.
+- Little Ray: Swing it, don't lock it. Hihat and snare on their own time. These four bars go somewhere — build, don't loop. Play loud and soft.
+- You: This is your moment. One short motif, make it sing. Start it, leave it hanging. Come back and finish it. Play some notes soft, some loud — that's the story. No scale runs — that's student shit.
 
 One key. No modulation. You've got 6 seconds.
 

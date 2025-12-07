@@ -773,6 +773,13 @@ TONIC_BONUS = 1.2
 REGISTER_MIN_PITCH = 48  # C3 - floor of piano comping range
 REGISTER_GATE_PENALTY = 0.5
 
+# Cluster gate: 50% penalty if any chord has adjacent semitones
+CLUSTER_GATE_PENALTY = 0.5
+
+# Out-of-key gate: 50% penalty if >10% notes are out of key
+OUT_OF_KEY_GATE_THRESHOLD = 0.1
+OUT_OF_KEY_GATE_PENALTY = 0.5
+
 # All 12 major scales (pitch classes)
 MAJOR_SCALES = {
     0: {0, 2, 4, 5, 7, 9, 11},   # C major

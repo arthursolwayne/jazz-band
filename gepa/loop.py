@@ -163,7 +163,13 @@ async def evaluate_individual(
         error = str(e)
         midi = None
         individual.reward = 0.0  # was -1.0
-        individual.metrics = {"reward": 0.0, "valid_midi": 0.0}
+        individual.metrics = {
+            "sax": 0.0,
+            "bass": 0.0,
+            "piano": 0.0,
+            "drums": 0.0,
+            "valid_midi": 0.0,
+        }
         individual.traces.append({
             "reward": 0.0,
             "unique_durs": 0,
@@ -331,8 +337,14 @@ async def evolve(
                 child1 = Individual(id=i * 2, prompt=survivor.prompt, traces=survivor.traces.copy())
                 next_pop.append(child1)
 
-                # Create mutant candidate for child2
-                mutated_prompt = await mutate_prompt(client, model_name, survivor.prompt, survivor.traces)
+                # Create mutant candidate for child2 (with crossover)
+                mutated_prompt = await mutate_prompt(
+                    client, model_name,
+                    survivor.prompt,
+                    survivor.traces,
+                    population=survivors,  # Enable crossover
+                    num_parents=2          # Show 2 other parents
+                )
                 mutant = Individual(id=i * 2 + 1, prompt=mutated_prompt, traces=survivor.traces.copy())
 
                 # Evaluate mutant to check acceptance (save to gen+1 since it's for next gen)

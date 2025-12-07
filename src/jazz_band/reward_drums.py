@@ -539,6 +539,50 @@ def burst_quality(notes: List) -> float:
     return contrast * inv_vocab
 
 
+def density_arc(notes: List) -> float:
+    """
+    Measure variation in note density across bars.
+
+    Good drum phrases have ARC - they're not static loops.
+    Bar 1 might be sparse, bar 2-3 build, bar 4 has a fill.
+    Flat density = boring loop. High variance = development.
+
+    Uses coefficient of variation (std/mean) of notes-per-bar.
+
+    Returns: 0.0 (perfectly flat) to ~1.5 (high variation)
+    Direction: Higher = Better (more arc/development)
+    """
+    if len(notes) < 4:
+        return 0.0
+
+    duration = get_duration(notes)
+    if duration <= 0:
+        return 0.0
+
+    # Assume 2s bars at 120bpm
+    bar_dur = 2.0
+    num_bars = max(1, int(duration / bar_dur))
+
+    # Count notes per bar
+    bar_counts = [0] * num_bars
+    for n in notes:
+        bar_idx = min(int(n.start / bar_dur), num_bars - 1)
+        bar_counts[bar_idx] += 1
+
+    if num_bars < 2:
+        return 0.0
+
+    mean = sum(bar_counts) / num_bars
+    if mean <= 0:
+        return 0.0
+
+    variance = sum((c - mean) ** 2 for c in bar_counts) / num_bars
+    std = math.sqrt(variance)
+
+    # Coefficient of variation
+    return std / mean
+
+
 def ride_presence(notes: List) -> float:
     """
     Presence of ride cymbal in timekeeping pattern.
@@ -667,6 +711,8 @@ ALL_FEATURES = [
     ('voice_independence', voice_independence),
     ('density_contrast', density_contrast),
     ('burst_quality', burst_quality),
+    # Arc/development
+    ('density_arc', density_arc),
 ]
 
 
@@ -724,43 +770,54 @@ def correlation(x: List[float], y: List[float]) -> float:
 # Reward Function (Z-Sum Model)
 # =============================================================================
 
-# Validated features (n=30 human-rated + 5 standards holdout, 2024-12-01)
-# Correlations with human preference:
-#   duration_variety:    r = +0.498 (best)
-#   kick_off_beat_ratio: r = +0.347
-#   velocity_variance:   r = +0.236
+# Validated features (2024-12-06)
+# Based on standards analysis + human listening tests:
+#   voice_independence: hihat/snare NOT locked (standards: 45-100%)
+#   density_arc: variation across bars (not static loop)
+#   ghost_note_ratio: quiet snares add texture (standards have them)
+#   kick_sparseness: fewer kicks = better (standards: ~1.0)
 REWARD_FEATURES = [
-    "duration_variety",
-    "kick_off_beat_ratio",
-    "velocity_variance",
+    "voice_independence",
+    "density_arc",
+    "ghost_note_ratio",
+    "kick_sparseness",
 ]
 
-# Model-derived stats (n=645 RLVR outputs, 2024-12-01)
+# Model-derived stats (n=7089 RLVR outputs, 2024-12-06)
 REWARD_STATS = {
-    "duration_variety": {"mean": 1.947, "std": 0.807},
-    "kick_off_beat_ratio": {"mean": 0.467, "std": 0.140},
-    "velocity_variance": {"mean": 5.301, "std": 4.797},
+    "voice_independence": {"mean": 0.584, "std": 0.196},
+    "density_arc": {"mean": 0.299, "std": 0.284},
+    "ghost_note_ratio": {"mean": 0.001, "std": 0.031},
+    "kick_sparseness": {"mean": 0.405, "std": 0.120},
 }
+
+
+# Gate threshold: reject mechanical patterns where hihat/snare are locked
+VOICE_INDEPENDENCE_GATE = 0.35
 
 
 def compute_drum_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     """
     Compute drum reward using equal-weighted z-sum of 4 features.
 
-    Features (validated via regression analysis, R^2 = 0.886):
-    1. kick_off_beat_ratio: Jazz drums avoid on-beat kicks
-    2. snare_backbeat_ratio: Varied snare placement (not just 2 & 4)
-    3. velocity_variance: Dynamic variation (human feel)
-    4. duration_variety: Mix of articulations
+    Features (validated via standards analysis + human listening, 2024-12-06):
+    1. voice_independence: Hihat/snare NOT locked together (standards: 45-100%)
+    2. density_arc: Variation across bars, not static loop
+    3. ghost_note_ratio: Quiet snares add texture
+    4. kick_sparseness: Fewer kicks = better (standards have ~none)
+
+    Gate: voice_independence >= 0.35 required (rejects mechanical patterns)
 
     Returns:
         float: Z-sum reward (higher = more jazz-like)
-               Standards typically score > 0
-               Machine outputs typically score < 0
     """
     features = compute_drum_features(midi)
     if not features:
         return -10.0  # Penalty for no drums
+
+    # Gate: reject mechanical patterns where voices are locked together
+    if features.get("voice_independence", 0) < VOICE_INDEPENDENCE_GATE:
+        return -10.0  # Fail gate
 
     z_sum = 0.0
     for fname in REWARD_FEATURES:
@@ -780,15 +837,21 @@ def compute_drum_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
     Compute drum reward with per-feature breakdown.
 
     Returns dict with:
-        - total: final reward (z-sum)
+        - total: final reward (z-sum), or -10.0 if gated
+        - gated: True if failed voice_independence gate
         - features: {name: {raw, z_score}} for each feature
     """
     features = compute_drum_features(midi)
     if not features:
         return {
             "total": -10.0,
+            "gated": True,
             "features": {},
         }
+
+    # Check gate
+    voice_ind = features.get("voice_independence", 0)
+    gated = voice_ind < VOICE_INDEPENDENCE_GATE
 
     feature_details = {}
     z_sum = 0.0
@@ -802,7 +865,8 @@ def compute_drum_reward_detailed(midi: "pretty_midi.PrettyMIDI") -> dict:
         feature_details[fname] = {"raw": raw, "z_score": z}
 
     return {
-        "total": z_sum,
+        "total": -10.0 if gated else z_sum,
+        "gated": gated,
         "features": feature_details,
     }
 
@@ -815,6 +879,10 @@ def compute_drum_reward_from_notes(notes: List) -> float:
         return -10.0
 
     features = compute_drum_features_from_notes(notes)
+
+    # Gate: reject mechanical patterns
+    if features.get("voice_independence", 0) < VOICE_INDEPENDENCE_GATE:
+        return -10.0
 
     z_sum = 0.0
     for fname in REWARD_FEATURES:

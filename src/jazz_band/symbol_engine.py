@@ -263,6 +263,30 @@ def rhythm_2grams(notes: List) -> int:
     return sum(1 for c in counts.values() if c > 1)
 
 
+def syncopation(notes: List) -> float:
+    """
+    Ratio of notes on off-beats. Higher = more jazz swing feel.
+
+    Off-beat = note starts between 15-85% of beat duration.
+    On-beat = note starts within 15% of beat start/end.
+
+    Returns: 0.0 (all on-beat) to 1.0 (all off-beat)
+    """
+    if len(notes) < 2:
+        return 0.0
+
+    beat = 0.5  # Quarter note at 120 BPM
+    offbeat_count = 0
+
+    for n in notes:
+        beat_pos = (n.start % beat) / beat
+        # Off-beat if not near beat start (0) or end (1)
+        if 0.15 < beat_pos < 0.85:
+            offbeat_count += 1
+
+    return offbeat_count / len(notes)
+
+
 # =============================================================================
 # Variety Gates (prevent degenerate outputs)
 # =============================================================================
@@ -309,6 +333,11 @@ def compute_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     # Extract sax notes (guaranteed >= 4 by sanity check)
     sax_notes = get_sax_notes(midi)
 
+    # Hard gate: too many arpeggio runs = mechanical, boring
+    # Data shows 16 arps = 1/10, sweet spot is 1-3
+    if sax_arpeggio_runs(sax_notes) > 5:
+        return -10.0  # Fail gate
+
     # Soft gates: variety multiplier (penalize degenerate outputs)
     # NOTE: These are SAX-specific gates. Other instruments have their own gates.
     variety = 1.0
@@ -320,22 +349,28 @@ def compute_reward(midi: "pretty_midi.PrettyMIDI") -> float:
     # Load reference stats
     stats = load_stats()
 
-    # Compute 6 features
+    # Compute features (updated 2024-12-06)
+    # Removed: dur_cv (r=+0.035, useless)
+    # Added: syncopation (r=+0.256)
+    # Key features: rhythm_2grams (+0.275), peak_not_late (+0.216), syncopation (+0.256)
     features = {
         'melodic_entropy': melodic_entropy(sax_notes),
-        'dur_cv': dur_cv(sax_notes),
-        'sax_arpeggio_runs': sax_arpeggio_runs(sax_notes),
         'peak_not_late': peak_not_late(sax_notes),
         'blue_ratio': blue_ratio(sax_notes),
         'rhythm_2grams': rhythm_2grams(sax_notes),
+        'syncopation': syncopation(sax_notes),
     }
 
-    # Z-score sum
+    # Z-score sum (using stats for features that have them)
     raw_reward = 0.0
     for f, value in features.items():
-        mean, std = stats[f]
-        if std > 0:
-            raw_reward += (value - mean) / std
+        if f in stats:
+            mean, std = stats[f]
+            if std > 0:
+                raw_reward += (value - mean) / std
+        else:
+            # New feature without stats yet - use raw value clamped
+            raw_reward += min(3.0, max(-3.0, value * 3))
 
     # Apply variety gates to raw z-sum
     # NOTE: Sigmoid is applied in compute_combined_reward() for final output

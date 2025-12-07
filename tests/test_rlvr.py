@@ -156,7 +156,8 @@ def test_save_rollout():
     scenario = JazzScenario(step=0, rollout_id=0)
     run_id = "test_run"
 
-    rollout_dir = save_rollout(scenario, "# test code", midi, 1.0, run_id)
+    breakdown = {"combined": 1.0}
+    rollout_dir = save_rollout(scenario, "# test code", midi, breakdown, run_id)
 
     assert rollout_dir.exists()
     assert (rollout_dir / "code.py").exists()

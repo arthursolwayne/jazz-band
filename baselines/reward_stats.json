@@ -1,6 +1,6 @@
 {
-  "n_samples": 568,
-  "source": "model_outputs_rlvr_20251130",
+  "n_samples": 7057,
+  "source": "model_outputs_rlvr_20251206",
   "features": {
     "melodic_entropy": {
       "mean": 1.853,
@@ -25,6 +25,10 @@
     "rhythm_2grams": {
       "mean": 1.035,
       "std": 0.264
+    },
+    "syncopation": {
+      "mean": 0.6073,
+      "std": 0.1313
     }
   }
 }

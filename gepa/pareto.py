@@ -2,6 +2,7 @@
 GEPA Evaluation: Pareto selection for multi-objective optimization.
 """
 
+import random
 from typing import Dict, List
 from dataclasses import dataclass, field
 
@@ -80,15 +81,21 @@ async def mutate_prompt(
     model_name: str,
     prompt: str,
     traces: List[Dict],
+    population: List[Individual] = None,
+    num_parents: int = 2,
 ) -> str:
     """
     GEPA reflective mutation: LLM analyzes execution traces and proposes prompt improvement.
+
+    With crossover: shows traces from multiple parents to enable idea propagation.
 
     Args:
         client: AsyncOpenAI client
         model_name: Model to use for reflection
         prompt: Current system prompt
         traces: List of execution traces [{reward, unique_durs, has_rests, error}, ...]
+        population: Optional list of other individuals for crossover
+        num_parents: Number of other parents to show for crossover (default 2)
 
     Returns:
         Improved prompt
@@ -96,7 +103,7 @@ async def mutate_prompt(
     if not traces:
         return prompt  # No traces to reflect on yet
 
-    # Find best and worst traces
+    # Find best and worst traces from self
     sorted_traces = sorted(traces, key=lambda t: t.get('reward', 0))
     worst = sorted_traces[0]
     best = sorted_traces[-1]
@@ -145,7 +152,51 @@ unique_durations={t.get('unique_durs', '?')}, has_rests={t.get('has_rests', '?')
     best_section = format_trace(best, "BEST OUTPUT")
     worst_section = format_trace(worst, "WORST OUTPUT")
 
-    reflection_prompt = f"""You are Wayne Shorter. You've been playing saxophone for sixty years. You've played with Miles, with Art Blakey, with Weather Report. You've heard everything.
+    # Crossover: get best outputs from other parents in population
+    other_parents = []
+    if population and len(population) > 1:
+        # Sample other individuals (exclude self by prompt match, require traces)
+        others = [ind for ind in population if ind.prompt != prompt and ind.traces]
+        if others:
+            samples = random.sample(others, min(num_parents, len(others)))
+            for i, other in enumerate(samples):
+                other_sorted = sorted(other.traces, key=lambda t: t.get('reward', 0))
+                other_best = other_sorted[-1]
+                # Truncate prompt for readability
+                other_prompt_preview = other.prompt[:300] + "..." if len(other.prompt) > 300 else other.prompt
+                other_parents.append({
+                    'label': chr(66 + i),  # B, C, D, ...
+                    'prompt': other_prompt_preview,
+                    'trace': other_best,
+                })
+
+    # Build reflection prompt with crossover if we have other parents
+    if other_parents:
+        other_sections = "\n\n".join([
+            f"COMPOSER {op['label']} (different approach):\n{op['prompt']}\n\n{format_trace(op['trace'], 'Their best')}"
+            for op in other_parents
+        ])
+
+        reflection_prompt = f"""You are Wayne Shorter. You've been playing saxophone for sixty years. You've played with Miles, with Art Blakey, with Weather Report. You've heard everything.
+
+You're sitting in the back of The Cellar at 2am. Three young composers show you their best work. Each took a different approach. You're going to help them synthesize the best ideas.
+
+COMPOSER A (current approach):
+{prompt}
+
+{best_section}
+
+{worst_section}
+
+{other_sections}
+
+What's working across these different approaches? What patterns emerge in the successful outputs? Synthesize the best ideas from all of them into new instructions.
+
+Write the improved prompt. Nothing else. Just the prompt that combines what works."""
+
+    else:
+        # Fallback: single-parent mutation (original GEPA-Lite behavior)
+        reflection_prompt = f"""You are Wayne Shorter. You've been playing saxophone for sixty years. You've played with Miles, with Art Blakey, with Weather Report. You've heard everything.
 
 You're sitting in the back of The Cellar at 2am. A young composer shows you two pieces — one that made you lean forward, one that made you look away. Both came from the same instructions.
 
@@ -158,16 +209,14 @@ THEIR PROMPT:
 
 The difference matters. What's working in the best one? What's failing in the worst? How would you change their instructions so every output sounds like the best one?
 
-Write the improved prompt. Nothing else. Just the prompt that would make you stay for the next set.
-
-IMPORTANT: Don't copy the raw metrics (reward scores, numbers) into your prompt. Translate what they mean into musical guidance the composer can act on."""
+Write the improved prompt. Nothing else. Just the prompt that would make you stay for the next set."""
 
     try:
         response = await client.chat.completions.create(
             model=model_name,
             messages=[{"role": "user", "content": reflection_prompt}],
             max_completion_tokens=4000,
-            temperature=0.7,
+            temperature=0.75,
         )
         return response.choices[0].message.content
     except Exception:
