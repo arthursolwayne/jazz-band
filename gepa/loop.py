@@ -51,13 +51,13 @@ ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "gepa"
 
 
 def sanitize_midi(midi):
-    """Ensure all MIDI note pitches and velocities are integers."""
+    """Ensure all MIDI note pitches and velocities are valid (0-127 integers)."""
     if midi is None:
         return None
     for inst in midi.instruments:
         for note in inst.notes:
-            note.pitch = int(note.pitch)
-            note.velocity = int(note.velocity)
+            note.pitch = max(0, min(127, int(note.pitch)))
+            note.velocity = max(0, min(127, int(note.velocity)))
     return midi
 
 

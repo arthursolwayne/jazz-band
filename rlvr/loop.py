@@ -40,6 +40,17 @@ JAZZ_KEYS = ["Dm", "Fm", "F", "D"]
 ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts" / "rollouts"
 
 
+def sanitize_midi(midi):
+    """Ensure all MIDI note pitches and velocities are valid (0-127 integers)."""
+    if midi is None:
+        return None
+    for inst in midi.instruments:
+        for note in inst.notes:
+            note.pitch = max(0, min(127, int(note.pitch)))
+            note.velocity = max(0, min(127, int(note.velocity)))
+    return midi
+
+
 class JazzScenario(BaseModel):
     """Scenario for a single rollout."""
     step: int
@@ -56,9 +67,10 @@ def save_rollout(scenario: JazzScenario, code: str, midi, breakdown: dict, run_i
     # Save code
     (rollout_dir / "code.py").write_text(code)
 
-    # Save MIDI if valid
+    # Save MIDI if valid (sanitize to ensure 0-127 range)
     if midi is not None:
         midi_path = rollout_dir / "output.mid"
+        sanitize_midi(midi)
         midi.write(str(midi_path))
 
     # Save metadata with per-instrument breakdown
