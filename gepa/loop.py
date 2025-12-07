@@ -112,6 +112,10 @@ async def evaluate_individual(
 
     user_prompt = f"Compose a 4-bar jazz piece in {key} at {tempo} BPM."
 
+    # Initialize variables before try block (for exception handler)
+    code = ""
+    midi = None
+    error = None
     breakdown = None
     try:
         completion = await client.chat.completions.create(
