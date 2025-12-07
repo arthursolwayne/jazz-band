@@ -6,6 +6,9 @@ import random
 from typing import Dict, List
 from dataclasses import dataclass, field
 
+# Crossover probability: 30% of mutations use multi-parent reflection
+CROSSOVER_PROBABILITY = 0.3
+
 
 @dataclass
 class Individual:
@@ -152,9 +155,9 @@ unique_durations={t.get('unique_durs', '?')}, has_rests={t.get('has_rests', '?')
     best_section = format_trace(best, "BEST OUTPUT")
     worst_section = format_trace(worst, "WORST OUTPUT")
 
-    # Crossover: get best outputs from other parents in population
+    # Probabilistic crossover: 30% chance to use multi-parent reflection
     other_parents = []
-    if population and len(population) > 1:
+    if population and len(population) > 1 and random.random() < CROSSOVER_PROBABILITY:
         # Sample other individuals (exclude self by prompt match, require traces)
         others = [ind for ind in population if ind.prompt != prompt and ind.traces]
         if others:
