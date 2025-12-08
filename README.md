@@ -1,18 +1,8 @@
 # JITSY Jazz
 
-Jazz occupies the space between structure and freedom. A pianist knows the ii-V-I progression, but artistry lies in how she voices the chords, when she anticipates the resolution, or whether she substitutes a tritone or plays it straight. The conventions are real—checkable, even—but blindly following them produces mechanical music. Creativity emerges from knowing when structure serves expression and when to break free.
+Jazz lives between structure and freedom. Musical conventions are programmatically checkable—chord voicings, syncopation, bass lines—but artistry lies in knowing when to follow the rules and when to break them.
 
-This tension makes jazz an ideal domain for studying how language models acquire creative skills under enabling constraints. Unlike open-ended text generation, musical conventions can be verified programmatically: we can check whether chords are voiced correctly, whether rhythms syncopate, whether the bass walks. Yet verification alone does not capture quality. The same chord progression played mechanically sounds lifeless; played with intention, it swings.
-
-Two paradigms have emerged for adapting language models for task-specific learning. Prompt evolution (Agrawal et al. 2025) refines natural-language instructions through self-reflection and selection. This approach has demonstrated strong results on structured tasks, such as arithmetic, sometimes matching gradient-based methods while using far fewer training samples. Reinforcement learning (Sutton and Barto 1998; Wang et al. 2025) updates weights through reward signals, embedding task knowledge into internal representations. Despite theoretical interest in comparing these approaches, no prior work has evaluated them head-to-head on the same creative task with the same metrics.
-
-We implement both in-context evolution and reinforcement learning on the same model (Qwen3-14B-Instruct) to generate 4-bar jazz ensemble compositions in executable Python code using the `pretty_midi` library (Raffel and Ellis 2014). Our primary contributions are threefold:
-
-**(1) Comparative training dynamics:** Our work is the first direct comparison of prompt evolution vs. RL for creative generation. Prior work evaluates methods in isolation; we offer a comparative look into the tradeoffs in training dynamics, evaluated head-to-head on the same task with identical model, metrics, and random seeds.
-
-**(2) Verifiable reward infrastructure:** We avoid learned reward models entirely, using only symbolic MIDI analysis. Every metric is deterministic and re-runnable from the open-sourced code repository which includes 30,000 generated MIDI files with corresponding data.
-
-**(3) Methodological blueprint:** Our framework generalizes to any domain where conventions are programmatically checkable but true competence requires knowing when to violate them: code synthesis with unit tests, protein design with folding constraints, game level generation with playability checks.
+We compare two paradigms for teaching LLMs creative skills under verifiable constraints: **prompt evolution** (GEPA) refines instructions through self-reflection without weight updates, while **reinforcement learning** (RLVR) embeds knowledge through gradient descent. Both generate 4-bar jazz ensembles on the same model (Qwen3-14B-Instruct), evaluated with identical deterministic metrics. All 30,000 generated MIDIs and reward traces included for reproducibility.
 
 ## Structure
 
