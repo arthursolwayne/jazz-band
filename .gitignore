@@ -52,3 +52,6 @@ wandb/
 
 # Archive (optional - uncomment to ignore)
 # archive/
+/*.mid
+/*.midi
+/papers/
