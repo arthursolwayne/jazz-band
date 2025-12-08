@@ -1,0 +1,227 @@
+%File: paper.tex
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2026}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+% \usepackage{wrapfig}  % Forbidden by AAAI style  
+\frenchspacing
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+
+%  Algorit hm packages 
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% Math packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Re    text  for TODOs 
+\usepackage{xcolor}
+
+\pdfinfo{
+/TemplateVersion (2026.1) 
+}
+
+\setcounter{secnumdepth}{2}
+ 
+\title{Learning to Compose Symbolic Jazz}
+
+\author{
+    Anonymous Submission
+}
+
+\affiliations{
+}
+ 
+\begin{document}
+
+\maketitle  
+
+\begin{abstract}
+How should a language model acquire \textit{compositional} skills: by context or by consequence? We contrast prompt evolution with reinforcement learning for jazz composition with the \texttt{pretty\_midi} symbolic engine. Symbolic jazz is a domain where harmonic conventions can be verified programmatically, yet true skill demands knowing when to violate them. Both methods adapt the same language model and symbolic reward schema to generate 4-bar ensemble pieces (sax, bass, piano, drums). They differ, however, in how reward signal propagates. Prompt evolution refines the Composer system prompt via iterative self-reflection whereas reinforcement learning shapes weights through policy gradient descent, without changes to the original prompt. Our framework clarifies conceptual differences between language-mediated control and gradient-based adaptation to study the fundamental capabilities of learning creative generation under verifiable constraints. 
+\end{abstract}
+
+\section{Introduction}
+
+Jazz occuipes the space between structure and freedom. A pianist knows the ii-V-I progression, but artistry lies in how she voices the chords, when she anticipates the resolution, or whether she substitutes a tritone or plays it straight. The conventions are real—checkable, even—but blindly following them produces mechanical music. Creativity emerges from knowing when structure serves expression and when to break free.
+
+This tension makes jazz an ideal domain for studying how language models acquire creative skills under enabling constraints. Unlike open-ended text generation, musical conventions can be verified programmatically: we can check whether chords are voiced correctly, whether rhythms syncopate, whether the bass walks. Yet verification alone does not capture quality. The same chord progression played mechanically sounds lifeless; played with intention, it swings.
+
+Two paradigms have emerged for adapting language models for task-specific learning. Prompt evolution \cite{agrawal2025gepa} refines natural-language instructions through self-reflection and selection. This approach has demonstrated strong results on structured tasks, such as arithmetic, sometimes matching gradient-based methods while using far fewer training samples. Reinforcement learning \cite{sutton1998rl,wang2025rlvr} updates weights through reward signals, embedding task knowledge into internal representations. Despite theoretical interest in comparing these approaches, no prior work has evaluated them head-to-head on the same creative task with the same metrics.
+
+We implement both in-context evolution and reinforcement learning on the same model (Qwen3-14B-Instruct) to generate 4-bar jazz ensemble compositions in executable Python code using the \texttt{pretty\_midi} library \cite{raffel2014prettymidi}. Our primary contributions are threefold:
+
+(1) \textbf{Comparative training dynamics:} Our work is the first direct comparison of prompt evolution vs. RL for creative generation. Prior work evaluates methods in isolation; we offer a comparative look into the tradeoffs in training dynamics, evaluated head-to-head on the same task with identical model, metrics, and random seeds.
+
+(2) \textbf{Verifiable reward infrastructure:} We avoid learned reward models entirely, using only symbolic MIDI analysis. Every metric is deterministic and re-runnable from the released code and 10,000+ generated MIDI files.
+
+(3) \textbf{Methodological blueprint:} Our framework generalizes to any domain where conventions are programmatically checkable but true competence requires knowing when to violate them: code synthesis with unit tests, protein design with folding constraints, game level generation with playability checks.
+
+\section{Background}
+
+\textbf{LLMs for Music} Music Transformer \cite{huang2018music} demonstrated self-attention can capture long-term structure. Music-specialized LLMs like ChatMusician \cite{yuan2024chatmusician} achieve high format correctness through pretraining on symbolic music. Even GPT-4 produces ill-formed compositions when prompted naively; ComposerX addressed this via multi-agent decomposition \cite{deng2024composerx}. Prompt-controlled generation \cite{zhu2024sympac} achieves strong chord accuracy through explicit attribute control. For jazz, datasets remain limited: PiJAMA provides annotated piano performances \cite{pijama2024}, while the Weimar Jazz Database \cite{weimar_jazz} offers transcriptions used in prior work \cite{wu2020jazz}. 
+
+\textbf{Adaptation Methods} RL Tuner \cite{jaques2017rltuner} pioneered using reinforcement learning for music generation, reducing note repetition from 63\% to near-zero through reward shaping. RL-Duet \cite{jiang2020rlduet} applied RL to interactive accompaniment. Recent work highlights reward hacking risks in music generation \cite{corcoran2024gapt}. Wang et al. \cite{wang2025rlvr} demonstrate RLVR for math reasoning with verifiable correctness checks; we extend this to music via deterministic symbolic metrics. 
+
+Alternatively, prompt optimization adapts LLMs without weight updates. GEPA (Genetic Prompt Evolution) maintains a population of prompts, uses LLM self-reflection to propose edits, and selects via Pareto fitness \cite{agrawal2025gepa}. Agrawal et al. report GEPA outperforming traditional RL fine-tuning on multiple tasks (summarization, code generation, etc.), beating a tuned GRPO implementation while using orders of magnitude fewer queries \cite{agrawal2025gepa}. 
+
+\section{Methods}
+
+Our constructed task requires generating 4-bar jazz ensemble (sax, bass, piano, drums) compositions. The LLM generates executable Python code that constructs \texttt{pretty\_midi.PrettyMIDI} objects directly. Both approaches to learning share the same evaluation using deterministic, re-runnable checkers that compute rewards from symbolic features (detailed in §3.3 and Appendix A).
+
+\subsection{RLVR: Weight Updates via Policy Gradient}
+
+Training uses \textbf{group-relative policy optimization (GRPO)} \cite{hilton2025art} with $G=32$ rollouts per step for 100 steps: for each prompt $x$ we sample a group $\{y_j\}_{j=1}^{G} \sim \pi_\theta(\cdot\mid x)$, compute rewards $r_j=r(x,y_j)$, and form group-normalized advantages
+\begin{equation}
+A_j = \frac{r_j-\mu_G}{\sigma_G+\varepsilon},\quad
+\mu_G=\tfrac{1}{G}\sum_{g=1}^G r_g,\ \ \sigma_G^2=\tfrac{1}{G}\sum_{g=1}^G (r_g-\mu_G)^2
+\end{equation}
+which reduce variance without requiring a value network. Advantages drive weight updates (learning rate $5\times10^{-6}$) that shape $\pi_\theta$ toward higher-reward compositions.
+
+\subsection{GEPA: Prompt Evolution via Pareto Selection}
+
+We optimize the prompt via \textbf{Genetic-Pareto Prompt Evolution (GEPA)} with population size 32 for 100 generations. Each generation $t$ maintains a population $\mathcal{P}_t$ of prompts. For each prompt $p$, we sample compositions and evaluate a 4-objective score vector:
+\begin{equation}
+\mathbf{s}(p) = \big(z_{\text{sax}}(p), z_{\text{bass}}(p), z_{\text{piano}}(p), z_{\text{drums}}(p)\big)
+\end{equation}
+where $z_{\text{instr}}(p) = \mathbb{E}_{y \sim p}[z_{\text{instr}}(y)]$ averages per-instrument z-scores over sampled compositions. The next generation is formed via Pareto selection and mutation:
+\begin{equation}
+\begin{aligned}
+\mathcal{S}_t &= \{p \in \mathcal{P}_t : \nexists p' \in \mathcal{P}_t, \mathbf{s}(p') \succ \mathbf{s}(p)\}, \\[1ex]
+\mathcal{P}_{t+1} &= \textstyle\bigcup_{p \in \mathcal{S}_t^{(\alpha)}} \mu(p, \rho_c, n_p)
+\end{aligned}
+\end{equation}
+where $\mathcal{S}_t^{(\alpha)}$ denotes the top $\alpha=0.5$ fraction of $\mathcal{S}_t$ via diversity-preserving sorting, and $\mu$ applies LLM self-reflection to propose edits with crossover probability $\rho_c=0.3$ over $n_p=2$ parents. This evolves the prompt to generate higher-quality compositions without updating model weights.
+
+\subsection{Shared Reward Function}
+
+Both methods use the same deterministic reward function computed from symbolic MIDI analysis. Features are extracted per instrument: sax (melodic entropy, syncopation, blue note ratio, rhythm 2-grams, peak timing), bass (duration variety, velocity variance, non-chromatic ratio), piano (unique chords, average chord duration, cluster avoidance, out-of-key ratio, chord duration variety), drums (voice independence, density arc, ghost note ratio, kick sparseness). Invalid MIDI receives $z_{\text{instr}}=0$ for all instruments. Structural constraint violations (e.g., lack of rhythmic variety or rests) trigger gating penalties that scale instrument z-scores. Complete feature definitions and gating rules are provided in Appendix A.
+
+Each instrument contributes a z-score aggregating standardized features:
+\begin{equation}
+z_{\text{instr}}(y) = \sum_{i=1}^{n_{\text{instr}}} [\![z_i]\!], \quad z_i = \frac{f_i(y) - \mu_i}{\sigma_i},
+\end{equation}
+where $[\![\cdot]\!]$ denotes clamping to $\pm 3$ standard deviations to avoid reward hacking on outlier features, and $n_{\text{instr}} \in \{3,4,5\}$ features per instrument are extracted symbolically and standardized via reference statistics ($\mu_i, \sigma_i$). The base reward applies temperature-scaled sigmoid ($\tau=5$) to the total z-score:
+\begin{equation}
+r_{\text{base}}(y) = \frac{1}{1 + \exp(-z_{\text{total}}(y)/\tau)}, \quad z_{\text{total}} = \sum_{\text{instr}} z_{\text{instr}}(y).
+\end{equation}
+An ensemble multiplier $m_{\text{ens}}(y) \in [1.0, 1.1]$ rewards sax-piano interaction through rhythmic independence and note overlap. The final reward combines base and ensemble multiplicatively:
+\begin{equation}
+r(x,y) = r_{\text{base}}(y) \cdot m_{\text{ens}}(y).
+\end{equation}
+
+All computations are deterministic, symbolic, and re-runnable. Feature extractors are fixed.
+
+\section{Experimental Setup}
+
+\subsection{Models \& Inference Settings}
+
+Both methods use OpenPipe/Qwen3-14B-Instruct with temperature 0.75 and max tokens 12000. \textbf{RLVR:} 100 training steps, $G=32$ rollouts per step, learning rate $5\times10^{-6}$, KL coefficient 0.1, advantage balance 0.3. \textbf{GEPA:} 100 generations, population size 32, crossover probability 0.3, Pareto selection via non-dominated sorting.
+
+\subsection{Evaluation Protocol}
+
+For controlled comparison, both methods are evaluated on the same held-out test prompts with fixed random seeds. This ensures that performance differences are attributable to the learning method rather than sampling variance.
+
+\section{Results}
+
+\subsection{Main Tables (Pass Rates \& Scalar Scores)}
+
+\textcolor{red}{[MISSING: Table 3 - Main quantitative results comparing all methods on test set with statistical significance]}
+
+We evaluate both RLVR and GEPA on held-out test inputs, measuring validity rates and per-instrument metric scores. Note that judge scores are used \textit{only for evaluation and comparison}---neither RLVR nor GEPA training uses learned judge feedback. All training rewards are purely verifiable metrics.
+
+\textcolor{red}{[MISSING: Figure 2 - Training/evolution curves showing convergence and sample efficiency]}
+
+\textcolor{red}{[MISSING: Figure 3 - Example compositions side-by-side (baseline, GEPA, RLVR)]}
+
+\subsection{Sample Efficiency \& Compute}
+
+Prior work by Agrawal et al. (2025) demonstrated that prompt-evolution can achieve up to 20\% higher accuracy than RL (GRPO) while using $35\times$ fewer rollouts on diverse tasks \cite{agrawal2025gepa}. We test whether this sample-efficiency advantage holds for structured music composition.
+
+\textcolor{red}{[MISSING: Table/Figure 4 - Sample efficiency comparison: rollouts, wall-clock time, compute cost]}
+
+\subsection{Human Preference Study}
+\textcolor{red}{[MISSING: Human preference evaluation results (optional but recommended)]}
+
+\section{Discussion}
+
+\textcolor{red}{[TODO: Interpret results - which approach performs better? Sample efficiency trade-offs? Failure modes?]}
+
+\section{Conclusion}
+
+In summary, our work sits at the intersection of neuro-symbolic music generation and LLM adaptation techniques. By comparing prompt-based in-context skill acquisition with traditional reinforcement learning, we shed light on which paradigm is more sample-efficient and effective for teaching an AI to ``jam'' within rule-heavy creative domains. Both approaches leverage the same verifiable reward infrastructure, enabling a controlled comparison on the same task with identical evaluation metrics. This framework establishes a foundation for understanding the trade-offs between language-guided self-learning (GEPA) and weight-based optimization (RLVR) in compositional generation tasks where success can be programmatically verified.
+
+\section*{Acknowledgments}
+
+\textcolor{red}{[MISSING: Acknowledgments (for camera-ready only)]}
+
+\bibliography{references}
+
+\appendix
+
+\section*{Appendix}
+
+\section{Reward Function Specification}
+
+\subsection{Per-Instrument Feature Definitions}
+
+\textbf{Saxophone (5 features):}
+\begin{itemize}
+\item Melodic entropy: Shannon entropy of pitch transitions
+\item Syncopation: Ratio of off-beat note onsets to total onsets
+\item Blue note ratio: Proportion of notes in blue note regions (b3, b5, b7)
+\item Rhythm 2-grams: Diversity of consecutive duration pairs
+\item Peak timing: Whether melodic peak occurs in optimal position (0.4--0.7 of piece)
+\end{itemize}
+
+\textbf{Bass (3 features):}
+\begin{itemize}
+\item Duration variety: Coefficient of variation in note durations
+\item Velocity variance: Standard deviation of note velocities
+\item Non-chromatic ratio: Proportion of intervals $>$ 2 semitones
+\end{itemize}
+
+\textbf{Piano (5 features):}
+\begin{itemize}
+\item Unique chords: Number of distinct simultaneities
+\item Average chord duration: Mean temporal extent of chords
+\item Cluster avoidance: Penalty for adjacent semitones in chords
+\item Out-of-key ratio: Proportion of notes outside key signature
+\item Chord duration variety: Coefficient of variation in chord durations
+\end{itemize}
+
+\textbf{Drums (4 features):}
+\begin{itemize}
+\item Voice independence: Mutual information between kick/snare/hi-hat patterns
+\item Density arc: Temporal variation in note density (avoids constant patterns)
+\item Ghost note ratio: Proportion of low-velocity notes (dynamics)
+\item Kick sparseness: Proportion of time without kick hits
+\end{itemize}
+
+\subsection{Gating Rules}
+
+Instrument z-scores are multiplied by penalty factors when structural constraints fail:
+
+\textbf{Saxophone gates:}
+\begin{itemize}
+\item $\times 0.5$ if unique durations $< 2$
+\item $\times 0.5$ if no rests detected
+\end{itemize}
+
+\textbf{Ensemble multiplier:}
+The ensemble reward $m_{\text{ens}}(y)$ is computed from two features measuring sax-piano interaction:
+\begin{itemize}
+\item Rhythmic independence: $1 - \frac{|\text{sax\_onsets} \cap \text{piano\_onsets}|}{|\text{sax\_onsets} \cup \text{piano\_onsets}|}$ (quantized to 16th-note grid)
+\item Note overlap ratio: Proportion of time both instruments are sounding
+\end{itemize}
+These features are z-scored with reference statistics (mean, std), weighted by correlation with human ratings, normalized to $[0,1]$, and mapped to $[1.0, 1.1]$ via $1 + 0.1 \cdot \text{score}$.
+
+\end{document}

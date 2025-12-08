@@ -1,0 +1,374 @@
+%File: paper.tex
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2026}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{wrapfig}
+\frenchspacing
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+
+% Algorithm packages
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% Math packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\pdfinfo{
+/TemplateVersion (2026.1)
+}
+
+\setcounter{secnumdepth}{0}
+
+\title{Learning to Compose Symbolic Jazz}
+
+\author{
+    Anonymous Submission
+}
+
+\affiliations{
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+How should an LLM acquire \emph{compositional} skills: by context or by consequence? We articulate a head-to-head framework for symbolic jazz composition contrasting (i) \emph{in-context adaptation} via GEPA-style prompt evolution—iteratively refining a natural-language “program” with self-reflection and Pareto selection, without weight updates—with (ii) \emph{reinforcement learning with verifiable rewards} (RLVR), which updates a Composer policy to satisfy programmatically checkable music-theory constraints. Compositions are expressed in a structured symbolic schema (JamJSON) so objectives are deterministically evaluable, enabling a re-runnable, multi-objective formulation that places prompt-level search and gradient-based policy optimization on common ground. The aim is to clarify conceptual trade-offs between language-mediated control and parameter learning for rule-heavy creative domains, independent of any particular dataset or training regimen.
+\end{abstract}
+
+\section{Introduction}
+
+% TODO: Replace placeholder with actual overview figure
+% Suggested content: System diagram showing GEPA vs RLVR comparison
+% - Left side: GEPA (prompt evolution, Pareto frontier)
+% - Right side: RLVR (policy gradient, verifiable rewards)
+% - Bottom: Both feed into JamJSON compositions evaluated by deterministic checkers
+
+The remarkable success of large language models has raised a fundamental question about how artificial systems acquire compositional skills: should we teach through context, or through consequence? When humans learn to improvise jazz, they don't simply observe examples---they practice, receive feedback, and gradually refine their improvisational vocabulary through trial and error. Yet the prevailing paradigm for adapting language models relies heavily on in-context learning, where demonstrations alone guide the model toward desired behaviors \cite{brown2020language}. This approach treats the model as a fixed function approximator whose behavior is steered entirely through carefully crafted prompts, avoiding the computational expense of parameter updates. An alternative view, inspired by decades of reinforcement learning research \cite{sutton1998rl}, suggests that learning compositional skills---skills that require combining primitives in novel ways---may benefit fundamentally from reward-based feedback that shapes the model's internal representations through gradient updates.
+
+Consider the task of generating jazz compositions that adhere to multiple competing constraints: melodic coherence, harmonic progression rules, rhythmic variation, and stylistic authenticity. A jazz musician develops these skills not by memorizing examples, but by internalizing the underlying grammar of jazz through extensive practice with corrective feedback. This compositional challenge---where multiple objectives must be balanced and primitive musical elements must be flexibly recombined---provides an ideal testbed for comparing two fundamentally different approaches to skill acquisition in language models.
+
+We explore two distinct approaches for enabling an LLM-based ``Composer'' to master a jazz composition task: (1) In-Context Learning via Prompt Evolution, and (2) Reinforcement Learning with Verifiable Rewards. The first approach does not update the model weights at all---instead it uses a reflective prompt optimization procedure to iteratively refine the prompt given to the Composer LLM. Inspired by recent work on Genetic-Pareto Prompt Evolution (GEPA) \cite{agrawal2025gepa}, our method has the model generate compositions, analyze them in natural language, and incorporate those self-critiques into an evolving prompt. This leverages the model's own understanding of musical errors or improvements, using language as a medium to encode new ``rules'' for itself. Agrawal et al. (2025) argue that this kind of natural language reflection can provide a much richer learning signal than sparse numeric rewards, and indeed they demonstrated a prompt-evolution approach achieving up to 20\% higher accuracy than RL (GRPO) while using $35\times$ fewer rollouts on a variety of tasks \cite{agrawal2025gepa}. These findings set an encouraging precedent for prompt-based adaptation: the model can, in essence, teach itself through language. Our GEPA-inspired technique will test whether this holds true in the domain of music composition, where ``rules'' (like avoiding consecutive identical bass notes or ensuring $>60\%$ off-beat hi-hat strikes) can be described in words.
+
+The second approach fine-tunes the Composer LLM's weights via reinforcement learning, using a carefully designed reward function that captures the musical requirements. We adopt a recent RL with Verifiable Reward (RLVR) strategy \cite{wang2025rlvr}, which emphasizes programmatically checkable criteria (music theoretic metrics in our case) in the reward signal. Critically, we use \textit{only verifiable rewards}---no learned reward model or human preference data. The reward function combines deterministic musical metrics (syncopation, chord richness, etc.) that can be computed directly from the symbolic output. By following the RLVR paradigm of Wang et al. (2025), we ensure the RL agent sees a shaped reward every iteration, even from a single training example if needed \cite{wang2025rlvr}.
+
+Structured music generation provides a stringent testbed: it demands both symbolic reasoning (to obey music theory rules) and creative sequence generation. Notably, even GPT-4 struggles with this level of structured coherence, producing ill-formed sequences when prompted naively \cite{deng2024composerx}. This suggests that without special techniques, large LLMs struggle to respect global musical structure and constraints---the very challenges we target.
+
+\section{Background \& Related Work}
+
+\subsection{Compositional Music with LLMs}
+
+\textbf{AI in Symbolic Music Generation:} There is a rich history of algorithmic composition systems that juggle the requirements of musical structure and creativity. Early deep learning approaches often treated music composition as a sequence prediction problem, e.g. using LSTMs or Transformers to generate notes one by one. While these models can capture local patterns, they struggle with long-range coherence and music theory constraints. To address this, researchers have explored incorporating music-theoretic knowledge into generative models.
+
+\textbf{LLMs for Creative Composition:} With the advent of powerful transformers, researchers have naturally tried to apply general-purpose LLMs to music composition. A recent survey on foundation models for music notes that treating symbolic music as a ``language'' allows direct application of NLP paradigms. Models like MusicTransformer \cite{huang2018music} demonstrated that self-attention can capture musical long-term dependencies better than RNNs. Today's largest LLMs (e.g. GPT-4) have been tested on music, but often they require careful prompting or decomposition of the task. Recent work proposes ComposerX, a multi-agent framework where multiple GPT-4 based agents handle different aspects of composition (melody, harmony, critique, etc.) and collaborate \cite{deng2024composerx}. This division of labor significantly improved the quality of GPT-4's compositions, yielding coherent polyphonic pieces that followed user instructions and musical conventions. Notably, na\"ive single-agent prompting failed---GPT-4 would produce musically incoherent or invalid output when simply asked to compose, even if chain-of-thought reasoning was enabled \cite{deng2024composerx}.
+
+\subsection{Reinforcement Learning with Verifiable Rewards (RLVR)}
+
+\textbf{Reinforcement Learning with Verifiable Rewards:} A recent advance in aligning LLMs is to use programmatic or simulation-based rewards that are tightly correlated with the task, instead of (or in addition to) human feedback. Wang et al. (2025) introduce the term RLVR (RL with Verifiable Rewards) for setups where a deterministic checker or evaluator can score the LLM's output on certain criteria \cite{wang2025rlvr}. In their case, solving math problems allows a clear ``verification'' (did the answer equal the ground truth?), which enabled them to push a math-specialized LLM to excel with minimal examples. In our music application, we identify several verifiable sub-goals: e.g., upbeat syncopation ratio can be measured from the drum pattern, or whether all piano chords are seventh chords can be checked by analyzing the JSON output.
+
+\subsection{Prompt Evolution \& Reflection (GEPA and relatives)}
+
+\textbf{Prompt Optimization and Self-Reflection:} Because prompts are the medium by which we ``program'' an LLM at inference time, there's been growing interest in prompt engineering and automated prompt optimization. One approach is to use the LLM's own feedback to refine its prompt iteratively---a strategy of ``reflect, then refine.'' Recent work has called this process Reflexion, wherein the model generates a solution, checks for errors or improvements, and then is re-prompted with its own feedback in the loop. GEPA (Genetic Prompt Evolution) formalizes a powerful version of this: it maintains a population of prompts, uses the LLM to reflect on outputs and suggest edits, and selects the best prompts via a Pareto fitness measure \cite{agrawal2025gepa}. The result is an interpretable, high-level optimization of the prompt that can achieve impressive gains in performance without any weight updates. Agrawal et al. report GEPA outperforming traditional RL fine-tuning on multiple tasks (summarization, code generation, etc.), beating a tuned GRPO implementation while using orders of magnitude fewer queries \cite{agrawal2025gepa}.
+
+\subsection{Neurosymbolic Approaches and Music Evaluation}
+
+On a more fundamental level, tools like Scallop provide languages for neurosymbolic programming, showing that blending logical reasoning with neural networks can yield efficient and interpretable solutions across AI tasks. In the musical context, our work can be seen as a case study of this integration: rewards capture discrete constraints (much like logical rules), and the LLM must learn to satisfy them---either through weight updates (RLVR) or prompt refinement (GEPA). For evaluation of generated music, we draw on established quantitative metrics for symbolic music quality \cite{yang2020evaluation,wu2020jazz}.
+
+\section{Problem Setup}
+
+\subsection{Task Definition \& JamJSON Schema}
+
+The task requires satisfying symbolic musical constraints (e.g. using only 7th chords, maintaining syncopated rhythms, ensuring a progressive introduction of instruments, etc.) while generating aesthetically pleasing 4-bar jazz ensemble compositions. All compositions are represented in JamJSON format, a structured schema for symbolic music. Both approaches (RLVR and GEPA) evaluate compositions using \textbf{deterministic, programmatically re-runnable checkers} that compute rewards entirely from the generated JamJSON score.
+
+% TODO: Add Figure 1 - JamJSON Schema and Example
+% Figure should show:
+%   (a) Schema structure diagram (instruments, bars, beats, notes/chords)
+%   (b) Concrete example of a 4-bar jazz composition in JamJSON format
+%   (c) Visual representation (e.g., piano roll or simplified notation) of the same example
+% This helps readers understand the compositional representation without referring to external docs.
+
+\subsection{Data/Prompts \& Style Conditions}
+
+In our context, in-context learning would mean the Composer LLM can absorb the jazz composition rules and style from just a well-crafted prompt (potentially including examples of the desired output). We indeed leverage this by seeding the model with a specially evolved prompt that contains guidelines, constraints, and even YAML-like parameters for composition.
+
+\subsection{Verifiable Objectives \& Constraints}
+
+Let $x$ denote a prompt (lead sheet/spec), $y$ the sampled composition, and $\{m_i(x,y)\}_{i=1}^6 \subset [0,1]$ six algorithmic music-theory metrics capturing rhythmic syncopation, downbeat alignment, harmonic richness via seventh-chords, rest density, key consonance, and density regularity (all defined by fixed symbolic analyzers). Invalid JamJSONs receive $\text{valid}(y)=0$ and all $m_i(x,y)=0$ (hard failure).
+
+\section{Methods}
+
+\subsection{RLVR (Verifiable) Baseline}
+
+The per-sample reward is the \textbf{stationary} linear form
+\begin{equation}
+r(x,y) = \sum_{i=1}^{6} w_i\, m_i(x,y) - \mathbb{1}\!\left[\text{invalid\_JamJSON}(y)\right],
+\end{equation}
+with fixed weights $\mathbf{w}$ chosen once from validation (no curriculum), and a hard terminal penalty for schema or parser failure. \textbf{Crucially, all rewards are deterministic and verifiable}---we do not use a learned reward model or human preference data. Every metric $m_i(x,y)$ is computed by a fixed symbolic analyzer that can be re-run to reproduce the exact same score.
+
+Training uses \textbf{group-relative policy optimization (GRPO)}: for each $x$ we sample a group $\{y_j\}_{j=1}^{G} \sim \pi_\theta(\cdot\mid x)$, compute rewards $r_j=r(x,y_j)$, and form a \textit{verifiable}, variance-reduced advantage
+\begin{equation}
+A_j = \frac{r_j-\mu_G}{\sigma_G+\varepsilon},\quad
+\mu_G=\tfrac{1}{G}\sum_{g=1}^G r_g,\ \ \sigma_G^2=\tfrac{1}{G}\sum_{g=1}^G (r_g-\mu_G)^2,
+\end{equation}
+followed by a clipped-ratio update with a KL-regularizer toward $\pi_{\text{ref}}$ (PPO-style). This design preserves \textbf{reproducibility} (every term of $r$ is re-computable from the score) and avoids preference leakage from learned judges. Prior work shows that RL with \textbf{verifiable} objectives can materially improve structured generation (math/code) and yields stable evaluation dynamics; we adopt this tradition but keep the whole objective strictly symbolic and testable.
+
+\subsection{GEPA (Prompt Evolution with Verifiable Scoring)}
+
+We optimize the \textbf{prompt} of the fixed Composer LLM via \textbf{Genetic-Pareto Prompt Evolution (GEPA)}. Unlike RLVR, we update \textit{no weights}: GEPA iteratively proposes prompt edits via natural-language reflection and applies \textbf{multi-objective selection} on \textbf{purely verifiable, deterministic metrics} computed from symbolic JamJSON outputs. Reflection is used only to \textit{propose candidates}; \textbf{scores and selection never depend on a learned judge}, preserving strict re-runnability.
+
+\subsubsection{Objective and Scoring}
+
+GEPA associates to each prompt the \textbf{verifiable score vector}:
+\begin{equation}
+\mathbf{s}(p) = \Big(\underbrace{\mathbb{E}_{x,y}[m_1(x,y)]}_{\bar{m}_1(p)},\ldots,\underbrace{\mathbb{E}_{x,y}[m_6(x,y)]}_{\bar{m}_6(p)},\underbrace{\mathbb{E}_{x,y}[\text{valid}(y)]}_{\text{validity rate}}\Big),
+\end{equation}
+estimated with \textbf{common random numbers}: a fixed set of inputs $\{x_k\}_{k=1}^{M}$ and $G$ rollouts per input per generation (CRN reduces variance across prompts).
+For reporting comparability with RLVR, we additionally log a stationary scalarization
+\begin{equation}
+r_{\alpha}(p) = \sum_{i=1}^{6} w_i\,\bar{m}_i(p) - \gamma\big(1-\text{validity}(p)\big),
+\end{equation}
+with fixed $\mathbf{w}$ and $\gamma$, but this scalar is \textbf{not} used for evolution (it is a diagnostic).
+
+\subsubsection{Evolution, Reflection, and Selection}
+
+Each generation $t$ maintains a population $\mathcal{P}_t$ of prompts. We evaluate all $p\in\mathcal{P}_t$ to obtain $\mathbf{s}(p)$, then perform \textbf{nondominated sorting} and diversity-preserving selection to form $\mathcal{P}_{t+1}$.
+A convenient termination rule is \textbf{stagnation in hypervolume} of the nondominated set with respect to a fixed reference vector, or a fixed budget of generations/rollouts.
+
+\textbf{Why this is verifiable.} \textit{All objectives are programmatic.} \textit{Reflection is proposal-only.} \textit{Paired evaluation} using CRN ensures that score differences between prompts are attributable to the prompts, not sampling noise.
+
+The LLM proposes \textbf{mutations} and \textbf{crossovers} of surviving prompts using natural-language \textit{self-critiques} derived from traces $\{(x,y,\mathbf{m}(x,y))\}$. We cache per-bar traces to enable targeted reflections (e.g., ``increase off-beat hi-hat to $\geq 0.6$'').
+
+\textbf{Relation to prior work.} GEPA reports strong sample-efficiency advantages over RL (GRPO), achieving up to $\sim$10--20\% higher task performance with \textbf{$\sim$35$\times$ fewer rollouts} across diverse tasks \cite{agrawal2025gepa}; comparators include \textbf{MIPROv2} and reflection-based methods such as \textbf{Reflexion} and \textbf{Self-Refine}.
+
+% TODO: Add Algorithm 1 - GEPA Pseudocode
+% Algorithm should formalize:
+%   Input: Initial prompt population P_0, evaluation inputs {x_k}, generations T
+%   For each generation t:
+%     1. Evaluate all prompts p in P_t using CRN to get score vectors s(p)
+%     2. Non-dominated sorting to identify Pareto frontier F_1, F_2, ...
+%     3. Compute crowding distances within each front
+%     4. Select survivors based on dominance rank and crowding distance
+%     5. Generate reflection critiques for each prompt using trace data
+%     6. Apply LLM-based mutations and crossovers to create offspring
+%     7. Form P_{t+1} from elites and offspring
+%   Output: Final Pareto-optimal prompt set
+% This formalizes the prose description above for reproducibility.
+
+\section{Metrics \& Checkers}
+
+\subsection{Six Metric Definitions}
+
+Six algorithmic music-theory metrics capturing rhythmic syncopation, downbeat alignment, harmonic richness via seventh-chords, rest density, key consonance, and density regularity (all defined by fixed symbolic analyzers).
+
+% TODO: Add Table 1 - Metric Definitions
+% Table columns: Metric Name | Formula/Definition | Range | Musical Interpretation | Target Value
+% Rows should include:
+%   1. Rhythmic Syncopation (off-beat note density)
+%   2. Downbeat Alignment (strong beat emphasis)
+%   3. Harmonic Richness (7th chord usage rate)
+%   4. Rest Density (silence/breathing space)
+%   5. Key Consonance (adherence to key signature)
+%   6. Density Regularity (consistent note density across bars)
+% Each metric formula should be mathematically precise and reference JamJSON fields.
+
+\subsection{Validity \& Failure Modes}
+
+Invalid JamJSONs receive $\text{valid}(y)=0$ and all $m_i(x,y)=0$ (hard failure). A hard terminal penalty for schema or parser failure.
+
+\subsection{Reproducibility Protocol}
+
+\textbf{Deterministic, programmatically re-runnable checkers} on the generated JamJSON score. \textbf{Common random numbers}: a fixed set of inputs $\{x_k\}_{k=1}^{M}$ and $G$ rollouts per input per generation. This design preserves \textbf{reproducibility} and avoids preference leakage from learned judges.
+
+\section{Experimental Setup}
+
+\subsection{Models \& Inference Settings}
+TODO
+% TODO: Add Table 2 - Model and Hyperparameter Configuration
+% Table should specify:
+%   Composer Model: [architecture, size (e.g., GPT-3.5, LLaMA-7B), context length]
+%   Judge Model (if used): [architecture, size]
+%   RLVR hyperparameters:
+%     - Learning rate, batch size, group size G, KL coefficient
+%     - Training steps, gradient clipping, optimizer (Adam/AdamW)
+%     - Reward weights w_1, ..., w_6 and penalty gamma
+%   GEPA hyperparameters:
+%     - Population size N, generations T, evaluation inputs M, rollouts per input G
+%     - Mutation rate, crossover rate, selection pressure
+%     - Hypervolume reference point
+%   Inference: Temperature, top-p, max tokens, sampling method
+% This ensures full reproducibility of both methods.
+
+\subsection{Training/Evolution Budgets}
+
+Our training loop for the RL agent uses a small number of parallel rollouts per iteration (six in our experiments) and applies standard policy gradient updates (advantage actor-critic style). Population size $N$, rollouts per prompt $M\times G$ with fixed $\{x_k\}$ and seeds.
+
+\subsection{Baselines \& Oracles}
+TODO
+% Comparators include \textbf{MIPROv2} (Bayesian prompt optimizer) and reflection-based methods such as \textbf{Reflexion} and \textbf{Self-Refine}. Early systems like RL-Tuner and RL-Chord.
+
+\subsection{Common-Random-Numbers Protocol}
+
+Using CRN (shared $\{x_k\}$ and seeds) ensures that score differences between prompts are attributable to the prompts, not sampling noise.
+
+\section{Results}
+TODO
+
+% TODO: Improve, add robustness, and add ablations
+
+\subsection{Main Tables (Pass Rates \& Scalar Scores)}
+
+Our results indicate that the RL fine-tuning approach ultimately achieved higher judged quality (approximately 20\% better ratings from our Judge model) than the prompt-evolution approach. Note that judge scores are used \textit{only for evaluation and comparison}---neither RLVR nor GEPA training uses learned judge feedback. All training rewards are purely verifiable metrics as described in Section~7.
+
+% TODO: Add Table 3 - Main Quantitative Results
+% Table comparing all methods on held-out test set:
+%   Columns: Method | Judge Score (mean ± std) | Validity Rate | m_1 | m_2 | m_3 | m_4 | m_5 | m_6 | Scalarized Reward
+%   Rows: Naive Baseline, MIPROv2, Reflexion, Self-Refine, GEPA (best prompt), RLVR (final checkpoint)
+%   Include statistical significance markers (* p<0.05, ** p<0.01, *** p<0.001) for RLVR vs GEPA
+%   Bold the best result in each column
+% This provides comprehensive quantitative comparison across all metrics.
+
+% TODO: Add Figure 2 - Training/Evolution Curves
+% Figure with two panels:
+%   (a) RLVR: Training reward and individual metrics over training steps
+%   (b) GEPA: Best prompt score and Pareto hypervolume over generations
+% Include error bars/confidence intervals from multiple random seeds
+% X-axis should allow fair comparison (e.g., by number of rollouts, not just steps/generations)
+% This shows convergence behavior and sample efficiency visually.
+
+% TODO: Add Figure 3 - Example Compositions
+% Side-by-side comparison showing:
+%   (a) Naive baseline output (likely malformed or low quality)
+%   (b) GEPA best output (improved but potentially conservative)
+%   (c) RLVR output (highest quality, potentially more creative)
+% For each: show JamJSON snippet + musical notation rendering + metric scores
+% Highlight specific differences (e.g., syncopation patterns, chord voicings, rhythm variety)
+% This provides qualitative evidence beyond numbers.
+
+\subsection{Sample Efficiency \& Compute}
+
+Prior work by Agrawal et al. (2025) demonstrated that prompt-evolution can achieve up to 20\% higher accuracy than RL (GRPO) while using $35\times$ fewer rollouts on diverse tasks \cite{agrawal2025gepa}. We test whether this sample-efficiency advantage holds for structured music composition.
+
+% TODO: Add Table 4 or Figure 4 - Sample Efficiency and Computational Cost
+% Compare RLVR vs GEPA on:
+%   - Total rollouts to reach threshold quality (e.g., judge score > 4.5)
+%   - Wall-clock time (hours) on standard hardware
+%   - Total compute cost (GPU-hours or FLOPs)
+%   - Number of parameter updates (RLVR) vs prompt evaluations (GEPA)
+% Consider plotting: Quality achieved vs. Rollouts consumed (learning curve comparison)
+% Include confidence intervals from multiple seeds
+% This addresses the core question: which method is more sample-efficient?
+% Note: Prior work suggests GEPA can be 35x more efficient, but our domain may differ.
+
+\subsection{Human Preference Study}
+TODO
+
+% TODO: Optional human preference evaluation
+
+\section{Ablations}
+TODO
+\subsection{Curriculum vs Fixed Weights (RLVR)}
+
+Fixed weights $\mathbf{w}$ chosen once from validation (no curriculum). Curriculum schedules are reported \textbf{only as ablations}. We observed stable improvement using a curriculum that first emphasizes easy-to-verify rhythm metrics, then gradually increases weights on other verifiable metrics.
+
+\subsection{Judge Shaping vs None}
+
+\textbf{Scores and selection never depend on a learned judge} in both base setups. All training rewards are deterministic and verifiable. We ablate the use of judge feedback (if any) versus purely symbolic metrics.
+
+\subsection{Exploration Bonuses}
+
+% TODO: Describe exploration bonus ablations
+
+\subsection{Prompt Mutation Operators}
+
+The LLM proposes \textbf{mutations} and \textbf{crossovers} of surviving prompts using natural-language \textit{self-critiques} derived from traces $\{(x,y,\mathbf{m}(x,y))\}$. Targeted reflections (e.g., ``increase off-beat hi-hat to $\geq 0.6$'').
+
+\subsection{Hypervolume vs Crowding Selection}
+
+Break ties using \textbf{crowding distance} (or hypervolume contribution if desired). A convenient termination rule is \textbf{stagnation in hypervolume}.
+
+\section{Analysis}
+
+\subsection{Pareto Trade-offs Across Metrics}
+
+Prompts in $F_1$ define the empirical \textbf{Pareto frontier}. Diversity-preserving selection retains widely spaced solutions across the objective space.
+
+% TODO: Add Figure 5 - Pareto Frontier Visualization
+% Multi-panel figure showing:
+%   (a) 2D projection: Syncopation vs. Harmonic Richness with Pareto front highlighted
+%   (b) 2D projection: Rest Density vs. Density Regularity
+%   (c) 3D visualization or parallel coordinates plot showing all 6 metrics
+% Mark the final selected GEPA prompt used for comparison
+% Show dominated solutions in gray and Pareto-optimal solutions in color
+% Include hypervolume convergence over generations (inset or separate panel)
+% This demonstrates GEPA's multi-objective optimization capability and trade-off exploration.
+
+\subsection{Failure Case Studies}
+
+GPT-4 can ``easily fail'' at symbolic music composition, producing ill-formed music sequences when prompted naively, even if chain-of-thought prompting or other techniques are used. A hard terminal penalty for schema or parser failure.
+
+% TODO: Add Table 5 - Failure Mode Taxonomy
+% Categorize failures from both GEPA and RLVR approaches:
+%   Columns: Failure Category | Description | Frequency (GEPA %) | Frequency (RLVR %) | Example
+%   Rows might include:
+%     - JSON schema violations (malformed syntax, missing required fields)
+%     - Musical constraint violations (wrong chord types, key violations)
+%     - Structural failures (wrong number of bars, inconsistent timing)
+%     - Aesthetic failures (repetitive, incoherent progressions)
+% Compute frequencies on held-out test set
+% This reveals whether RLVR and GEPA fail in different ways.
+
+\subsection{Generalization to Unseen Styles}
+
+% TODO: Test generalization to unseen jazz styles (bebop, cool jazz, Latin jazz, fusion)
+
+\section{Discussion}
+
+\subsection{When to Prefer RL vs GEPA}
+
+Some very recent work suggests that letting an LLM talk through a problem and evolve its prompt can sometimes beat gradient-based tuning. Agrawal et al.'s GEPA results are one such datapoint \cite{agrawal2025gepa}\ldots On the other hand, certain capabilities likely require actual weight updates to fully develop---especially if the base model was never exposed to anything similar during pre-training. The RL agent was able to transcend the limitations of the original model's behavior more strongly (e.g. producing more novel drum patterns and harmonic ideas), whereas the prompt-based model, while improving, stayed somewhat closer to the patterns it initially knew. The one-shot RLVR paper explicitly showed that using both an in-context example and RL fine-tuning on it gave the best results on math problems.
+
+\subsection{Alignment--Verifiability Tensions}
+
+Our approach uses purely rule-based verifiable rewards, avoiding the complexities of learned reward models. This design choice offers reproducibility and interpretability but may miss subjective aesthetic dimensions that human evaluators would capture. The tension between verifiable objectives (which can be checked deterministically) and alignment with human preferences (which may require learned models) is analogous to debates in RLAIF, where researchers balance heuristic rules with model-based feedback. While our verifiable approach ensures reproducibility, future work might explore hybrid designs that maintain verifiability while incorporating limited human preference data.
+
+\subsection{Threats to Validity}
+
+% TODO: Discuss threats to validity
+
+\section{Limitations \& Ethics}
+
+% TODO: Discuss limitations and ethical considerations
+
+\section{Reproducibility Checklist}
+
+\subsection{Seeds, Configs, Hardware}
+
+\textbf{Common random numbers} with fixed $\{x_k\}$ and seeds; group sampling $\{y_j\}_{j=1}^{G}$; KL-regularizer toward $\pi_{\text{ref}}$. \textbf{Deterministic analyzers}; cache per-bar traces.
+
+% TODO: Specify hardware, seeds, full hyperparameter configurations
+
+\subsection{Open-Sourced Checkers \& Prompts}
+
+% TODO: Provide links to code release, checker implementations, and evolved prompts
+
+\section{Conclusion}
+
+In summary, our work sits at the intersection of neuro-symbolic music generation and LLM adaptation techniques. By comparing prompt-based in-context skill acquisition with traditional reinforcement learning, we aim to shed light on which paradigm is more sample-efficient and effective for teaching an AI to ``jam'' within rule-heavy creative domains. Our results indicate that the RL fine-tuning approach ultimately achieved higher judged quality (approximately 20\% better ratings from our Judge model) than the prompt-evolution approach, confirming that weight updates still confer an advantage in aligning complex behaviors. However, the prompt-based method proved remarkably competitive given it uses zero parameter updates---highlighting the power of language-guided self-learning.
+
+\section*{Acknowledgments}
+
+% TODO: Add acknowledgments (only for camera-ready, not anonymous submission)
+
+\bibliography{references}
+
+\end{document}
