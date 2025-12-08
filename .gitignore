@@ -56,3 +56,13 @@ wandb/
 /*.midi
 /papers/
 CLAUDE.md
+
+# One-off scripts and analysis
+*_ablation.py
+*_analysis.py
+baselines/
+analysis_data/
+scripts/
+*.html
+*.json
+crashlog.txt
