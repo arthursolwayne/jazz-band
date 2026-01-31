@@ -1,0 +1,16 @@
+{
+  "id": 1,
+  "generation": 2,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "sax": 0,
+    "bass": 0,
+    "piano": 0,
+    "drums": 0,
+    "valid_midi": 0.0
+  },
+  "has_midi": false,
+  "error": "cannot import name 'Program' from 'pretty_midi' (/home/ubuntu/jazz-band/.venv/lib/python3.10/site-packages/pretty_midi/__init__.py)",
+  "timestamp": "2025-12-06T16:18:13.751843"
+}

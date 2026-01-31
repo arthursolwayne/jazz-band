@@ -1,0 +1,16 @@
+{
+  "id": 29,
+  "generation": 2,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "sax": 0,
+    "bass": 0,
+    "piano": 0,
+    "drums": 0,
+    "valid_midi": 0.0
+  },
+  "has_midi": false,
+  "error": "invalid character '\u2013' (U+2013) (<string>, line 1)",
+  "timestamp": "2025-12-06T16:18:01.887026"
+}

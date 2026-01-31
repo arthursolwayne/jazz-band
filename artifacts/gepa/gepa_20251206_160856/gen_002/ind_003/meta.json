@@ -1,0 +1,16 @@
+{
+  "id": 3,
+  "generation": 2,
+  "reward": 0.0,
+  "breakdown": null,
+  "metrics": {
+    "sax": 0,
+    "bass": 0,
+    "piano": 0,
+    "drums": 0,
+    "valid_midi": 0.0
+  },
+  "has_midi": false,
+  "error": "invalid character '\u2019' (U+2019) (<string>, line 5)",
+  "timestamp": "2025-12-06T16:14:34.808979"
+}
